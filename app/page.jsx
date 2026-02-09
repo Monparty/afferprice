@@ -5,7 +5,7 @@ import AppHeader from "./components/layout/AppHeader";
 import AppFooter from "./components/layout/AppFooter";
 import CardZoomImage from "./components/utils/CardZoomImage";
 import UseButton from "./components/inputs/UseButton";
-import { AppstoreFilled, AppstoreOutlined, ArrowRightOutlined, FilterFilled } from "@ant-design/icons";
+import { AppstoreFilled, ArrowRightOutlined, FilterFilled } from "@ant-design/icons";
 import CardProduct from "./components/utils/CardProduct";
 
 function Page() {
@@ -39,7 +39,7 @@ function Page() {
                 </div>
             </div>
             <AppHeader />
-            <main className="flex-1 w-full max-w-[1440px] mx-auto px-4 md:px-10 py-6">
+            <main className="flex-1 w-full max-w-360 mx-auto px-4 md:px-10 py-6">
                 <section className="mb-10">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">

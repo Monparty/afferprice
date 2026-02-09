@@ -1,13 +1,26 @@
+"use client";
 import Link from "next/link";
 import InputText from "../inputs/InputText";
 import { BellFilled, SearchOutlined } from "@ant-design/icons";
 import UseButton from "../inputs/UseButton";
 import UseBadge from "../utils/UseBadge";
 import UseAvatar from "../utils/UseAvatar";
+import { useState } from "react";
+import UseDrawer from "../utils/UseDrawer";
 
 function AppHeader() {
     const linkStyle =
         "h-15 flex items-center border-b-2 transition-all border-transparent hover:border-b-2 hover:border-orange-500";
+
+    // Drawer
+    const [openDrawer, setOpenDrawer] = useState(false);
+    const showDrawer = () => {
+        setOpenDrawer(true);
+    };
+    const onCloseDrawer = () => {
+        setOpenDrawer(false);
+    };
+
     return (
         <header className="h-15 flex items-center ps-10 shadow-sm">
             <h1 className="flex-2 text-xl font-semibold">Afferprice</h1>
@@ -41,12 +54,13 @@ function AppHeader() {
                 </div>
                 <div className="flex-2 flex gap-4 justify-end">
                     <UseBadge dot>
-                        <UseButton onClick={() => alert()} icon={BellFilled} />
+                        <UseButton onClick={() => showDrawer()} icon={BellFilled} />
                     </UseBadge>
                     <UseButton label="เข้าสู่ระบบ" onClick={() => alert()} />
                     <UseAvatar src={"https://picsum.photos/200"} />
                 </div>
             </div>
+            <UseDrawer onClose={onCloseDrawer} open={openDrawer} />
         </header>
     );
 }

@@ -21,7 +21,7 @@ function UseButton({
                 }}
             >
                 <Button
-                    className={`w-full`}
+                    className={`w-full border-0!`}
                     type={type}
                     onClick={onClick}
                     shape={shape}
