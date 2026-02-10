@@ -102,7 +102,7 @@ function Page() {
                     <div className="flex flex-col gap-2 rounded-xl p-6 bg-white shadow-sm border border-slate-200">
                         <div className="flex justify-between items-start">
                             <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">กำลังติดตาม</p>
-                            <span className="material-symbols-outlined text-orange-400">visibility</span>
+                            <span className="material-symbols-outlined text-orange-500">visibility</span>
                         </div>
                         <p className="text-3xl font-bold leading-tight">25</p>
                         <div className="flex items-center gap-1">

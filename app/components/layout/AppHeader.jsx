@@ -10,7 +10,7 @@ import UseDrawer from "../utils/UseDrawer";
 
 function AppHeader() {
     const linkStyle =
-        "h-15 flex items-center border-b-2 transition-all border-transparent hover:border-b-2 hover:border-orange-500";
+        "h-15 flex items-center border-b-3 transition-all border-transparent hover:border-b-3 hover:text-orange-500 hover:border-orange-500";
 
     // Drawer
     const [openDrawer, setOpenDrawer] = useState(false);
@@ -29,7 +29,7 @@ function AppHeader() {
                     <InputText placeholder="ค้นหาสินค้าประมูล..." variant="underlined" icon={SearchOutlined} />
                 </div>
                 <div className="flex-5">
-                    <ul className="flex justify-center gap-8 h-15">
+                    <ul className="flex justify-center gap-8 h-15 b text-gray-700">
                         <li>
                             <Link href="/" className={linkStyle}>
                                 การประมูล

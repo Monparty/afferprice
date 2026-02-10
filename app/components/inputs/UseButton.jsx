@@ -8,31 +8,33 @@ function UseButton({
     label = "",
     onClick,
     shape = "default",
-    iconPlacement = false,
+    iconPlacement = false, // icon end
     size = "middle",
+    wFull = false,
+    disabled = false,
+    className
 }) {
     return (
-        <div>
-            <ConfigProvider
-                theme={{
-                    token: {
-                        colorPrimary: volcano[5],
-                    },
-                }}
+        <ConfigProvider
+            theme={{
+                token: {
+                    colorPrimary: volcano[5],
+                },
+            }}
+        >
+            <Button
+                className={`${className} ${wFull ? "w-full" : "w-fit"}`}
+                type={type}
+                onClick={onClick}
+                shape={shape}
+                icon={Icon && <Icon style={{ fontSize: "16px" }} />}
+                iconPlacement={iconPlacement ? "end" : "start"}
+                size={size}
+                disabled={disabled}
             >
-                <Button
-                    className={`w-full border-0!`}
-                    type={type}
-                    onClick={onClick}
-                    shape={shape}
-                    icon={Icon && <Icon style={{ fontSize: "16px" }} />}
-                    iconPlacement={iconPlacement ? "end" : "start"}
-                    size={size}
-                >
-                    {label}
-                </Button>
-            </ConfigProvider>
-        </div>
+                {label}
+            </Button>
+        </ConfigProvider>
     );
 }
 

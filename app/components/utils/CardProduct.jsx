@@ -31,7 +31,7 @@ function CardProduct({ image, time, category, name, price, bid, favorite }) {
                         <span className="text-xs text-slate-400">{bid} ประมูล</span>
                     </div>
                 </div>
-                <UseButton label="เสนอราคาประมูล" size="large" />
+                <UseButton label="เสนอราคาประมูล" size="large" wFull />
             </div>
         </div>
     );

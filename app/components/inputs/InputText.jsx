@@ -1,10 +1,15 @@
 import { Input } from "antd";
-import React from "react";
 
-function InputText({ icon: Icon, placeholder = "", variant = undefined }) {
+function InputText({ icon: Icon, placeholder = "", variant = undefined, size = "middle", className }) {
     return (
         <div>
-            <Input placeholder={placeholder} variant={variant} prefix={Icon && <Icon className="opacity-20 me-2" />} />
+            <Input
+                placeholder={placeholder}
+                variant={variant}
+                prefix={Icon && <Icon className="opacity-20 me-2" />}
+                size={size}
+                className={`${className}`}
+            />
         </div>
     );
 }

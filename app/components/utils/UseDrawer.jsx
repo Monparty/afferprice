@@ -26,21 +26,21 @@ function UseDrawer({ onClose, open, loading = false }) {
             size={500}
             footer={
                 <div className="bg-white">
-                    <UseButton label="ดูประวัติกิจกรรมทั้งหมด" icon={ArrowRightOutlined} type="link" iconPlacement />
+                    <UseButton
+                        label="ดูประวัติกิจกรรมทั้งหมด"
+                        icon={ArrowRightOutlined}
+                        type="link"
+                        iconPlacement
+                        wFull
+                    />
                 </div>
             }
         >
             <div>
                 <div className="flex gap-2 bg-slate-50/50">
-                    <button className="px-4 py-1.5 rounded-full bg-primary text-white text-xs font-bold shadow-sm bg-orange-500">
-                        ทั้งหมด
-                    </button>
-                    <button className="px-4 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-50 transition-all">
-                        การเสนอราคา
-                    </button>
-                    <button className="px-4 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-50 transition-all">
-                        คำเตือน
-                    </button>
+                    <UseButton shape="round" label="ทั้งหมด" />
+                    <UseButton shape="round" label="การเสนอราคา" type={null} />
+                    <UseButton shape="round" label="คำเตือน" type={null} />
                     <div className="ml-auto flex items-center">
                         <button className="text-xs text-slate-400 hover:text-primary transition-colors">
                             อ่านแล้วทั้งหมด
@@ -64,7 +64,7 @@ function UseDrawer({ onClose, open, loading = false }) {
                                     <br />
                                     ราคาปัจจุบัน: <span className="text-slate-900 font-bold">฿45,500</span>
                                 </p>
-                                <UseButton size="large" label="ประมูลใหม่ทันทีเป็น ฿47,000" />
+                                <UseButton label="ประมูลใหม่ทันทีเป็น ฿47,000" />
                             </div>
                         </div>
                     </div>
@@ -86,7 +86,7 @@ function UseDrawer({ onClose, open, loading = false }) {
                                 <div className="w-full h-1.5 bg-slate-100 rounded-full mb-4 overflow-hidden">
                                     <div className="h-full bg-amber-500 w-[15%]"></div>
                                 </div>
-                                <UseButton size="large" label="ดูสินค้า" type="outlined" />
+                                <UseButton label="ดูสินค้า" type={null} />
                             </div>
                         </div>
                     </div>

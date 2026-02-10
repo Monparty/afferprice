@@ -4,7 +4,7 @@ import InputText from "../inputs/InputText";
 function AppFooter() {
     return (
         <footer className="mt-20 border-t border-slate-200 py-12 bg-slate-900 text-slate-400">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-full max-w-360 mx-auto px-4 md:px-10">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
                     <div className="col-span-1 space-y-4">
                         <div className="flex items-center gap-2 text-white">

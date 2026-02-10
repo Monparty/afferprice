@@ -5,11 +5,72 @@ import AppHeader from "./components/layout/AppHeader";
 import AppFooter from "./components/layout/AppFooter";
 import CardZoomImage from "./components/utils/CardZoomImage";
 import UseButton from "./components/inputs/UseButton";
-import { AppstoreFilled, ArrowRightOutlined, FilterFilled } from "@ant-design/icons";
+import {
+    ArrowRightOutlined, FireOutlined,
+    FormatPainterOutlined,
+    GroupOutlined,
+    LaptopOutlined,
+    SketchOutlined
+} from "@ant-design/icons";
 import CardProduct from "./components/utils/CardProduct";
+import UseTabs from "./components/utils/UseTabs";
+import UseSegmented from "./components/utils/UseSegmented";
 
 function Page() {
     const [showDev, setShowDev] = useState(false);
+
+    const tabItems = [
+        {
+            key: "1",
+            label: (
+                <div className="flex flex-col justify-center items-center gap-1 text-sm px-3">
+                    <FireOutlined className="text-xl" />
+                    มาแรง
+                </div>
+            ),
+            children: "Content of Tab Pane 1",
+        },
+        {
+            key: "2",
+            label: (
+                <div className="flex flex-col justify-center items-center gap-1 text-sm px-3">
+                    <LaptopOutlined className="text-xl" />
+                    อิเล็กทรอนิกส์
+                </div>
+            ),
+            children: "Content of Tab Pane 2",
+        },
+        {
+            key: "3",
+            label: (
+                <div className="flex flex-col justify-center items-center gap-1 text-sm px-3">
+                    <FormatPainterOutlined className="text-xl" />
+                    ศิลปะ
+                </div>
+            ),
+            children: "Content of Tab Pane 3",
+        },
+        {
+            key: "4",
+            label: (
+                <div className="flex flex-col justify-center items-center gap-1 text-sm px-3">
+                    <SketchOutlined className="text-xl" />
+                    เครื่องประดับ
+                </div>
+            ),
+            children: "Content of Tab Pane 3",
+        },
+        {
+            key: "5",
+            label: (
+                <div className="flex flex-col justify-center items-center gap-1 text-sm px-3">
+                    <GroupOutlined className="text-xl" />
+                    พระเครื่อง
+                </div>
+            ),
+            children: "Content of Tab Pane 3",
+        },
+    ];
 
     return (
         <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
@@ -31,15 +92,16 @@ function Page() {
                 <div className="h-fit w-fit bg-red-500 p-4 fixed z-100 m-4 right-0 top-30 rounded-lg font-bold text-white">
                     <div>สิ่งที่ต้องแก้ต่อ</div>
                     <ul className="ps-1">
-                        <li>- add หน้า notification (antd Drawer)</li>
                         <li>- refactor className</li>
-                        <li>- ทำ mock navbar ทุกหน้าที่มี</li>
                         <li>- ใช้ tag Link แทน a</li>
+                        <li>- เพิ่ม Omise payment</li>
+                        <li>- ทำหน้า login register</li>
+                        <li>- ผูก react-hook-form กับ input</li>
+                        <li>- logo link ได้</li>
                     </ul>
                 </div>
             </div>
-            <AppHeader />
-            <main className="flex-1 w-full max-w-360 mx-auto px-4 md:px-10 py-6">
+            <main>
                 <section className="mb-10">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
@@ -82,59 +144,11 @@ function Page() {
                         />
                     </div>
                 </section>
-                <nav className="mb-10 border-b border-slate-200">
-                    <div className="flex overflow-x-auto gap-10 no-scrollbar">
-                        <a
-                            className="flex flex-col items-center gap-2 pb-4 border-b-2 border-primary text-primary min-w-max"
-                            href="#"
-                        >
-                            <span className="material-symbols-outlined">watch</span>
-                            <span className="text-xs font-bold uppercase tracking-widest">นาฬิกา</span>
-                        </a>
-                        <a
-                            className="flex flex-col items-center gap-2 pb-4 border-b-2 border-transparent text-slate-400 hover:text-primary min-w-max transition-colors"
-                            href="#"
-                        >
-                            <span className="material-symbols-outlined">laptop_mac</span>
-                            <span className="text-xs font-bold uppercase tracking-widest">อิเล็กทรอนิกส์</span>
-                        </a>
-                        <a
-                            className="flex flex-col items-center gap-2 pb-4 border-b-2 border-transparent text-slate-400 hover:text-primary min-w-max transition-colors"
-                            href="#"
-                        >
-                            <span className="material-symbols-outlined">palette</span>
-                            <span className="text-xs font-bold uppercase tracking-widest">ศิลปะ</span>
-                        </a>
-                        <a
-                            className="flex flex-col items-center gap-2 pb-4 border-b-2 border-transparent text-slate-400 hover:text-primary min-w-max transition-colors"
-                            href="#"
-                        >
-                            <span className="material-symbols-outlined">directions_car</span>
-                            <span className="text-xs font-bold uppercase tracking-widest">รถยนต์</span>
-                        </a>
-                        <a
-                            className="flex flex-col items-center gap-2 pb-4 border-b-2 border-transparent text-slate-400 hover:text-primary min-w-max transition-colors"
-                            href="#"
-                        >
-                            <span className="material-symbols-outlined">diamond</span>
-                            <span className="text-xs font-bold uppercase tracking-widest">จิวเวลรี่</span>
-                        </a>
-                        <a
-                            className="flex flex-col items-center gap-2 pb-4 border-b-2 border-transparent text-slate-400 hover:text-primary min-w-max transition-colors"
-                            href="#"
-                        >
-                            <span className="material-symbols-outlined">home_iot_device</span>
-                            <span className="text-xs font-bold uppercase tracking-widest">อสังหาริมทรัพย์</span>
-                        </a>
-                    </div>
-                </nav>
+                <UseTabs items={tabItems} size="large" />
                 <section>
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-2xl font-bold tracking-tight">การประมูลยอดนิยม</h2>
-                        <div className="flex gap-2">
-                            <UseButton icon={FilterFilled} />
-                            <UseButton icon={AppstoreFilled} />
-                        </div>
+                        <UseSegmented />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         <CardProduct
@@ -174,7 +188,6 @@ function Page() {
                     </div>
                 </section>
             </main>
-            <AppFooter />
         </div>
     );
 }
