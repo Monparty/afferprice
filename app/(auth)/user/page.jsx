@@ -105,7 +105,7 @@ function Page() {
         <main>
             <div className="flex flex-wrap justify-between items-end gap-4 mb-8">
                 <div className="flex flex-col gap-1">
-                    <h1 className="text-3xl font-black leading-tight tracking-tight text-slate-900">
+                    <h1 className="text-3xl font-bold leading-tight tracking-tight text-slate-900">
                         แดชบอร์ดผู้ใช้งาน
                     </h1>
                     <p className="text-slate-500 text-base font-normal">

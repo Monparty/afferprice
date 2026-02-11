@@ -22,7 +22,7 @@ function Page() {
                                 ></path>
                             </svg> */}
                         </div>
-                        <h2 className="text-navy-dark dark:text-white text-2xl font-black leading-tight tracking-tight">
+                        <h2 className="text-navy-dark dark:text-white text-2xl font-bold leading-tight tracking-tight">
                             Afferprice
                         </h2>
                     </div>
@@ -76,7 +76,7 @@ function Page() {
                 </div>
                 {/* <!-- Page Header --> */}
                 <div className="mb-8">
-                    <h1 className="text-3xl md:text-4xl font-black text-navy-dark dark:text-white mb-2">
+                    <h1 className="text-3xl md:text-4xl font-bold text-navy-dark dark:text-white mb-2">
                         ชำระเงินและเลือกวิธีจัดส่ง
                     </h1>
                     <p className="text-gray-600 dark:text-gray-400">
@@ -117,7 +117,7 @@ function Page() {
                                             ชนะประมูล
                                         </span>
                                         <div className="mt-1">
-                                            <span className="text-2xl font-black text-navy-dark dark:text-white">
+                                            <span className="text-2xl font-bold text-navy-dark dark:text-white">
                                                 ฿450,000
                                             </span>
                                         </div>
@@ -323,10 +323,10 @@ function Page() {
                                             </p>
                                             <p className="text-xs text-gray-400 italic">(รวมภาษีมูลค่าเพิ่มแล้ว)</p>
                                         </div>
-                                        <span className="text-3xl font-black text-primary">฿472,580</span>
+                                        <span className="text-3xl font-bold text-primary">฿472,580</span>
                                     </div>
                                 </div>
-                                <button className="w-full bg-primary hover:bg-orange-600 text-white font-black py-4 rounded-xl shadow-lg shadow-primary/30 transition-all flex items-center justify-center gap-2 text-lg active:scale-[0.98]">
+                                <button className="w-full bg-primary hover:bg-orange-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/30 transition-all flex items-center justify-center gap-2 text-lg active:scale-[0.98]">
                                     <span className="material-symbols-outlined">verified_user</span>
                                     ยืนยันการชำระเงิน
                                 </button>

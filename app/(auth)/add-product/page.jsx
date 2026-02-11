@@ -1,9 +1,18 @@
 "use client";
 import InputNumber from "@/app/components/inputs/InputNumber";
 import UseButton from "@/app/components/inputs/UseButton";
+import UseCheckbox from "@/app/components/inputs/UseCheckbox";
+import UseSelect from "@/app/components/inputs/UseSelect";
 import UseUploadDragger from "@/app/components/inputs/UseUploadDragger";
 import UseSteps from "@/app/components/utils/UseSteps";
-import { ArrowRightOutlined, CameraFilled, CheckCircleFilled, EyeFilled, SafetyOutlined } from "@ant-design/icons";
+import {
+    ArrowRightOutlined,
+    CameraFilled,
+    CheckCircleFilled,
+    DollarOutlined,
+    EyeFilled,
+    SafetyOutlined,
+} from "@ant-design/icons";
 import { useForm } from "react-hook-form";
 
 function Page() {
@@ -21,6 +30,8 @@ function Page() {
             title: "การตั้งค่าประมูล",
         },
     ];
+
+    // console.log("watch", watch());
 
     return (
         <main>
@@ -53,19 +64,28 @@ function Page() {
                         <section className="bg-white rounded-xl border border-slate-200 p-8 shadow-sm">
                             <h2 className="text-xl font-bold text-slate-900 mb-6">การตั้งค่าประมูล</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-sm font-bold text-slate-700">ราคาเริ่มต้น (บาท)</label>
-                                    <InputNumber control={control} name="startPrice" size="large" format />
-                                </div>
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-sm font-bold text-slate-700">ระยะเวลาการประมูล</label>
-                                    <select className="w-full bg-slate-50 border-slate-200 rounded-lg focus:ring-accent focus:border-accent text-slate-900 py-3">
-                                        <option>3 วัน</option>
-                                        <option>5 วัน</option>
-                                        <option selected="">7 วัน</option>
-                                        <option>10 วัน</option>
-                                    </select>
-                                </div>
+                                <InputNumber
+                                    control={control}
+                                    name="startPrice"
+                                    label="ราคาเริ่มต้น (บาท)"
+                                    size="large"
+                                    format
+                                    variant="filled"
+                                    icon={DollarOutlined}
+                                />
+                                <UseSelect
+                                    control={control}
+                                    name="auctionPeriod"
+                                    label="ระยะเวลาการประมูล"
+                                    options={[
+                                        { value: "1", label: "Jack" },
+                                        { value: "2", label: "Lucy" },
+                                        { value: "3", label: "yiminghe" },
+                                        { value: "4", label: "Disabled", disabled: true },
+                                    ]}
+                                    size="large"
+                                    variant="filled"
+                                />
                             </div>
                         </section>
                     </div>
@@ -83,7 +103,7 @@ function Page() {
                                     className="w-full h-full object-cover"
                                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuC921Y5c16lE3ZMlaoy6xolPn0zfdw8gQ7IhtehHzvuwLAS92azbeaanRX37tIMm2AGX7oEMVCTbykL4Ckr1W_dQqsJIDkrxlNeQztkgrFlxh0lKa11D2lR73i5ZECD7v0bs7Gh0KbhDSSe79C3UPAReOuUR8xJ9nfOL7iIhXE1LeyJtLiNP34IcGV_XpyiyenoOExCdg0QOQDvT5tFimVFJIlQYqKA9MHXBZNfBxqss7zEPM3W-FQOtGgTBbgPDYlHi5IURJ5n8ik"
                                 />
-                                <div className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-black px-2 py-1 rounded-full uppercase italic">
+                                <div className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase italic">
                                     กำลังเริ่มเร็วๆ นี้
                                 </div>
                             </div>
@@ -94,17 +114,20 @@ function Page() {
                                 <div className="mt-4 flex items-center justify-between">
                                     <div>
                                         <p className="text-[10px] text-slate-500 uppercase font-bold">ราคาเริ่มต้น</p>
-                                        <p className="text-xl font-black text-primary">฿0</p>
+                                        <p className="text-xl font-bold text-primary">฿ 0</p>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-[10px] text-slate-500 uppercase font-bold">เวลาที่เหลือ</p>
                                         <p className="text-sm font-bold text-slate-900">-- : -- : --</p>
                                     </div>
                                 </div>
-                                <div className="mt-4 pt-4 border-t border-slate-100 flex items-center gap-2">
-                                    <div className="w-6 h-6 rounded-full bg-slate-200 border border-white"></div>
-                                    <span className="text-xs font-medium text-slate-500">ผู้ขาย: บัญชีของคุณ</span>
-                                </div>
+                                <UseCheckbox
+                                    control={control}
+                                    name="isSeller"
+                                    label="ผู้ขาย: บัญชีของคุณ"
+                                    className="text-xs! text-gray-500!"
+                                    // onChange={(e) => console.log("eeeeeeee", e.target.checked)}
+                                />
                             </div>
                             <div className="p-5 flex flex-col gap-3 bg-slate-50">
                                 <UseButton

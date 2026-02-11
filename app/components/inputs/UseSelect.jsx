@@ -1,20 +1,21 @@
 "use client";
-import { Input } from "antd";
+import { Select } from "antd";
 import { Controller } from "react-hook-form";
 import UseHelperText from "./UseHelperText";
 
-function InputText({
+function UseSelect({
     control,
     name,
     label = "",
     onChange,
     placeholder = "",
     className,
-    icon: Icon,
     variant = undefined,
     size = "middle",
-    type = undefined,
+    options,
+    isMultiple = false,
 }) {
+    if (!options?.length) return null;
     return (
         <Controller
             name={name}
@@ -24,21 +25,20 @@ function InputText({
                     <label htmlFor={label} className="text-sm mb-0.5 w-fit">
                         {label}
                     </label>
-                    <Input
+                    <Select
                         {...field}
-                        id={label}
-                        type={type}
                         placeholder={label && !placeholder ? `โปรดระบุ ${label}` : placeholder}
-                        variant={variant}
-                        prefix={Icon && <Icon className="opacity-20 me-2" />}
                         size={size}
+                        mode={isMultiple ? "multiple" : undefined}
                         className={`w-full ${className}`}
+                        variant={variant}
                         onChange={(value) => {
                             if (typeof onChange === "function") {
                                 onChange(value);
                             }
                             field.onChange(value);
                         }}
+                        options={options}
                     />
                     {error && <UseHelperText errorMessage={error.message} />}
                 </div>
@@ -47,4 +47,4 @@ function InputText({
     );
 }
 
-export default InputText;
+export default UseSelect;

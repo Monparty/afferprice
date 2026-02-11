@@ -10,10 +10,13 @@ function UseUploadDragger({ control, name, multiple = false, maxCount = 8 }) {
         <Controller
             name={name}
             control={control}
-            render={({ field, fieldState: { error } }) => (
-                <>
+            render={({ field, fieldState: { error } }) => {
+                const { value, ...restField } = field;
+                return (
                     <Dragger
-                        {...field}
+                        // {...field}
+                        // {...restField}
+                        // fileList={value}
                         multiple={multiple}
                         listType="picture-card"
                         classNames={{
@@ -44,7 +47,7 @@ function UseUploadDragger({ control, name, multiple = false, maxCount = 8 }) {
                             <div className="w-16 h-16 flex justify-center items-center bg-orange-100 rounded-full">
                                 <CloudUploadOutlined className="text-3xl text-orange-600!" />
                             </div>
-                            <p className="text-xl font-bold">ลากและวงรูปภาพที่นี่</p>
+                            <p className="text-xl font-bold">ลากและวางรูปภาพลงที่นี่</p>
                             <p className="text-base">
                                 อัปโหลดรูปภาพได้สูงสุด {maxCount} รูป โดยรองรับไฟล์นามสกุล JPEG, PNG
                             </p>
@@ -52,8 +55,8 @@ function UseUploadDragger({ control, name, multiple = false, maxCount = 8 }) {
                             {/* {error && <>{error.message}</> */}
                         </div>
                     </Dragger>
-                </>
-            )}
+                );
+            }}
         />
     );
 }

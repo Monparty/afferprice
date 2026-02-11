@@ -11,17 +11,19 @@ function InputNumber({
     placeholder = "",
     className,
     icon: Icon,
-    variant = undefined,
+    // variant = undefined,
+    variant = "filled",
     size = "middle",
     min = 1,
     max = undefined,
-    format = false,
     step = false,
+    format = false,
 }) {
     const formatter = (value) => {
         const [start, end] = `${value}`.split(".") || [];
         const v = `${start}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        return `฿ ${end ? `${v}.${end}` : `${v}`}`;
+        // return `฿ ${end ? `${v}.${end}` : `${v}`}`;
+        return `${end ? `${v}.${end}` : `${v}`}`;
     };
 
     return (
@@ -38,22 +40,21 @@ function InputNumber({
                         id={label}
                         placeholder={label && !placeholder ? `โปรดระบุ ${label}` : placeholder}
                         variant={variant}
-                        style={{ width: "100%" }}
                         size={size}
                         min={min}
                         max={max}
                         prefix={Icon && <Icon className="opacity-20 me-2" />}
-                        formatter={format ? formatter : undefined} // จัด format ตอนแสดง (ใส่ ฿, ใส่ ,)
-                        parser={(value) => value?.replace(/\$\s?|(,*)/g, "")} // แกะ format ออกให้เหลือเลขล้วน
-                        step={step ? "0.01" : undefined} // กำหนดความละเอียดในการเพิ่ม/ลด
-                        className={`${className}`}
+                        className={`w-full! ${className}`}
                         onChange={(value) => {
                             if (typeof onChange === "function") {
                                 onChange(value);
                             }
                             field.onChange(value);
                         }}
-                    />
+                        parser={(value) => value?.replace(/\$\s?|(,*)/g, "")} // แกะ format ออกให้เหลือเลขล้วน
+                        step={step ? "0.01" : undefined} // กำหนดความละเอียดในการเพิ่ม/ลด
+                        formatter={format ? formatter : undefined} // จัด format ตอนแสดง (ใส่ ฿, ใส่ ,)
+                        />
                     {error && <UseHelperText errorMessage={error.message} />}
                 </div>
             )}
