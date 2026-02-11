@@ -4,16 +4,18 @@ import { useState } from "react";
 import CardZoomImage from "./components/utils/CardZoomImage";
 import UseButton from "./components/inputs/UseButton";
 import {
-    ArrowRightOutlined, FireOutlined,
+    ArrowRightOutlined,
+    FireOutlined,
     FormatPainterOutlined,
     GroupOutlined,
     LaptopOutlined,
-    SketchOutlined
+    SketchOutlined,
+    AppstoreOutlined,
+    BarsOutlined,
 } from "@ant-design/icons";
 import CardProduct from "./components/utils/CardProduct";
 import UseTabs from "./components/utils/UseTabs";
 import UseSegmented from "./components/utils/UseSegmented";
-import { useForm } from "react-hook-form";
 
 function Page() {
     const [showDev, setShowDev] = useState(false);
@@ -147,7 +149,12 @@ function Page() {
                 <section>
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-2xl font-bold tracking-tight">การประมูลยอดนิยม</h2>
-                        <UseSegmented />
+                        <UseSegmented
+                            options={[
+                                { value: "1", icon: <BarsOutlined /> },
+                                { value: "2", icon: <AppstoreOutlined /> },
+                            ]}
+                        />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         <CardProduct

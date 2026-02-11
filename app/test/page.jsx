@@ -1,11 +1,12 @@
 "use client";
-import React from "react";
-import InputNumber from "../components/inputs/InputNumber";
-import InputText from "../components/inputs/InputText";
 import { useForm } from "react-hook-form";
 import UseButton from "../components/inputs/UseButton";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { schema } from "./schema";
+import UseTable from "../components/utils/UseTable";
+import UseImage from "../components/utils/UseImage";
+import UseTag from "../components/utils/UseTag";
+import { FieldTimeOutlined, MoreOutlined } from "@ant-design/icons";
 
 function Page() {
     const { handleSubmit, watch, control } = useForm({
@@ -17,20 +18,7 @@ function Page() {
     const handleLogin = (values) => {
         console.log("values", values);
     };
-    return (
-        <form className=" flex flex-col w-1/2 items-end gap-5" onSubmit={handleSubmit(handleLogin)}>
-            {/* "outlined" | "borderless" | "filled" | "underlined" | undefined */}
-            <InputText control={control} name="fname" label="ไม่มี" />
-            <InputText control={control} name="1" label=" '' " variant />
-            <InputText control={control} name="2" label="outlined" variant="outlined" />
-            <InputText control={control} name="3" label="borderless" variant="borderless" />
-            <InputText control={control} name="4" label="filled" variant="filled" />
-            <InputText control={control} name="5" label="underlined" variant="underlined" />
-            ===
-            <InputNumber control={control} name="age" label="อายุ" onChange={(value) => console.log("value age", value)} />
-            <UseButton label="submit" htmlType="submit" />
-        </form>
-    );
+    return <></>;
 }
 
 export default Page;

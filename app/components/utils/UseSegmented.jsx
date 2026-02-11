@@ -1,17 +1,18 @@
 import { Segmented } from "antd";
-import { AppstoreOutlined, BarsOutlined } from "@ant-design/icons";
 
 function UseSegmented({ options, onChange }) {
+    if (!options?.length) return null;
     return (
         <Segmented
-            options={[
-                { value: "1", icon: <BarsOutlined /> },
-                { value: "2", icon: <AppstoreOutlined /> },
-            ]}
+            options={options}
             onChange={(e) => {
                 if (onChange === typeof "function") {
                     onChange(e);
                 }
+            }}
+            classNames={{
+                root: " py-1!",
+                item: "mx-1!",
             }}
         />
     );

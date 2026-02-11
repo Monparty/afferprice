@@ -62,7 +62,7 @@ function CardProductBid() {
                         />
                     </div>
                     {/* <InputNumber size="large" className="h-14" />
-                                    <InputText size="large" className="h-14" /> */}
+                    <InputText size="large" className="h-14" /> */}
                     <UseButton
                         label="วางประมูลทันที"
                         wFull

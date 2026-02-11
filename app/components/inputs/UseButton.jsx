@@ -4,7 +4,7 @@ import { volcano } from "@ant-design/colors";
 
 function UseButton({
     icon: Icon,
-    type = "primary",
+    type = "primary", // "default" | "link" | "text" | "primary" | "dashed"
     label = "",
     onClick,
     shape = "default",
