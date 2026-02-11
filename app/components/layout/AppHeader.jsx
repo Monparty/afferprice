@@ -7,8 +7,10 @@ import UseBadge from "../utils/UseBadge";
 import UseAvatar from "../utils/UseAvatar";
 import { useState } from "react";
 import UseDrawer from "../utils/UseDrawer";
+import { useForm } from "react-hook-form";
 
 function AppHeader() {
+    const { control } = useForm();
     const linkStyle =
         "h-15 flex items-center border-b-3 transition-all border-transparent hover:border-b-3 hover:text-orange-500 hover:border-orange-500";
 
@@ -26,7 +28,7 @@ function AppHeader() {
             <h1 className="flex-2 text-xl font-semibold">Afferprice</h1>
             <div className="flex items-center flex-8 pe-4">
                 <div className="flex-2">
-                    <InputText placeholder="ค้นหาสินค้าประมูล..." variant="underlined" icon={SearchOutlined} />
+                    <InputText control={control} name="search" placeholder="ค้นหาสินค้าประมูล..." variant="underlined" icon={SearchOutlined} />
                 </div>
                 <div className="flex-5">
                     <ul className="flex justify-center gap-8 h-15 b text-gray-700">

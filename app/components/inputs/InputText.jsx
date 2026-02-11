@@ -1,16 +1,49 @@
+"use client";
 import { Input } from "antd";
+import { Controller } from "react-hook-form";
+import UseHelperText from "./UseHelperText";
 
-function InputText({ icon: Icon, placeholder = "", variant = undefined, size = "middle", className }) {
+function InputText({
+    control,
+    name,
+    label = "",
+    onChange,
+    placeholder = "",
+    className,
+    icon: Icon,
+    variant = undefined,
+    size = "middle",
+    type = undefined,
+}) {
     return (
-        <div>
-            <Input
-                placeholder={placeholder}
-                variant={variant}
-                prefix={Icon && <Icon className="opacity-20 me-2" />}
-                size={size}
-                className={`${className}`}
-            />
-        </div>
+        <Controller
+            name={name}
+            control={control}
+            render={({ field, fieldState: { error } }) => (
+                <div className="grid w-full relative">
+                    <label htmlFor={label} className="text-sm mb-0.5 w-fit">
+                        {label}
+                    </label>
+                    <Input
+                        {...field}
+                        id={label}
+                        placeholder={label && !placeholder ? `โปรดระบุ ${label}` : placeholder}
+                        variant={variant}
+                        prefix={Icon && <Icon className="opacity-20 me-2" />}
+                        size={size}
+                        className={`${className}`}
+                        onChange={(value) => {
+                            if (typeof onChange === "function") {
+                                onChange(value);
+                            }
+                            field.onChange(value);
+                        }}
+                        type={type}
+                    />
+                    {error && <UseHelperText errorMessage={error.message} />}
+                </div>
+            )}
+        />
     );
 }
 

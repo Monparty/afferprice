@@ -1,8 +1,6 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import AppHeader from "./components/layout/AppHeader";
-import AppFooter from "./components/layout/AppFooter";
 import CardZoomImage from "./components/utils/CardZoomImage";
 import UseButton from "./components/inputs/UseButton";
 import {
@@ -15,6 +13,7 @@ import {
 import CardProduct from "./components/utils/CardProduct";
 import UseTabs from "./components/utils/UseTabs";
 import UseSegmented from "./components/utils/UseSegmented";
+import { useForm } from "react-hook-form";
 
 function Page() {
     const [showDev, setShowDev] = useState(false);

@@ -1,14 +1,20 @@
 "use client";
 import { InputNumber as AntInputNumber } from "antd";
+import { Controller } from "react-hook-form";
+import UseHelperText from "./UseHelperText";
 
 function InputNumber({
-    icon: Icon,
+    control,
+    name,
+    label = "",
+    onChange,
     placeholder = "",
+    className,
+    icon: Icon,
     variant = undefined,
     size = "middle",
     min = 1,
     max = undefined,
-    className,
     format = false,
     step = false,
 }) {
@@ -18,27 +24,40 @@ function InputNumber({
         return `฿ ${end ? `${v}.${end}` : `${v}`}`;
     };
 
-    /*
-        formatter   จัด format ตอนแสดง (ใส่ ฿, ใส่ ,)
-        parser      แกะ format ออกให้เหลือเลขล้วน
-        step        กำหนดความละเอียดในการเพิ่ม/ลด
-    */
     return (
-        <div>
-            <AntInputNumber
-                placeholder={placeholder}
-                variant={variant}
-                style={{ width: "100%" }}
-                size={size}
-                min={min}
-                max={max}
-                prefix={Icon && <Icon className="opacity-20 me-2" />}
-                formatter={format ? formatter : null}
-                step={step ? "0.01" : null}
-                parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
-                className={`${className}`}
-            />
-        </div>
+        <Controller
+            name={name}
+            control={control}
+            render={({ field, fieldState: { error } }) => (
+                <div className="grid w-full relative">
+                    <label htmlFor={label} className="text-sm mb-0.5 w-fit">
+                        {label}
+                    </label>
+                    <AntInputNumber
+                        {...field}
+                        id={label}
+                        placeholder={label && !placeholder ? `โปรดระบุ ${label}` : placeholder}
+                        variant={variant}
+                        style={{ width: "100%" }}
+                        size={size}
+                        min={min}
+                        max={max}
+                        prefix={Icon && <Icon className="opacity-20 me-2" />}
+                        formatter={format ? formatter : undefined} // จัด format ตอนแสดง (ใส่ ฿, ใส่ ,)
+                        parser={(value) => value?.replace(/\$\s?|(,*)/g, "")} // แกะ format ออกให้เหลือเลขล้วน
+                        step={step ? "0.01" : undefined} // กำหนดความละเอียดในการเพิ่ม/ลด
+                        className={`${className}`}
+                        onChange={(value) => {
+                            if (typeof onChange === "function") {
+                                onChange(value);
+                            }
+                            field.onChange(value);
+                        }}
+                    />
+                    {error && <UseHelperText errorMessage={error.message} />}
+                </div>
+            )}
+        />
     );
 }
 

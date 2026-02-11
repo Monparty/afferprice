@@ -1,7 +1,11 @@
+"use client"
 import UseButton from "../inputs/UseButton";
 import InputText from "../inputs/InputText";
+import { useForm } from "react-hook-form";
 
 function AppFooter() {
+    const { control } = useForm();
+
     return (
         <footer className="mt-20 border-t border-slate-200 py-12 bg-slate-900 text-slate-400">
             <div className="w-full max-w-360 mx-auto px-4 md:px-10">
@@ -68,7 +72,7 @@ function AppFooter() {
                         <h4 className="text-white font-bold mb-4">ข่าวสาร</h4>
                         <p className="text-sm mb-4">รับข่าวสารเกี่ยวกับสินค้าหายากก่อนใคร</p>
                         <div className="flex gap-2">
-                            <InputText placeholder="อีเมลของคุณ" />
+                            <InputText control={control} name="email" placeholder="อีเมลของคุณ" />
                             <UseButton label="ติดตาม" />
                         </div>
                     </div>

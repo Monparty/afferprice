@@ -12,7 +12,8 @@ function UseButton({
     size = "middle",
     wFull = false,
     disabled = false,
-    className
+    className,
+    htmlType = "button",
 }) {
     return (
         <ConfigProvider
@@ -26,6 +27,7 @@ function UseButton({
                 className={`${className} ${wFull ? "w-full" : "w-fit"}`}
                 type={type}
                 onClick={onClick}
+                htmlType={htmlType}
                 shape={shape}
                 icon={Icon && <Icon style={{ fontSize: "16px" }} />}
                 iconPlacement={iconPlacement ? "end" : "start"}
