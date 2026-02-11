@@ -1,8 +1,13 @@
+"use client";
+import InputNumber from "@/app/components/inputs/InputNumber";
 import UseButton from "@/app/components/inputs/UseButton";
+import UseUploadDragger from "@/app/components/inputs/UseUploadDragger";
 import UseSteps from "@/app/components/utils/UseSteps";
 import { ArrowRightOutlined, CameraFilled, CheckCircleFilled, EyeFilled, SafetyOutlined } from "@ant-design/icons";
+import { useForm } from "react-hook-form";
 
 function Page() {
+    const { handleSubmit, watch, control } = useForm({});
     const items = [
         {
             title: "รูปภาพ",
@@ -16,6 +21,7 @@ function Page() {
             title: "การตั้งค่าประมูล",
         },
     ];
+
     return (
         <main>
             <div className="w-full flex flex-col gap-8">
@@ -42,58 +48,14 @@ function Page() {
                                     รูปภาพคุณภาพสูงจะช่วยเพิ่มโอกาสในการขายได้ถึง 40%
                                 </p>
                             </div>
-                            <div className="flex flex-col items-center justify-center w-full min-h-[300px] border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 hover:bg-slate-100 transition-all cursor-pointer group">
-                                <div className="flex flex-col items-center text-center p-8">
-                                    <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                        <span className="material-symbols-outlined text-accent text-4xl">
-                                            cloud_upload
-                                        </span>
-                                    </div>
-                                    <h3 className="text-lg font-bold text-slate-900">ลากและวางรูปภาพที่นี่</h3>
-                                    <p className="text-slate-500 text-sm mt-2 max-w-xs">
-                                        สามารถอัปโหลดได้สูงสุด 12 รูป รองรับไฟล์ JPEG, PNG และ HEIC
-                                    </p>
-                                    <button className="mt-6 px-8 py-2.5 bg-primary text-white rounded-lg font-bold text-sm hover:opacity-90 transition-opacity">
-                                        เลือกไฟล์จากเครื่อง
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-4 md:grid-cols-5 gap-3 mt-6">
-                                <div className="aspect-square rounded-lg border border-slate-200 overflow-hidden relative group">
-                                    <img
-                                        alt="Product preview"
-                                        className="w-full h-full object-cover"
-                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBskURA1I1sb-Zh01TRgC7l_QkE-W4ARvcB-oejB9X0qJkgReHXgnB80B_s0JHlpuJPJjxCb4q2wILh1YeTUo9Sb0dnIG_LNgmdJ68WaBL2fhg_-TEKE8welPNNg901dXyXui8pmyxnsN3ukvjMTC3xhGbUeFQaj7cZNe4QcpAqdkxFDMemN4c2JOIrRyCD98XrgJEz9--92gxq9bGhTxu5Q4LOULCqehSvDXOXWmVcF57bGxFlva-TCImZ9KZSDhp875pmLeD0OTQ"
-                                    />
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                        <span className="material-symbols-outlined text-white cursor-pointer hover:text-red-400">
-                                            delete
-                                        </span>
-                                    </div>
-                                    <div className="absolute bottom-1 left-1 bg-accent text-[10px] text-white px-1.5 py-0.5 rounded font-bold uppercase">
-                                        รูปหลัก
-                                    </div>
-                                </div>
-                                <div className="aspect-square rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 hover:border-accent hover:text-accent transition-colors">
-                                    <span className="material-symbols-outlined">add</span>
-                                </div>
-                            </div>
+                            <UseUploadDragger control={control} name="myFile" multiple maxCount={3} />
                         </section>
                         <section className="bg-white rounded-xl border border-slate-200 p-8 shadow-sm">
                             <h2 className="text-xl font-bold text-slate-900 mb-6">การตั้งค่าประมูล</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="flex flex-col gap-2">
                                     <label className="text-sm font-bold text-slate-700">ราคาเริ่มต้น (บาท)</label>
-                                    <div className="relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">
-                                            ฿
-                                        </span>
-                                        <input
-                                            className="w-full bg-slate-50 border-slate-200 rounded-lg focus:ring-accent focus:border-accent text-slate-900 pl-8 py-3"
-                                            placeholder="0.00"
-                                            type="number"
-                                        />
-                                    </div>
+                                    <InputNumber control={control} name="startPrice" size="large" format />
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <label className="text-sm font-bold text-slate-700">ระยะเวลาการประมูล</label>
