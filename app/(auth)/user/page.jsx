@@ -142,7 +142,7 @@ function Page() {
                 <div className="flex flex-col gap-2 rounded-xl p-6 bg-white shadow-sm border border-slate-200">
                     <div className="flex justify-between items-start">
                         <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">กำลังติดตาม</p>
-                        <EyeFilled className="text-2xl text-orange-500!" />
+                        <EyeFilled className="text-2xl text-orange-600!" />
                     </div>
                     <p className="text-3xl font-bold leading-tight">25</p>
                     <div className="flex items-center gap-1">

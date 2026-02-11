@@ -17,7 +17,7 @@ function CardProduct({ image, time, category, name, price, bid, favorite }) {
                         )}
                     </button>
                 </div>
-                <div className="absolute bottom-3 left-3 bg-accent-orange px-2 py-1 rounded text-[11px] font-bold flex items-center gap-2 shadow-lg border border-orange-600 text-orange-500 bg-white">
+                <div className="absolute bottom-3 left-3 bg-accent-orange px-2 py-1 rounded text-[11px] font-bold flex items-center gap-2 shadow-lg border border-orange-600 text-orange-600 bg-white">
                     <FieldTimeOutlined style={{ fontSize: "20px" }} />
                     {time}
                 </div>

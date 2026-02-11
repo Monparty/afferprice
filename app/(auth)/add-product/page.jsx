@@ -52,7 +52,7 @@ function Page() {
                         <section className="bg-white rounded-xl border border-slate-200 p-8 shadow-sm">
                             <div className="mb-6">
                                 <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                                    <CameraFilled className="text-orange-500!" />
+                                    <CameraFilled className="text-orange-600!" />
                                     อัปโหลดรูปภาพ
                                 </h2>
                                 <p className="text-slate-500 text-sm mt-1">
@@ -90,7 +90,7 @@ function Page() {
                         </section>
                     </div>
                     <div className="flex flex-col gap-6">
-                        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-lg sticky top-24">
+                        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-lg sticky top-12">
                             <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
                                 <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                                     ตัวอย่างการแสดงผล

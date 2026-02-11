@@ -19,22 +19,22 @@ function CardProductBid() {
             <div className="p-6 bg-slate-900 text-white">
                 <div className="flex justify-between items-center mb-4">
                     <span className="text-slate-400 text-sm font-medium">เวลาที่เหลือ:</span>
-                    <div className="flex items-center gap-2 text-orange-500">
+                    <div className="flex items-center gap-2 text-orange-600">
                         <ClockCircleFilled />
                         <span className="text-sm font-bold uppercase tracking-wider">ปิดเร็วๆ นี้</span>
                     </div>
                 </div>
                 <div className="flex justify-between text-center gap-2">
                     <div className="flex-1 bg-white/10 rounded-lg py-2">
-                        <span className="block text-2xl font-bold text-orange-500">04</span>
+                        <span className="block text-2xl font-bold text-orange-600">04</span>
                         <span className="text-[10px] text-slate-400 uppercase">ชั่วโมง</span>
                     </div>
                     <div className="flex-1 bg-white/10 rounded-lg py-2">
-                        <span className="block text-2xl font-bold text-orange-500">21</span>
+                        <span className="block text-2xl font-bold text-orange-600">21</span>
                         <span className="text-[10px] text-slate-400 uppercase">นาที</span>
                     </div>
                     <div className="flex-1 bg-white/10 rounded-lg py-2">
-                        <span className="block text-2xl font-bold text-orange-500">38</span>
+                        <span className="block text-2xl font-bold text-orange-600">38</span>
                         <span className="text-[10px] text-slate-400 uppercase">วินาที</span>
                     </div>
                 </div>

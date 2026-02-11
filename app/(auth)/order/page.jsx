@@ -5,7 +5,7 @@ function Page() {
         <div className="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
             <div className="layout-container flex h-full grow flex-col">
                 {/* <!-- Navigation Bar --> */}
-                <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 md:px-10 lg:px-40 py-3 sticky top-0 z-50">
+                <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 md:px-10 lg:px-40 py-3 sticky top-12 z-50">
                     <div className="flex items-center gap-8">
                         <div className="flex items-center gap-4 text-primary">
                             <div className="size-8">
