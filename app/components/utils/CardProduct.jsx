@@ -7,7 +7,7 @@ function CardProduct({ image, time, category, name, price, bid, favorite }) {
     return (
         <div className="bg-white rounded-xl overflow-hidden border border-slate-200 flex flex-col group transition-all hover:shadow-xl hover:-translate-y-1">
             <div className="relative aspect-square">
-                <Image src={image} width={40} height={40} className="w-full h-full object-cover" unoptimized />
+                <Image src={image} width={40} height={40} alt={name} className="w-full h-full object-cover" unoptimized />
                 <div className="absolute top-3 right-3">
                     <button className="size-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-slate-600 hover:text-red-600 transition-colors cursor-pointer">
                         {favorite ? (

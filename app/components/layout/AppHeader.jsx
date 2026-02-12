@@ -10,12 +10,14 @@ import UseDrawer from "../utils/UseDrawer";
 import { useForm } from "react-hook-form";
 import afferpriceLogo from "../../../public/images/afferpriceLogo.png";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 function AppHeader() {
     const { control } = useForm();
+    const pathname = usePathname();
     const linkStyle =
         "h-15 flex items-center border-b-3 transition-all border-transparent hover:border-b-3 hover:text-orange-600 hover:border-orange-600";
-
+    console.log("pathname", pathname)
     // Drawer
     const [openDrawer, setOpenDrawer] = useState(false);
     const showDrawer = () => {
@@ -24,6 +26,7 @@ function AppHeader() {
     const onCloseDrawer = () => {
         setOpenDrawer(false);
     };
+    
 
     return (
         <header className="h-15 flex items-center ps-10 shadow-sm">
@@ -69,7 +72,10 @@ function AppHeader() {
                     <UseBadge dot>
                         <UseButton onClick={() => showDrawer()} icon={BellFilled} />
                     </UseBadge>
-                    <UseButton label="เข้าสู่ระบบ" onClick={() => alert()} />
+                    <Link href="/login">
+                        <UseButton label="เข้าสู่ระบบ" />
+                    </Link>
+
                     <UseAvatar src={"https://picsum.photos/30/30"} />
                 </div>
             </div>

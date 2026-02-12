@@ -8,7 +8,7 @@ import { volcano } from "@ant-design/colors";
 function InputNumber({
     control,
     name,
-    label = "",
+    label = "\u00A0",
     onChange,
     placeholder = "",
     className,
@@ -63,6 +63,7 @@ function InputNumber({
                             parser={(value) => value?.replace(/\$\s?|(,*)/g, "")} // แกะ format ออกให้เหลือเลขล้วน
                             step={step ? "0.01" : undefined} // กำหนดความละเอียดในการเพิ่ม/ลด
                             formatter={format ? formatter : undefined} // จัด format ตอนแสดง (ใส่ ฿, ใส่ ,)
+                            status={error ? "error" : undefined}
                         />
                         {error && <UseHelperText errorMessage={error.message} />}
                     </div>

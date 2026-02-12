@@ -7,7 +7,7 @@ import { volcano } from "@ant-design/colors";
 function InputText({
     control,
     name,
-    label = "",
+    label = "\u00A0",
     onChange,
     placeholder = "",
     className,
@@ -47,6 +47,7 @@ function InputText({
                                 }
                                 field.onChange(value);
                             }}
+                            status={error ? "error" : undefined}
                         />
                         {error && <UseHelperText errorMessage={error.message} />}
                     </div>

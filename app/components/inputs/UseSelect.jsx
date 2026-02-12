@@ -7,7 +7,7 @@ import { volcano } from "@ant-design/colors";
 function UseSelect({
     control,
     name,
-    label = "",
+    label = "\u00A0",
     onChange,
     placeholder = "",
     className,
@@ -47,6 +47,7 @@ function UseSelect({
                                 field.onChange(value);
                             }}
                             options={options}
+                            status={error ? "error" : undefined}
                         />
                         {error && <UseHelperText errorMessage={error.message} />}
                     </div>
