@@ -70,7 +70,7 @@ function CardProductBid() {
                         size="large"
                         icon={NotificationFilled}
                         iconPlacement
-                        className="h-12!"
+                        className="h-12! text-lg! font-bold!"
                     />
                     <div className="flex flex-col gap-2 text-sm text-slate-400 text-center">
                         <span className="flex items-center justify-center gap-2">

@@ -1,4 +1,5 @@
 import UseButton from "../inputs/UseButton";
+import UseTag from "./UseTag";
 
 function CardZoomImage({ backgroundImage, title, price, bid, state = false }) {
     return (
@@ -12,11 +13,7 @@ function CardZoomImage({ backgroundImage, title, price, bid, state = false }) {
             <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent"></div>
             <div className="absolute bottom-0 left-0 p-6 w-full flex justify-between items-end">
                 <div className="space-y-1">
-                    <span
-                        className={`px-2 py-1 ${state ? "bg-red-600" : "bg-blue-600"} text-white text-[10px] font-bold rounded uppercase tracking-widest`}
-                    >
-                        {state ? "กำลังจะจบ" : "แนะนำ"}
-                    </span>
+                    <UseTag label={state ? "กำลังจะจบ" : "แนะนำ"} variant="solid" color={state ? "red" : "blue"} />
                     <h3 className="text-white text-2xl font-bold mt-2">{title}</h3>
                     <div className="flex items-center gap-3 text-white/90">
                         <p className="text-lg font-medium">

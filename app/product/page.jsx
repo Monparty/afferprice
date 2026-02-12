@@ -2,6 +2,7 @@ import UseBreadcrumb from "../components/utils/UseBreadcrumb";
 import { BarChartOutlined, SafetyOutlined } from "@ant-design/icons";
 import UseImageGroup from "../components/utils/UseImageGroup";
 import CardProductBid from "../components/utils/CardProductBid";
+import UseTag from "../components/utils/UseTag";
 
 function Page() {
     const UseBreadcrumbItems = [
@@ -99,15 +100,13 @@ function Page() {
                         <div className="space-y-4">
                             <h3 className="text-lg font-bold">ข้อมูลผู้ขาย</h3>
                             <div className="flex items-center gap-4 p-4 rounded-lg bg-slate-50 border border-slate-100">
-                                <div className="text-white bg-blue-500 h-9 w-9 flex items-center justify-center rounded-full">
+                                <div className="text-white bg-orange-600 h-9 w-9 flex items-center justify-center rounded-full">
                                     <SafetyOutlined className="text-2xl" />
                                 </div>
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2">
                                         <span className="font-bold">ChronoElite Traders</span>
-                                        <span className="bg-blue-600 text-[10px] text-white px-2 py-0.5 rounded uppercase font-bold">
-                                            Top Seller
-                                        </span>
+                                        <UseTag label="Top Seller" color="blue" variant="outlined" />
                                     </div>
                                     <p className="text-xs text-slate-500">
                                         สำเร็จการประมูล 4,821 ครั้ง • คะแนนบวก 99.8%
@@ -181,12 +180,12 @@ function Page() {
                                 ดูประวัติทั้งหมด 24 รายการ
                             </button>
                         </div>
-                        <div className="bg-blue-50 rounded-2xl p-6 border border-blue-100 border-l-4 border-l-blue-500">
+                        <div className="bg-orange-50 rounded-2xl p-6 border border-orange-100 border-l-4 border-l-orange-600">
                             <div className="flex items-start gap-3">
-                                <BarChartOutlined className="text-2xl text-blue-800!" />
+                                <BarChartOutlined className="text-2xl text-orange-600!" />
                                 <div>
-                                    <h4 className="font-bold text-sm text-blue-900">ข้อมูลเชิงลึกจากตลาด</h4>
-                                    <p className="text-xs text-blue-800 mt-1 leading-relaxed">
+                                    <h4 className="font-bold text-sm">ข้อมูลเชิงลึกจากตลาด</h4>
+                                    <p className="text-xs text-orange-600 mt-1 leading-relaxed">
                                         รุ่นนี้กำลังเป็นที่นิยม +12.4% เหนือราคาป้าย
                                         สินค้าที่คล้ายกันประมูลไปในราคาสูงสุดเฉลี่ยที่ ฿577,500 ในไตรมาสนี้
                                     </p>

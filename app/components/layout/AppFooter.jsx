@@ -2,6 +2,8 @@
 import UseButton from "../inputs/UseButton";
 import InputText from "../inputs/InputText";
 import { useForm } from "react-hook-form";
+import Image from "next/image";
+import afferpriceLogo from "../../../public/images/afferpriceLogo.png";
 
 function AppFooter() {
     const { control } = useForm();
@@ -11,7 +13,8 @@ function AppFooter() {
             <div className="w-full max-w-360 mx-auto px-4 md:px-10">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
                     <div className="col-span-1 space-y-4">
-                        <div className="flex items-center gap-2 text-white">
+                        <div className="flex items-center gap-3 text-white">
+                            <Image src={afferpriceLogo} width={32} height={32} alt="Afferprice Logo" />
                             <h2 className="text-xl font-extrabold tracking-tight">Afferprice</h2>
                         </div>
                         <p className="text-sm leading-relaxed">

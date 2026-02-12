@@ -8,11 +8,13 @@ import UseAvatar from "../utils/UseAvatar";
 import { useState } from "react";
 import UseDrawer from "../utils/UseDrawer";
 import { useForm } from "react-hook-form";
+import afferpriceLogo from "../../../public/images/afferpriceLogo.png";
+import Image from "next/image";
 
 function AppHeader() {
     const { control } = useForm();
     const linkStyle =
-        "h-15 flex items-center border-b-3 transition-all border-transparent hover:border-b-3 hover:text-orange-500 hover:border-orange-500";
+        "h-15 flex items-center border-b-3 transition-all border-transparent hover:border-b-3 hover:text-orange-600 hover:border-orange-600";
 
     // Drawer
     const [openDrawer, setOpenDrawer] = useState(false);
@@ -25,10 +27,19 @@ function AppHeader() {
 
     return (
         <header className="h-15 flex items-center ps-10 shadow-sm">
-            <h1 className="flex-2 text-xl font-semibold">Afferprice</h1>
+            <Link href="/" className="flex-2 flex items-center gap-3">
+                <Image src={afferpriceLogo} width={32} height={32} alt="Afferprice Logo" />
+                <h1 className="text-xl font-semibold">Afferprice</h1>
+            </Link>
             <div className="flex items-center flex-8 pe-4">
                 <div className="flex-2">
-                    <InputText control={control} name="search" placeholder="ค้นหาสินค้าประมูล..." variant="underlined" icon={SearchOutlined} />
+                    <InputText
+                        control={control}
+                        name="search"
+                        placeholder="ค้นหาสินค้าประมูล..."
+                        variant="underlined"
+                        icon={SearchOutlined}
+                    />
                 </div>
                 <div className="flex-5">
                     <ul className="flex justify-center gap-8 h-15 b text-gray-700">
@@ -59,7 +70,7 @@ function AppHeader() {
                         <UseButton onClick={() => showDrawer()} icon={BellFilled} />
                     </UseBadge>
                     <UseButton label="เข้าสู่ระบบ" onClick={() => alert()} />
-                    <UseAvatar src={"https://picsum.photos/200"} />
+                    <UseAvatar src={"https://picsum.photos/30/30"} />
                 </div>
             </div>
             <UseDrawer onClose={onCloseDrawer} open={openDrawer} />

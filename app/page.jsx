@@ -93,11 +93,9 @@ function Page() {
                 <div className="h-fit w-fit bg-red-500 p-4 fixed z-100 m-4 right-0 top-30 rounded-lg font-bold text-white">
                     <div>สิ่งที่ต้องแก้ต่อ</div>
                     <ul className="ps-1">
-                        <li>- refactor className</li>
                         <li>- ใช้ tag Link แทน a</li>
                         <li>- เพิ่ม Omise payment</li>
                         <li>- ทำหน้า login register</li>
-                        <li>- ผูก react-hook-form กับ input</li>
                         <li>- logo link ได้</li>
                     </ul>
                 </div>
@@ -109,12 +107,7 @@ function Page() {
                             <span className="flex size-2 rounded-full bg-red-500 animate-pulse"></span>
                             <h2 className="text-2xl font-bold tracking-tight">ประมูลสดตอนนี้</h2>
                         </div>
-                        <a
-                            className="text-sm font-semibold text-primary flex items-center gap-1 hover:underline"
-                            href="#"
-                        >
-                            <UseButton label="ดูทั้งหมด" type="link" icon={ArrowRightOutlined} iconPlacement />
-                        </a>
+                        <UseButton label="ดูทั้งหมด" type="default" icon={ArrowRightOutlined} iconPlacement />
                     </div>
                     <div className="flex overflow-x-auto gap-4 pb-4 no-scrollbar">
                         <CardZoomImage

@@ -25,13 +25,12 @@ function UseDrawer({ onClose, open, loading = false }) {
             }}
             size={500}
             footer={
-                <div className="bg-white">
+                <div className="bg-white flex justify-center">
                     <UseButton
                         label="ดูประวัติกิจกรรมทั้งหมด"
                         icon={ArrowRightOutlined}
-                        type="link"
+                        type="default"
                         iconPlacement
-                        wFull
                     />
                 </div>
             }
