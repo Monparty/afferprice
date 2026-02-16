@@ -4,17 +4,15 @@ import { Controller } from "react-hook-form";
 import UseHelperText from "./UseHelperText";
 import { volcano } from "@ant-design/colors";
 
-function InputText({
+function UseInputPassword({
     control,
     name,
     label = "",
     onChange,
     placeholder = "",
     className,
-    icon: Icon,
     variant = undefined,
     size = "middle",
-    type = undefined,
 }) {
     return (
         <Controller
@@ -32,13 +30,11 @@ function InputText({
                         <label htmlFor={label} className="text-sm mb-0.5 w-fit">
                             {label}
                         </label>
-                        <Input
+                        <Input.Password 
                             {...field}
                             id={label}
-                            type={type}
                             placeholder={label && !placeholder ? `โปรดระบุ ${label}` : placeholder}
                             variant={variant}
-                            prefix={Icon && <Icon className="opacity-20 me-2" />}
                             size={size}
                             className={`w-full ${className}`}
                             onChange={(value) => {
@@ -47,6 +43,7 @@ function InputText({
                                 }
                                 field.onChange(value);
                             }}
+                            visibilityToggle={true}
                             status={error ? "error" : undefined}
                         />
                         {error && <UseHelperText errorMessage={error.message} />}
@@ -57,4 +54,4 @@ function InputText({
     );
 }
 
-export default InputText;
+export default UseInputPassword;

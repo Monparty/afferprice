@@ -8,7 +8,7 @@ import { volcano } from "@ant-design/colors";
 function InputNumber({
     control,
     name,
-    label = "\u00A0",
+    label = "",
     onChange,
     placeholder = "",
     className,

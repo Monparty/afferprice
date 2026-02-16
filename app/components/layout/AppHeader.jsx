@@ -75,7 +75,6 @@ function AppHeader() {
                     <Link href="/login">
                         <UseButton label="เข้าสู่ระบบ" />
                     </Link>
-
                     <UseAvatar src={"https://picsum.photos/30/30"} />
                 </div>
             </div>

@@ -7,7 +7,7 @@ import { volcano } from "@ant-design/colors";
 function UseSelect({
     control,
     name,
-    label = "\u00A0",
+    label = "",
     onChange,
     placeholder = "",
     className,
@@ -35,6 +35,7 @@ function UseSelect({
                         </label>
                         <Select
                             {...field}
+                            allowClear
                             placeholder={label && !placeholder ? `โปรดระบุ ${label}` : placeholder}
                             size={size}
                             mode={isMultiple ? "multiple" : undefined}
