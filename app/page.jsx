@@ -82,7 +82,7 @@ function Page() {
                 Dev
             </button>
             <div className={`${showDev ? "block" : "hidden"}`}>
-                <div className="h-fit w-fit bg-blue-400 p-4 fixed z-100 m-4 right-0 top-15 rounded-lg font-bold text-white flex gap-4">
+                <div className="h-fit w-fit bg-blue-400 p-4 fixed z-100 m-4 right-0 top-36 rounded-lg font-bold text-white flex gap-4">
                     <Link href="/product">product</Link>
                     <Link href="/user">user</Link>
                     <Link href="/add-product">add-product</Link>
@@ -90,13 +90,15 @@ function Page() {
                     <Link href="/payment">payment</Link>
                     <Link href="/order">order</Link>
                 </div>
-                <div className="h-fit w-fit bg-red-500 p-4 fixed z-100 m-4 right-0 top-30 rounded-lg font-bold text-white">
+                <div className="h-fit w-fit bg-red-500 p-4 fixed z-100 m-4 right-0 top-51 rounded-lg font-bold text-white">
                     <div>สิ่งที่ต้องแก้ต่อ</div>
                     <ul className="ps-1">
                         <li>- ใช้ tag Link แทน a</li>
                         <li>- เพิ่ม Omise payment</li>
                         <li>- ทำหน้า login register</li>
-                        <li>- เพิ่ม ant Popover</li>
+                        <li>- เพิ่ม ant Popover menu</li>
+                        <li>- เพิ่ม เชื่อ supa</li>
+                        <li>- เพิ่ม login (OTP)</li>
                     </ul>
                 </div>
             </div>
