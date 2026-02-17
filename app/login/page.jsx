@@ -8,6 +8,8 @@ import Link from "next/link";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import { schema } from "./schema";
+import { login } from "../services/auth.service";
+import { useRouter } from "next/navigation";
 
 function Page() {
     const {
@@ -16,13 +18,22 @@ function Page() {
         watch,
         formState: { isValid },
     } = useForm({
-        resolver: yupResolver(schema),
+        // resolver: yupResolver(schema),
         mode: "onBlur",
     });
+    const router = useRouter();
 
-    const onSubmit = (values) => {
+    const onSubmit = async (values) => {
         console.log("values onSubmit", values);
+        const { data, error } = await login("test@test.com", "123456"); // ม่ายต้องพิมพ์
+        // const { data, error } = await login(values.email, values.password);
+
+        if (error) {
+            return alert(error.message);
+        }
+        router.push("/");
     };
+
     return (
         <main className="grid place-items-center">
             <div className="w-2/5 space-y-4 text-center">
@@ -36,7 +47,9 @@ function Page() {
                 >
                     <InputText control={control} name="email" label="อีเมล" size="large" />
                     <UseInputPassword control={control} name="password" label="รหัสผ่าน" size="large" />
-                    <UseButton label="เข้าสู่ระบบ" size="large" wFull htmlType="submit" disabled={!isValid} />
+                    {/* <UseButton label="เข้าสู่ระบบ" size="large" wFull htmlType="submit" disabled={!isValid} /> */}
+                    {/* ใช้ test */}
+                    <UseButton label="เข้าสู่ระบบ" size="large" wFull htmlType="submit" />
                     <div className="border-b border-gray-200 w-full"></div>
                     <Link href="/register">
                         <UseButton label="ยังไม่มีบัญชี สมัครสมาชิก" size="large" type="default" wFull />

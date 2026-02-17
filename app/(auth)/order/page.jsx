@@ -1,6 +1,6 @@
-import UseButton from "@/app/components/inputs/UseButton";
-import UseSteps from "@/app/components/utils/UseSteps";
-import UseTag from "@/app/components/utils/UseTag";
+import UseButton from "../../../app/components/inputs/UseButton";
+import UseSteps from "../../../app/components/utils/UseSteps";
+import UseTag from "../../../app/components/utils/UseTag";
 import {
     CarOutlined,
     CopyOutlined,

@@ -1,4 +1,4 @@
-import UseButton from "@/app/components/inputs/UseButton";
+import UseButton from "../../../app/components/inputs/UseButton";
 import {
     BankFilled,
     CheckCircleFilled,
@@ -8,7 +8,7 @@ import {
     QrcodeOutlined,
     SafetyOutlined,
 } from "@ant-design/icons";
-import UseTag from "@/app/components/utils/UseTag";
+import UseTag from "../../../app/components/utils/UseTag";
 
 function Page() {
     return (

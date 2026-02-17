@@ -1,5 +1,4 @@
 "use client";
-import UseButton from "@/app/components/inputs/UseButton";
 import {
     DownloadOutlined,
     EyeFilled,
@@ -8,10 +7,11 @@ import {
     TrophyFilled,
     MoreOutlined,
 } from "@ant-design/icons";
-import UseTable from "@/app/components/utils/UseTable";
-import UseImage from "@/app/components/utils/UseImage";
-import UseTag from "@/app/components/utils/UseTag";
-import UseSegmented from "@/app/components/utils/UseSegmented";
+import UseTable from "../../../app/components/utils/UseTable";
+import UseImage from "../../../app/components/utils/UseImage";
+import UseTag from "../../../app/components/utils/UseTag";
+import UseSegmented from "../../../app/components/utils/UseSegmented";
+import UseButton from "../../../app/components/inputs/UseButton";
 
 function Page() {
     const dataSource = [
