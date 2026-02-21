@@ -1,23 +1,26 @@
 "use client";
 import Link from "next/link";
 import InputText from "../inputs/InputText";
-import { BellFilled, SearchOutlined } from "@ant-design/icons";
+import { BellFilled, LogoutOutlined, SearchOutlined, UserOutlined } from "@ant-design/icons";
 import UseButton from "../inputs/UseButton";
 import UseBadge from "../utils/UseBadge";
 import UseAvatar from "../utils/UseAvatar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import UseDrawer from "../utils/UseDrawer";
 import { useForm } from "react-hook-form";
 import afferpriceLogo from "../../../public/images/afferpriceLogo.png";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import UsePopover from "../utils/UsePopover";
+import { logout } from "../../../app/services/auth.service";
+import { supabase } from "@/app/lib/supabase/client";
 
 function AppHeader() {
     const { control } = useForm();
     const pathname = usePathname();
     const linkStyle =
         "h-15 flex items-center border-b-3 transition-all border-transparent hover:border-b-3 hover:text-orange-600 hover:border-orange-600";
-    console.log("pathname", pathname)
+    console.log("pathname", pathname);
     // Drawer
     const [openDrawer, setOpenDrawer] = useState(false);
     const showDrawer = () => {
@@ -26,7 +29,42 @@ function AppHeader() {
     const onCloseDrawer = () => {
         setOpenDrawer(false);
     };
-    
+
+    // logout
+    const handleLogout = async () => {
+        await logout();
+    };
+
+    // test
+    const [user, setUser] = useState(null);
+    const [profile, setProfile] = useState(null);
+
+    useEffect(() => {
+        // ฟัง login / logout
+        const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+        });
+        return () => listener.subscription.unsubscribe();
+    }, []);
+
+    useEffect(() => {
+        if (!user) return;
+        const fetchProfile = async () => {
+            const { data, error } = await supabase.from("profiles").select("first_name").eq("id", user.id).single();
+
+            if (error) {
+                console.error("RLS Error:", error.message);
+                return;
+            }
+            setProfile(data);
+        };
+
+        fetchProfile();
+    }, [user]);
+
+    console.log("user", user);
+    console.log("profile", profile);
+    // test
 
     return (
         <header className="h-15 flex items-center ps-10 shadow-sm">
@@ -68,14 +106,43 @@ function AppHeader() {
                         </li>
                     </ul>
                 </div>
-                <div className="flex-2 flex gap-4 justify-end">
-                    <UseBadge dot>
-                        <UseButton onClick={() => showDrawer()} icon={BellFilled} />
-                    </UseBadge>
-                    <Link href="/login">
-                        <UseButton label="เข้าสู่ระบบ" />
-                    </Link>
-                    <UseAvatar src={"https://picsum.photos/30/30"} />
+                <div className="flex-2 flex gap-4 justify-end items-center">
+                    {!user ? (
+                        <Link href="/login">
+                            <UseButton label="เข้าสู่ระบบ" />
+                        </Link>
+                    ) : (
+                        <>
+                            <span>สวัสดีคุณ {profile?.first_name ?? user.email}</span>
+                            <UseBadge dot>
+                                <UseButton onClick={() => showDrawer()} icon={BellFilled} />
+                            </UseBadge>
+                            <UsePopover
+                                placement="bottomRight"
+                                content={
+                                    <div className="grid gap-2 w-46">
+                                        <UseButton
+                                            label="ข้อมูลผู้ใช้"
+                                            className="justify-start! h-10!"
+                                            type="text"
+                                            icon={UserOutlined}
+                                            wFull
+                                        />
+                                        <UseButton
+                                            label="ออกจากระบบ"
+                                            className="justify-start! h-10!"
+                                            type="text"
+                                            icon={LogoutOutlined}
+                                            wFull
+                                            onClick={() => handleLogout()}
+                                        />
+                                    </div>
+                                }
+                            >
+                                <UseAvatar src={"https://picsum.photos/30/30"} />
+                            </UsePopover>
+                        </>
+                    )}
                 </div>
             </div>
             <UseDrawer onClose={onCloseDrawer} open={openDrawer} />
