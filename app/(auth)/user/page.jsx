@@ -10,10 +10,12 @@ import {
 import UseTable from "../../../app/components/utils/UseTable";
 import UseImage from "../../../app/components/utils/UseImage";
 import UseTag from "../../../app/components/utils/UseTag";
-import UseSegmented from "../../../app/components/utils/UseSegmented";
+import UseSegmented from "../../components/inputs/UseSegmented";
 import UseButton from "../../../app/components/inputs/UseButton";
+import { useForm } from "react-hook-form";
 
 function Page() {
+    const { control, watch } = useForm({});
     const dataSource = [
         {
             key: "1",
@@ -69,13 +71,13 @@ function Page() {
             title: "ราคาที่เสนอ",
             dataIndex: "offerPrice",
             key: "offerPrice",
-            render: (_, record) => <div className="font-bold">฿ {record.offerPrice?.toLocaleString()}</div>,
+            render: (_, record) => <div className="font-bold">฿{record.offerPrice?.toLocaleString()}</div>,
         },
         {
             title: "ราคาปัจจุบัน",
             dataIndex: "currentPrice",
             key: "currentPrice",
-            render: (_, record) => <div className="font-bold">฿ {record.currentPrice?.toLocaleString()}</div>,
+            render: (_, record) => <div className="font-bold">฿{record.currentPrice?.toLocaleString()}</div>,
         },
         {
             title: "เวลาคงเหลือ",
@@ -155,6 +157,8 @@ function Page() {
                 <div className="p-6 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <h2 className="text-xl font-bold">รายการประมูลปัจจุบันของคุณ</h2>
                     <UseSegmented
+                        control={control}
+                        name="filter"
                         options={[
                             { value: "1", label: "ทั้งหมด" },
                             { value: "2", label: "กำลังนำ" },

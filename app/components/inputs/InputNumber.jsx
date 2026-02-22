@@ -4,7 +4,6 @@ import { Controller } from "react-hook-form";
 import UseHelperText from "./UseHelperText";
 import { volcano } from "@ant-design/colors";
 
-
 function InputNumber({
     control,
     name,
@@ -13,7 +12,6 @@ function InputNumber({
     placeholder = "",
     className,
     icon: Icon,
-    // variant = undefined,
     variant = "filled",
     size = "middle",
     min = 1,
@@ -24,7 +22,7 @@ function InputNumber({
     const formatter = (value) => {
         const [start, end] = `${value}`.split(".") || [];
         const v = `${start}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        // return `฿ ${end ? `${v}.${end}` : `${v}`}`;
+        // return `฿${end ? `${v}.${end}` : `${v}`}`;
         return `${end ? `${v}.${end}` : `${v}`}`;
     };
 

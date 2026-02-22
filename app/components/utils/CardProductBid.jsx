@@ -1,7 +1,6 @@
 "use client";
 import { useForm } from "react-hook-form";
 import InputNumber from "../inputs/InputNumber";
-import InputText from "../inputs/InputText";
 import UseButton from "../inputs/UseButton";
 import {
     BankFilled,
@@ -13,7 +12,7 @@ import {
 } from "@ant-design/icons";
 
 function CardProductBid() {
-    const { handleSubmit, watch, control } = useForm({});
+    const { control } = useForm();
     return (
         <div className="bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
             <div className="p-6 bg-slate-900 text-white">

@@ -15,10 +15,12 @@ import {
 } from "@ant-design/icons";
 import CardProduct from "./components/utils/CardProduct";
 import UseTabs from "./components/utils/UseTabs";
-import UseSegmented from "./components/utils/UseSegmented";
+import UseSegmented from "./components/inputs/UseSegmented";
+import { useForm } from "react-hook-form";
 
 function Page() {
     const [showDev, setShowDev] = useState(false);
+    const { control } = useForm();
 
     const tabItems = [
         {
@@ -144,6 +146,8 @@ function Page() {
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold tracking-tight">การประมูลยอดนิยม</h2>
                     <UseSegmented
+                        control={control}
+                        name="layout"
                         options={[
                             { value: "1", icon: <BarsOutlined /> },
                             { value: "2", icon: <AppstoreOutlined /> },

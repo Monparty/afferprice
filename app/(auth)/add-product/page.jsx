@@ -1,22 +1,27 @@
 "use client";
 import InputNumber from "@/app/components/inputs/InputNumber";
+import InputText from "@/app/components/inputs/InputText";
 import UseButton from "@/app/components/inputs/UseButton";
 import UseCheckbox from "@/app/components/inputs/UseCheckbox";
+import UseSegmented from "@/app/components/inputs/UseSegmented";
 import UseSelect from "@/app/components/inputs/UseSelect";
 import UseUploadDragger from "@/app/components/inputs/UseUploadDragger";
 import UseSteps from "@/app/components/utils/UseSteps";
 import {
     ArrowRightOutlined,
+    CalculatorFilled,
     CameraFilled,
     CheckCircleFilled,
     DollarOutlined,
     EyeFilled,
+    FileTextFilled,
     SafetyOutlined,
+    TruckFilled,
 } from "@ant-design/icons";
 import { useForm } from "react-hook-form";
 
 function Page() {
-    const { handleSubmit, watch, control } = useForm({});
+    const { handleSubmit, watch, control } = useForm();
     const items = [
         {
             title: "รูปภาพ",
@@ -31,7 +36,7 @@ function Page() {
         },
     ];
 
-    // console.log("watch", watch());
+    console.log("watch", watch());
 
     return (
         <main className="w-full flex flex-col gap-8">
@@ -87,6 +92,108 @@ function Page() {
                             />
                         </div>
                     </section>
+                    <section className="bg-white rounded-xl border border-slate-200 p-8 shadow-sm">
+                        <div className="mb-6">
+                            <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                                <FileTextFilled className="text-orange-600!" />
+                                รายละเอียดสินค้า
+                            </h2>
+                            <p className="text-slate-500 text-sm mt-1">ระบุข้อมูลให้ครบถ้วนเพื่อดึงดูดผู้ประมูล</p>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <InputText
+                                control={control}
+                                name="title"
+                                label="ชื่อสินค้า"
+                                size="large"
+                                variant="filled"
+                            />
+                            <UseSelect
+                                control={control}
+                                name="category_id"
+                                label="หมวดหมู่"
+                                options={[
+                                    { value: "1", label: "อิเล็กทรอนิกส์" },
+                                    { value: "2", label: "ทั่วไป" },
+                                    { value: "3", label: "อื่นๆ" },
+                                ]}
+                                size="large"
+                                variant="filled"
+                            />
+                            <UseSegmented
+                                control={control}
+                                name="condition"
+                                label="สภาพสินค้า"
+                                options={[
+                                    { value: "1", label: "ใหม่" },
+                                    { value: "2", label: "เหมือนใหม่" },
+                                    { value: "3", label: "ดี" },
+                                    { value: "4", label: "พอใช้" },
+                                    { value: "5", label: "มือ 2" },
+                                ]}
+                            />
+                            <div></div>
+                        </div>
+                    </section>
+                    <section className="bg-white rounded-xl border border-slate-200 p-8 shadow-sm">
+                        <div className="mb-6">
+                            <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                                <CalculatorFilled className="text-orange-600!" />
+                                ราคาและความต้องการ
+                            </h2>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <InputNumber
+                                control={control}
+                                name="startPrice"
+                                label="ราคาเริ่มต้น (บาท)"
+                                size="large"
+                                format
+                                variant="filled"
+                                icon={DollarOutlined}
+                            />
+                            <InputNumber
+                                control={control}
+                                name="xxx"
+                                label="ราคาเสนอขั้นต่ำ"
+                                size="large"
+                                format
+                                variant="filled"
+                                icon={DollarOutlined}
+                            />
+                            <UseSegmented
+                                control={control}
+                                name="periodBid"
+                                label="ระยะเวลาการประมูล"
+                                options={[
+                                    { value: "1", label: "1 วัน" },
+                                    { value: "2", label: "5 วัน" },
+                                    { value: "3", label: "7 วัน" },
+                                    { value: "4", label: "10 วัน" },
+                                ]}
+                            />
+                        </div>
+                    </section>
+                    <section className="bg-white rounded-xl border border-slate-200 p-8 shadow-sm">
+                        <div className="mb-6">
+                            <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                                <TruckFilled className="text-orange-600!" />
+                                ตัวเลือกการจัดส่ง
+                            </h2>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <UseSegmented
+                                control={control}
+                                name="periodBid"
+                                label="สภาพสินค้า"
+                                options={[
+                                    { value: "1", label: "ไปรษนี" },
+                                    { value: "2", label: "standard" },
+                                    { value: "3", label: "เจอกันนอกจอ" },
+                                ]}
+                            />
+                        </div>
+                    </section>
                 </div>
                 <div className="flex flex-col gap-6">
                     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-lg sticky top-12">
@@ -113,7 +220,7 @@ function Page() {
                             <div className="mt-4 flex items-center justify-between">
                                 <div>
                                     <p className="text-[10px] text-slate-500 uppercase font-bold">ราคาเริ่มต้น</p>
-                                    <p className="text-xl font-bold text-primary">฿ 0</p>
+                                    <p className="text-xl font-bold text-primary">฿0</p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-[10px] text-slate-500 uppercase font-bold">เวลาที่เหลือ</p>

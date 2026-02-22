@@ -18,9 +18,11 @@ import { supabase } from "@/app/lib/supabase/client";
 function AppHeader() {
     const { control } = useForm();
     const pathname = usePathname();
+    const [user, setUser] = useState(null);
+    const [profile, setProfile] = useState(null);
     const linkStyle =
         "h-15 flex items-center border-b-3 transition-all border-transparent hover:border-b-3 hover:text-orange-600 hover:border-orange-600";
-    console.log("pathname", pathname);
+
     // Drawer
     const [openDrawer, setOpenDrawer] = useState(false);
     const showDrawer = () => {
@@ -34,10 +36,6 @@ function AppHeader() {
     const handleLogout = async () => {
         await logout();
     };
-
-    // test
-    const [user, setUser] = useState(null);
-    const [profile, setProfile] = useState(null);
 
     useEffect(() => {
         // ฟัง login / logout
@@ -61,10 +59,6 @@ function AppHeader() {
 
         fetchProfile();
     }, [user]);
-
-    console.log("user", user);
-    console.log("profile", profile);
-    // test
 
     return (
         <header className="h-15 flex items-center ps-10 shadow-sm">

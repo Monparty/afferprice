@@ -8,7 +8,6 @@ function UseInputPassword({
     control,
     name,
     label = "",
-    onChange,
     placeholder = "",
     className,
     variant = undefined,
@@ -30,7 +29,7 @@ function UseInputPassword({
                         <label htmlFor={label} className="text-sm mb-0.5 w-fit">
                             {label}
                         </label>
-                        <Input.Password 
+                        <Input.Password
                             {...field}
                             id={label}
                             placeholder={label && !placeholder ? `โปรดระบุ ${label}` : placeholder}
@@ -38,9 +37,6 @@ function UseInputPassword({
                             size={size}
                             className={`w-full ${className}`}
                             onChange={(value) => {
-                                if (typeof onChange === "function") {
-                                    onChange(value);
-                                }
                                 field.onChange(value);
                             }}
                             visibilityToggle={true}
