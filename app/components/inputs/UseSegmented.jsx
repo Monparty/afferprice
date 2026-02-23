@@ -26,6 +26,7 @@ function UseSegmented({ control, name, label, options, onChange }) {
                             root: "py-1!",
                             item: "mx-1!",
                         }}
+                        size="large"
                     />
                     {error && <UseHelperText errorMessage={error.message} />}
                 </div>

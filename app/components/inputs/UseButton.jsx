@@ -1,6 +1,4 @@
-import { Button, ConfigProvider } from "antd";
-import React from "react";
-import { volcano } from "@ant-design/colors";
+import { Button } from "antd";
 
 function UseButton({
     icon: Icon,
@@ -16,27 +14,19 @@ function UseButton({
     htmlType = "button",
 }) {
     return (
-        <ConfigProvider
-            theme={{
-                token: {
-                    colorPrimary: volcano[5],
-                },
-            }}
+        <Button
+            className={`${className} ${wFull ? "w-full" : "w-fit"}`}
+            type={type}
+            onClick={onClick}
+            htmlType={htmlType}
+            shape={shape}
+            icon={Icon && <Icon style={{ fontSize: "16px" }} />}
+            iconPlacement={iconPlacement ? "end" : "start"}
+            size={size}
+            disabled={disabled}
         >
-            <Button
-                className={`${className} ${wFull ? "w-full" : "w-fit"}`}
-                type={type}
-                onClick={onClick}
-                htmlType={htmlType}
-                shape={shape}
-                icon={Icon && <Icon style={{ fontSize: "16px" }} />}
-                iconPlacement={iconPlacement ? "end" : "start"}
-                size={size}
-                disabled={disabled}
-            >
-                {label}
-            </Button>
-        </ConfigProvider>
+            {label}
+        </Button>
     );
 }
 

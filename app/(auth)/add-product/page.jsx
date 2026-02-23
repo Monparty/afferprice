@@ -3,6 +3,7 @@ import InputNumber from "@/app/components/inputs/InputNumber";
 import InputText from "@/app/components/inputs/InputText";
 import UseButton from "@/app/components/inputs/UseButton";
 import UseCheckbox from "@/app/components/inputs/UseCheckbox";
+import UseReactQuill from "@/app/components/inputs/UseReactQuill";
 import UseSegmented from "@/app/components/inputs/UseSegmented";
 import UseSelect from "@/app/components/inputs/UseSelect";
 import UseUploadDragger from "@/app/components/inputs/UseUploadDragger";
@@ -142,7 +143,7 @@ function Page() {
                                 ราคาและความต้องการ
                             </h2>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             <InputNumber
                                 control={control}
                                 name="startPrice"
@@ -173,6 +174,7 @@ function Page() {
                                 ]}
                             />
                         </div>
+                        <UseReactQuill control={control} name="desc" />
                     </section>
                     <section className="bg-white rounded-xl border border-slate-200 p-8 shadow-sm">
                         <div className="mb-6">
