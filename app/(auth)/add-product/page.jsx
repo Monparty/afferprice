@@ -20,6 +20,7 @@ import {
     TruckFilled,
 } from "@ant-design/icons";
 import { useForm } from "react-hook-form";
+import UseSelectCard from "@/app/components/inputs/UseSelectCard";
 
 function Page() {
     const { handleSubmit, watch, control } = useForm();
@@ -162,15 +163,18 @@ function Page() {
                                 variant="filled"
                                 icon={DollarOutlined}
                             />
-                            <UseSegmented
+                        </div>
+                        <div className="flex gap-4 w-full mb-6">
+                            <UseSelectCard
                                 control={control}
+                                dot
                                 name="periodBid"
-                                label="ระยะเวลาการประมูล"
+                                type="checkbox"
                                 options={[
-                                    { value: "1", label: "1 วัน" },
-                                    { value: "2", label: "5 วัน" },
-                                    { value: "3", label: "7 วัน" },
-                                    { value: "4", label: "10 วัน" },
+                                    { value: "1", label: "1 วัน", subTitle: "QUICK SALE" },
+                                    { value: "2", label: "5 วัน", subTitle: "POPULAR" },
+                                    { value: "3", label: "7 วัน", subTitle: "STANDARD" },
+                                    { value: "4", label: "10 วัน", subTitle: "MAXIMUM" },
                                 ]}
                             />
                         </div>
