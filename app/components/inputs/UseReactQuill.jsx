@@ -5,7 +5,7 @@ import "quill/dist/quill.snow.css";
 import { useController } from "react-hook-form";
 import UseHelperText from "./UseHelperText";
 
-function UseReactQuill({ control, name }) {
+function UseReactQuill({ control, name, placeholder = "โปรดระบุข้อมูลที่นี่..." }) {
     const editorRef = useRef(null);
     const quillRef = useRef(null);
     const {
@@ -22,7 +22,7 @@ function UseReactQuill({ control, name }) {
 
         const quill = new Quill(editorRef.current, {
             theme: "snow",
-            placeholder: "พิมพ์ข้อความที่นี่...",
+            placeholder: placeholder,
             modules: {
                 toolbar: [
                     [{ font: [] }, { size: [] }],
