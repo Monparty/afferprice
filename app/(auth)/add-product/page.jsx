@@ -10,9 +10,13 @@ import { CameraFilled, DollarOutlined, EditFilled, FileTextFilled, TruckFilled }
 import { useForm } from "react-hook-form";
 import UseSelectCard from "@/app/components/inputs/UseSelectCard";
 import CardAddProductPreview from "@/app/components/utils/CardAddProductPreview";
-import { Activity, useState } from "react";
+import { Activity, useEffect, useState } from "react";
+import { getCategories } from "@/app/services/categories.service";
+import { notifyError } from "@/app/providers/NotificationProvider";
 
 function Page() {
+    const [activeStep, setActiveStep] = useState(0);
+    const [categoryList, setCategoryList] = useState([]);
     const { handleSubmit, watch, control } = useForm({
         shouldUnregister: false,
     });
@@ -30,7 +34,14 @@ function Page() {
         },
     ];
 
-    const [activeStep, setActiveStep] = useState(0);
+    useEffect(() => {
+        const fetchCategories = async () => {
+            const { data, error } = await getCategories();
+            if (error) notifyError(error);
+            setCategoryList(data);
+        };
+        fetchCategories();
+    }, []);
 
     console.log("watch", watch());
 
@@ -39,11 +50,33 @@ function Page() {
             <div className="w-full bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-accent">ขั้นตอนที่ 1 จาก 3</span>
+                        <span className="text-sm font-semibold text-accent">
+                            ขั้นตอนที่ 
+                            {{
+                                0: "1",
+                                1: "2",
+                                2: "3",
+                            }[activeStep] || "1"}
+                             จาก 3
+                        </span>
                         <span className="text-sm text-slate-400">•</span>
-                        <span className="text-sm font-medium text-slate-600">อัปโหลดรูปภาพ</span>
+                        <span className="text-sm font-medium text-slate-600">
+                            {{
+                                0: "อัปโหลดรูปภาพ",
+                                1: "ระบุรายละเอียดสินค้า",
+                                2: "การตั้งค่าประมูล",
+                            }[activeStep] || "1"}{" "}
+                        </span>
                     </div>
-                    <span className="text-sm font-medium text-slate-400">สำเร็จแล้ว 33%</span>
+                    <span className="text-sm font-medium text-slate-400">
+                        สำเร็จแล้ว{" "}
+                        {{
+                            0: "0",
+                            1: "33",
+                            2: "80",
+                        }[activeStep] || "0"}
+                        %
+                    </span>
                 </div>
                 <UseSteps items={items} current={activeStep} />
             </div>
@@ -116,11 +149,9 @@ function Page() {
                                     control={control}
                                     name="category_id"
                                     label="หมวดหมู่"
-                                    options={[
-                                        { value: "1", label: "อิเล็กทรอนิกส์" },
-                                        { value: "2", label: "ทั่วไป" },
-                                        { value: "3", label: "อื่นๆ" },
-                                    ]}
+                                    options={categoryList}
+                                    optionLabel="name"
+                                    optionValue="id"
                                     size="large"
                                     variant="filled"
                                 />

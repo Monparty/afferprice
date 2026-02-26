@@ -14,6 +14,8 @@ import { usePathname } from "next/navigation";
 import UsePopover from "../utils/UsePopover";
 import { logout } from "../../../app/services/auth.service";
 import { supabase } from "@/app/lib/supabase/client";
+import { getProfileByUserId } from "@/app/services/profile.service";
+import { notifyError } from "@/app/providers/NotificationProvider";
 
 function AppHeader() {
     const { control } = useForm();
@@ -48,15 +50,10 @@ function AppHeader() {
     useEffect(() => {
         if (!user) return;
         const fetchProfile = async () => {
-            const { data, error } = await supabase.from("profiles").select("first_name").eq("id", user.id).single();
-
-            if (error) {
-                console.error("RLS Error:", error.message);
-                return;
-            }
+            const { data, error } = await getProfileByUserId(user.id);
+            if (error) notifyError(error);
             setProfile(data);
         };
-
         fetchProfile();
     }, [user]);
 

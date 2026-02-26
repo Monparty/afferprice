@@ -14,6 +14,8 @@ function UseSelect({
     size = "middle",
     options,
     isMultiple = false,
+    optionLabel = "label",
+    optionValue = "value",
 }) {
     if (!options?.length) return null;
     return (
@@ -40,6 +42,7 @@ function UseSelect({
                             field.onChange(value);
                         }}
                         options={options}
+                        fieldNames={{ label: optionLabel, value: optionValue }}
                         status={error ? "error" : undefined}
                     />
                     {error && <UseHelperText errorMessage={error.message} />}

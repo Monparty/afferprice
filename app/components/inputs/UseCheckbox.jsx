@@ -8,12 +8,11 @@ function UseCheckbox({ control, name, onChange, label, className }) {
             control={control}
             render={({ field, fieldState: { error } }) => (
                 <Checkbox
-                    {...field}
                     onChange={(e) => {
                         if (typeof onChange === "function") {
-                            onChange(e);
+                            onChange(e.target.checked);
                         }
-                        field.onChange(e);
+                        field.onChange(e.target.checked);
                     }}
                     className={`${className}`}
                 >
