@@ -15,7 +15,7 @@ import UseButton from "../../../app/components/inputs/UseButton";
 import { useForm } from "react-hook-form";
 
 function Page() {
-    const { control, watch } = useForm({});
+    const { control, watch } = useForm();
     const dataSource = [
         {
             key: "1",
@@ -104,7 +104,7 @@ function Page() {
         },
     ];
     return (
-        <main>
+        <>
             <div className="flex flex-wrap justify-between items-end gap-4 mb-8">
                 <div className="flex flex-col gap-1">
                     <h1 className="text-3xl font-bold leading-tight tracking-tight text-slate-900">
@@ -171,7 +171,7 @@ function Page() {
                     <UseButton type="default" label="ดูประวัติการประมูลทั้งหมด" />
                 </div>
             </div>
-        </main>
+        </>
     );
 }
 

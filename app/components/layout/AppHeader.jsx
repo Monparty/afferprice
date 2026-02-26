@@ -112,13 +112,15 @@ function AppHeader() {
                                 placement="bottomRight"
                                 content={
                                     <div className="grid gap-2 w-46">
-                                        <UseButton
-                                            label="ข้อมูลผู้ใช้"
-                                            className="justify-start! h-10!"
-                                            type="text"
-                                            icon={UserOutlined}
-                                            wFull
-                                        />
+                                        <Link href="/user">
+                                            <UseButton
+                                                label="ข้อมูลผู้ใช้"
+                                                className="justify-start! h-10!"
+                                                type="text"
+                                                icon={UserOutlined}
+                                                wFull
+                                            />
+                                        </Link>
                                         <UseButton
                                             label="ออกจากระบบ"
                                             className="justify-start! h-10!"

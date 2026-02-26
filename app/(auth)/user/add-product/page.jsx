@@ -43,7 +43,7 @@ function Page() {
         fetchCategories();
     }, []);
 
-    console.log("watch", watch());
+    // console.log("watch", watch());
 
     return (
         <main className="w-full flex flex-col gap-8">

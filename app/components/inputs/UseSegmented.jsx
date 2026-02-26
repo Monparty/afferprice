@@ -1,3 +1,4 @@
+"use client";
 import { Segmented } from "antd";
 import UseHelperText from "./UseHelperText";
 import { Controller } from "react-hook-form";

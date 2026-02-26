@@ -1,19 +1,8 @@
-import { ConfigProvider, Table } from "antd";
-import { volcano } from "@ant-design/colors";
+import { Table } from "antd";
 
 function UseTable({ dataSource, columns }) {
     if (!dataSource?.length && !columns?.length) return null;
-    return (
-        <ConfigProvider
-            theme={{
-                token: {
-                    colorPrimary: volcano[5],
-                },
-            }}
-        >
-            <Table dataSource={dataSource} columns={columns} />
-        </ConfigProvider>
-    );
+    return <Table dataSource={dataSource} columns={columns} />;
 }
 
 export default UseTable;

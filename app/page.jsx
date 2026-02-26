@@ -77,31 +77,33 @@ function Page() {
 
     return (
         <main className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
-            <button
-                onClick={() => setShowDev(!showDev)}
-                className="h-fit w-fit bg-blue-400 p-4 fixed z-100 m-4 right-0 rounded-lg  text-white flex opacity-50 cursor-pointer"
-            >
-                Dev
-            </button>
-            <div className={`${showDev ? "block" : "hidden"}`}>
-                <div className="h-fit w-fit bg-blue-400 p-4 fixed z-100 m-4 right-0 top-36 rounded-lg font-bold text-white flex gap-4">
-                    <Link href="/product">product</Link>
-                    <Link href="/user">user</Link>
-                    <Link href="/add-product">add-product</Link>
-                    <Link href="/checkout">checkout</Link>
-                    <Link href="/payment">payment</Link>
-                    <Link href="/order">order</Link>
-                </div>
-                <div className="h-fit w-fit bg-red-500 p-4 fixed z-100 m-4 right-0 top-51 rounded-lg font-bold text-white">
-                    <div>สิ่งที่ต้องแก้ต่อ</div>
-                    <ul className="ps-1">
-                        <li>- ใช้ tag Link แทน a</li>
-                        <li>- เพิ่ม Omise payment</li>
-                        <li>- ทำหน้า login register</li>
-                        <li>- เพิ่ม ant Popover menu</li>
-                        <li>- เพิ่ม เชื่อ supa</li>
-                        <li>- เพิ่ม login (OTP)</li>
-                    </ul>
+            <div className="hidden">
+                <button
+                    onClick={() => setShowDev(!showDev)}
+                    className="h-fit w-fit bg-blue-400 p-4 fixed z-100 m-4 right-0 rounded-lg  text-white flex opacity-50 cursor-pointer"
+                >
+                    Dev
+                </button>
+                <div className={`${showDev ? "block" : "hidden"}`}>
+                    <div className="h-fit w-fit bg-blue-400 p-4 fixed z-100 m-4 right-0 top-36 rounded-lg font-bold text-white flex gap-4">
+                        <Link href="/product">product</Link>
+                        <Link href="/user">user</Link>
+                        <Link href="/add-product">add-product</Link>
+                        <Link href="/checkout">checkout</Link>
+                        <Link href="/payment">payment</Link>
+                        <Link href="/order">order</Link>
+                    </div>
+                    <div className="h-fit w-fit bg-red-500 p-4 fixed z-100 m-4 right-0 top-51 rounded-lg font-bold text-white">
+                        <div>สิ่งที่ต้องแก้ต่อ</div>
+                        <ul className="ps-1">
+                            <li>- ใช้ tag Link แทน a</li>
+                            <li>- เพิ่ม Omise payment</li>
+                            <li>- ทำหน้า login register</li>
+                            <li>- เพิ่ม ant Popover menu</li>
+                            <li>- เพิ่ม เชื่อ supa</li>
+                            <li>- เพิ่ม login (OTP)</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
             <section className="mb-10">

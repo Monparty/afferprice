@@ -1,3 +1,4 @@
+"use client";
 import { Checkbox } from "antd";
 import { Controller } from "react-hook-form";
 

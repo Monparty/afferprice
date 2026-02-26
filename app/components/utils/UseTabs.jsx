@@ -1,18 +1,7 @@
-import { ConfigProvider, Tabs } from "antd";
-import { volcano } from "@ant-design/colors";
+import { Tabs } from "antd";
 
 function UseTabs({ items, size = "middle", onChange }) {
-    return (
-        <ConfigProvider
-            theme={{
-                token: {
-                    colorPrimary: volcano[5],
-                },
-            }}
-        >
-            <Tabs defaultActiveKey="1" items={items} onChange={onChange} size={size} />
-        </ConfigProvider>
-    );
+    return <Tabs defaultActiveKey="1" items={items} onChange={(activeKey) => onChange(activeKey)} size={size} />;
 }
 
 export default UseTabs;
