@@ -77,7 +77,7 @@ function Page() {
 
     return (
         <main className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
-            <div className="hidden">
+            <div className="/hidden">
                 <button
                     onClick={() => setShowDev(!showDev)}
                     className="h-fit w-fit bg-blue-400 p-4 fixed z-100 m-4 right-0 rounded-lg  text-white flex opacity-50 cursor-pointer"
@@ -87,8 +87,6 @@ function Page() {
                 <div className={`${showDev ? "block" : "hidden"}`}>
                     <div className="h-fit w-fit bg-blue-400 p-4 fixed z-100 m-4 right-0 top-36 rounded-lg font-bold text-white flex gap-4">
                         <Link href="/product">product</Link>
-                        <Link href="/user">user</Link>
-                        <Link href="/add-product">add-product</Link>
                         <Link href="/checkout">checkout</Link>
                         <Link href="/payment">payment</Link>
                         <Link href="/order">order</Link>
@@ -97,11 +95,15 @@ function Page() {
                         <div>สิ่งที่ต้องแก้ต่อ</div>
                         <ul className="ps-1">
                             <li>- ใช้ tag Link แทน a</li>
+                            <li>- ใช้ Image แทน img</li>
                             <li>- เพิ่ม Omise payment</li>
-                            <li>- ทำหน้า login register</li>
-                            <li>- เพิ่ม ant Popover menu</li>
-                            <li>- เพิ่ม เชื่อ supa</li>
+                            <li>- ทำ responsive</li>
                             <li>- เพิ่ม login (OTP)</li>
+                            <li>- เพิ่ม หน้าสำหรับ admin</li>
+                            <li>- เพิ่ม กล่องแชท</li>
+                            <li>- เพิ่ม รายละเอียดหน้าแรก</li>
+                            <li>- add product เพิ่ม section ประเภทต่างๆ</li>
+                            <li>- ทำระบบ noti</li>
                         </ul>
                     </div>
                 </div>

@@ -1,6 +1,9 @@
 "use client";
 import { notification } from "antd";
 import { useEffect } from "react";
+import AppHeader from "../components/layout/AppHeader";
+import AppFooter from "../components/layout/AppFooter";
+import { usePathname } from "next/navigation";
 
 let notificationApi = null;
 
@@ -26,14 +29,20 @@ export const notifySuccess = (title, description) => {
 export const NotificationProvider = ({ children }) => {
     const [api, contextHolder] = notification.useNotification();
 
+    const pathname = usePathname();
+    const hiddenPrefixes = ["/admin", "/login", "/register"];
+    const isHidden = hiddenPrefixes.some((path) => pathname.startsWith(path));
+
     useEffect(() => {
         notificationApi = api;
     }, [api]);
 
     return (
         <>
+            {!isHidden && <AppHeader />}
             {contextHolder}
             {children}
+            {!isHidden && <AppFooter />}
         </>
     );
 };

@@ -12,7 +12,7 @@ import UseTag from "../../../app/components/utils/UseTag";
 
 function Page() {
     return (
-        <main className="flex flex-col lg:flex-row gap-8">
+        <main className="flex flex-col lg:flex-row gap-6">
             <div className="flex-1 space-y-6">
                 <section className="bg-white dark::bg-gray-900 rounded-xl p-6 shadow-sm border border-gray-100 dark::border-gray-800">
                     <div className="flex items-center gap-2 mb-6">

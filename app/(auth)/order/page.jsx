@@ -123,7 +123,7 @@ function Page() {
                     </div>
                 </div>
             </div>
-            <div className="bg-white dark::bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark::border-slate-800 p-8">
+            <div className="bg-white dark::bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark::border-slate-800 p-6">
                 <h4 className="text-slate-900 dark::text-white font-bold text-lg mb-8">สถานะการจัดส่งล่าสุด</h4>
                 <UseSteps items={items} current={2} orientation="vertical" height="h-[7rem]" />
                 <div className="flex flex-col sm:flex-row gap-4 pt-4 justify-end">

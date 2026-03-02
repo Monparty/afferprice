@@ -1,7 +1,6 @@
 "use client";
 import UseSegmented from "@/app/components/inputs/UseSegmented";
 import CardSellingProduct from "@/app/components/utils/CardSellingProduct";
-import UseModal from "@/app/components/utils/UseModal";
 import UseTabs from "@/app/components/utils/UseTabs";
 import UseTag from "@/app/components/utils/UseTag";
 import { AppstoreOutlined, BarsOutlined } from "@ant-design/icons";
@@ -44,9 +43,13 @@ function Page() {
     return (
         <>
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
-                <div>
-                    <h1 className="text-navy text-3xl font-black tracking-tight">รายการสินค้าของฉัน</h1>
-                    <p className="text-slate-500 mt-1">จัดการและติดตามสถานะการประมูลสินค้าทั้งหมดของคุณ</p>
+                <div className="flex flex-col gap-1">
+                    <h1 className="text-3xl font-bold leading-tight tracking-tight text-slate-900">
+                        รายการสินค้าของฉัน
+                    </h1>
+                    <p className="text-slate-500 text-base font-normal">
+                        จัดการและติดตามสถานะการประมูลสินค้าทั้งหมดของคุณ
+                    </p>
                 </div>
                 <UseSegmented
                     control={control}

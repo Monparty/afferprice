@@ -3,7 +3,7 @@ import { Segmented } from "antd";
 import UseHelperText from "./UseHelperText";
 import { Controller } from "react-hook-form";
 
-function UseSegmented({ control, name, label, options, onChange }) {
+function UseSegmented({ control, name, label, options, onChange, size }) {
     if (!options?.length) return null;
     return (
         <Controller
@@ -27,7 +27,7 @@ function UseSegmented({ control, name, label, options, onChange }) {
                             root: "py-1!",
                             item: "mx-1!",
                         }}
-                        size="large"
+                        size={size}
                     />
                     {error && <UseHelperText errorMessage={error.message} />}
                 </div>

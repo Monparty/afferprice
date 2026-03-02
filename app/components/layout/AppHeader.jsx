@@ -10,7 +10,7 @@ import UseDrawer from "../utils/UseDrawer";
 import { useForm } from "react-hook-form";
 import afferpriceLogo from "../../../public/images/afferpriceLogo.png";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import UsePopover from "../utils/UsePopover";
 import { logout } from "../../../app/services/auth.service";
 import { supabase } from "@/app/lib/supabase/client";
@@ -22,6 +22,7 @@ function AppHeader() {
     const pathname = usePathname();
     const [user, setUser] = useState(null);
     const [profile, setProfile] = useState(null);
+    const router = useRouter();
     const linkStyle =
         "h-15 flex items-center border-b-3 transition-all border-transparent hover:border-b-3 hover:text-orange-600 hover:border-orange-600";
 
@@ -37,6 +38,7 @@ function AppHeader() {
     // logout
     const handleLogout = async () => {
         await logout();
+        router.push("/");
     };
 
     useEffect(() => {

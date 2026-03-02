@@ -56,7 +56,7 @@ function Page() {
     return (
         <main>
             <UseBreadcrumb items={UseBreadcrumbItems} />
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <div className="lg:col-span-8 space-y-6">
                     <div className="aspect-4/3 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative group">
                         <div className="absolute top-4 left-4 z-10">
@@ -67,7 +67,7 @@ function Page() {
                         <UseImageGroup imageGroup={imageGroup} alone />
                     </div>
                     <UseImageGroup imageGroup={imageGroup} />
-                    <div className="bg-white rounded-xl p-8 border border-slate-200 shadow-sm space-y-6">
+                    <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm space-y-6">
                         <div>
                             <h1 className="text-3xl font-extrabold mb-4 text-primary">
                                 Luxury Professional Diver Watch - 2023 New Model

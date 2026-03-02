@@ -1,7 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import AppHeader from "./components/layout/AppHeader";
-import AppFooter from "./components/layout/AppFooter";
 import { volcano } from "@ant-design/colors";
 import { ConfigProvider } from "antd";
 import { NotificationProvider } from "./providers/NotificationProvider";
@@ -38,9 +36,7 @@ export default function RootLayout({ children }) {
                     }}
                 >
                     <NotificationProvider>
-                        <AppHeader />
                         <div className="w-full max-w-360 mx-auto px-4 md:px-10 py-6">{children}</div>
-                        <AppFooter />
                     </NotificationProvider>
                 </ConfigProvider>
             </body>

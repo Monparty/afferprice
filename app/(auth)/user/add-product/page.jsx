@@ -46,7 +46,7 @@ function Page() {
     // console.log("watch", watch());
 
     return (
-        <main className="w-full flex flex-col gap-8">
+        <main className="w-full flex flex-col gap-6">
             <div className="w-full bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
@@ -80,10 +80,10 @@ function Page() {
                 </div>
                 <UseSteps items={items} current={activeStep} />
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 flex flex-col gap-6">
                     <Activity mode={activeStep === 0 ? "visible" : "hidden"}>
-                        <section className="bg-white rounded-xl border border-slate-200 p-8 shadow-sm">
+                        <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                             <div className="mb-6">
                                 <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
                                     <CameraFilled className="text-orange-600!" />
@@ -95,7 +95,7 @@ function Page() {
                             </div>
                             <UseUploadDragger control={control} name="myFile" multiple maxCount={3} />
                         </section>
-                        <section className="bg-white rounded-xl border border-slate-200 p-8 shadow-sm">
+                        <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                             <div className="mb-6">
                                 <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
                                     <EditFilled className="text-orange-600!" />
@@ -136,7 +136,7 @@ function Page() {
                         </section>
                     </Activity>
                     <Activity mode={activeStep === 1 ? "visible" : "hidden"}>
-                        <section className="bg-white rounded-xl border border-slate-200 p-8 shadow-sm">
+                        <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                             <div className="mb-6">
                                 <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
                                     <FileTextFilled className="text-orange-600!" />
@@ -166,6 +166,7 @@ function Page() {
                                         { value: "4", label: "พอใช้" },
                                         { value: "5", label: "มือ 2" },
                                     ]}
+                                    size="large"
                                 />
                             </div>
                             <UseReactQuill
@@ -176,7 +177,7 @@ function Page() {
                         </section>
                     </Activity>
                     <Activity mode={activeStep === 2 ? "visible" : "hidden"}>
-                        <section className="bg-white rounded-xl border border-slate-200 p-8 shadow-sm">
+                        <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                             <div className="mb-6">
                                 <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
                                     <TruckFilled className="text-orange-600!" />
