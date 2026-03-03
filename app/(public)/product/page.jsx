@@ -1,8 +1,8 @@
-import UseBreadcrumb from "../components/utils/UseBreadcrumb";
+import UseBreadcrumb from "../../components/utils/UseBreadcrumb";
 import { BarChartOutlined, SafetyOutlined } from "@ant-design/icons";
-import UseImageGroup from "../components/utils/UseImageGroup";
-import CardProductBid from "../components/utils/CardProductBid";
-import UseTag from "../components/utils/UseTag";
+import UseImageGroup from "../../components/utils/UseImageGroup";
+import CardProductBid from "../../components/utils/CardProductBid";
+import UseTag from "../../components/utils/UseTag";
 
 function Page() {
     const UseBreadcrumbItems = [

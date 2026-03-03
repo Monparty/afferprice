@@ -29,13 +29,13 @@ export const notifySuccess = (title, description) => {
 export const NotificationProvider = ({ children }) => {
     const [api, contextHolder] = notification.useNotification();
 
-    const pathname = usePathname();
-    const hiddenPrefixes = ["/admin", "/login", "/register"];
-    const isHidden = hiddenPrefixes.some((path) => pathname.startsWith(path));
-
     useEffect(() => {
         notificationApi = api;
     }, [api]);
+
+    const pathname = usePathname();
+    const hiddenPrefixes = ["/admin", "/login", "/register"];
+    const isHidden = hiddenPrefixes.some((path) => pathname.startsWith(path));
 
     return (
         <>

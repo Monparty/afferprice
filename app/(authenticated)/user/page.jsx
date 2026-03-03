@@ -7,11 +7,11 @@ import {
     TrophyFilled,
     MoreOutlined,
 } from "@ant-design/icons";
-import UseTable from "../../../app/components/utils/UseTable";
-import UseImage from "../../../app/components/utils/UseImage";
-import UseTag from "../../../app/components/utils/UseTag";
+import UseTable from "../../components/utils/UseTable";
+import UseImage from "../../components/utils/UseImage";
+import UseTag from "../../components/utils/UseTag";
 import UseSegmented from "../../components/inputs/UseSegmented";
-import UseButton from "../../../app/components/inputs/UseButton";
+import UseButton from "../../components/inputs/UseButton";
 import { useForm } from "react-hook-form";
 
 function Page() {
