@@ -1,16 +1,16 @@
-import Image from "next/image";
-import Link from "next/link";
-import afferpriceLogo from "../../public/images/afferpriceLogo.png";
 import {
     BarChartOutlined,
-    BellOutlined,
-    LogoutOutlined,
-    QuestionCircleOutlined,
+    CreditCardOutlined,
+    ExceptionOutlined,
+    FileDoneOutlined,
+    HistoryOutlined,
+    InboxOutlined,
+    SettingOutlined,
+    ShopOutlined,
+    ShoppingCartOutlined,
     UserOutlined,
 } from "@ant-design/icons";
-import UseAvatar from "../components/utils/UseAvatar";
-import UsePopover from "../components/utils/UsePopover";
-import UseButton from "../components/inputs/UseButton";
+import AdminLayout from "./components/AdminLayout";
 
 export const metadata = {
     title: "Afferprice Admin",
@@ -25,100 +25,50 @@ export default function RootLayout({ children }) {
             icon: <BarChartOutlined className="text-lg!" />,
         },
         {
+            url: "/admin/",
+            label: "จัดการสินค้าประมูล",
+            icon: <ShoppingCartOutlined className="text-lg!" />,
+        },
+        {
             url: "/admin",
-            label: "การประมูล",
-            icon: <BarChartOutlined className="text-lg!" />,
+            label: "ตรวจสอบการ bid",
+            icon: <InboxOutlined className="text-lg!" />,
+        },
+        {
+            url: "/admin",
+            label: "หลังจากประมูลจบ",
+            icon: <HistoryOutlined className="text-lg!" />,
         },
         {
             url: "/admin/user",
-            label: "ผู้ใช้งาน",
-            icon: <BarChartOutlined className="text-lg!" />,
+            label: "จัดการผู้ใช้งาน",
+            icon: <UserOutlined className="text-lg!" />,
+        },
+        {
+            url: "/admin",
+            label: "จัดการหมวดหมู่สินค้า",
+            icon: <ShopOutlined className="text-lg!" />,
         },
         {
             url: "/admin",
             label: "การชำระเงิน",
-            icon: <BarChartOutlined className="text-lg!" />,
+            icon: <CreditCardOutlined className="text-lg!" />,
         },
         {
             url: "/admin",
-            label: "รายงาน",
-            icon: <BarChartOutlined className="text-lg!" />,
+            label: "ระบบแจ้งปัญหา",
+            icon: <ExceptionOutlined className="text-lg!" />,
         },
         {
             url: "/admin",
             label: "การตั้งค่า",
-            icon: <BarChartOutlined className="text-lg!" />,
+            icon: <SettingOutlined className="text-lg!" />,
         },
     ];
 
     return (
         <div className="flex">
-            <div className="w-1/6">
-                <nav className="bg-slate-800 p-6 h-dvh text-white w-1/6 fixed">
-                    <Link href="/admin" className="flex-2 flex items-center gap-3 mb-6">
-                        <Image src={afferpriceLogo} width={34} height={34} alt="Afferprice Logo" />
-                        <h1 className="text-xl font-semibold">Afferprice</h1>
-                    </Link>
-                    <div className="flex flex-col h-[calc(100%-120px)]">
-                        <div className="grid gap-3">
-                            {menuList.map((menu, index) => (
-                                <Link
-                                    key={index}
-                                    href={menu.url}
-                                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-orange-500/25 hover:text-orange-500"
-                                >
-                                    {menu.icon}
-                                    {menu.label}
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="border-t border-slate-500 pt-3">
-                        <UsePopover
-                            placement="topLeft"
-                            content={
-                                <div className="grid gap-2 w-46">
-                                    <Link href="/user">
-                                        <UseButton
-                                            label="ข้อมูลผู้ใช้"
-                                            className="justify-start! h-10!"
-                                            type="text"
-                                            icon={UserOutlined}
-                                            wFull
-                                        />
-                                    </Link>
-                                    <UseButton
-                                        label="ออกจากระบบ"
-                                        className="justify-start! h-10!"
-                                        type="text"
-                                        icon={LogoutOutlined}
-                                        wFull
-                                        // onClick={() => handleLogout()}
-                                    />
-                                </div>
-                            }
-                        >
-                            <div className="flex gap-3 items-center p-2 rounded-lg transition-all hover:bg-slate-700 ">
-                                <UseAvatar src={"https://picsum.photos/30/30"} />
-                                <div className="grid">
-                                    <p className="text-sm">นายสมชาย ควายธนู</p>
-                                    <p className="text-xs text-slate-400">Super Admin</p>
-                                </div>
-                            </div>
-                        </UsePopover>
-                    </div>
-                </nav>
-            </div>
-            <div className="w-5/6">
-                <header className="py-3 px-6 flex items-center justify-between bg-slate-100">
-                    <h2 className="text-xl font-bold">header</h2>
-                    <div className="flex gap-6">
-                        <BellOutlined className="text-lg!" />
-                        <QuestionCircleOutlined className="text-lg!" />
-                    </div>
-                </header>
-                <div className="p-6">{children}</div>
-            </div>
+            <AdminLayout menus={menuList}>{children}</AdminLayout>
         </div>
     );
 }
