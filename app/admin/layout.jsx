@@ -40,7 +40,7 @@ export default function RootLayout({ children }) {
             icon: <HistoryOutlined className="text-lg!" />,
         },
         {
-            url: "/admin/user",
+            url: "/admin/users",
             label: "จัดการผู้ใช้งาน",
             icon: <UserOutlined className="text-lg!" />,
         },

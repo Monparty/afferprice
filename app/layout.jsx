@@ -3,6 +3,7 @@ import "./globals.css";
 import { volcano } from "@ant-design/colors";
 import { ConfigProvider } from "antd";
 import { NotificationProvider } from "./providers/NotificationProvider";
+import HolyLoader from "holy-loader";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -23,6 +24,7 @@ export default function RootLayout({ children }) {
     return (
         <html lang="en">
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+                <HolyLoader color={volcano[5]} height={3} speed={250} easing="ease" showSpinner={false} />
                 <ConfigProvider
                     theme={{
                         token: {
