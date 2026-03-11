@@ -6,10 +6,22 @@ import { BellOutlined, LogoutOutlined, QuestionCircleOutlined, UserOutlined } fr
 import UseAvatar from "@/app/components/utils/UseAvatar";
 import UsePopover from "@/app/components/utils/UsePopover";
 import UseButton from "@/app/components/inputs/UseButton";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 function AdminLayout({ children, menus }) {
-    const [headerName, setHeaderName] = useState(menus[0].label);
+    const pathname = usePathname();
+    const [headerName, setHeaderName] = useState("");
+
+    useEffect(() => {
+        const path = pathname.split("/")[2];
+        const menu = menus.find((item) => item.url.split("/")[2] === path);
+
+        if (menu) {
+            setHeaderName(menu.label);
+        }
+    }, [pathname]);
+
     return (
         <>
             <div className="w-1/6">
@@ -70,7 +82,7 @@ function AdminLayout({ children, menus }) {
                 </nav>
             </div>
             <div className="w-5/6">
-                <header className="py-3 px-6 flex items-center justify-between bg-slate-100">
+                <header className="px-6 h-12 flex items-center justify-between bg-slate-100">
                     <h2 className="text-xl font-bold">{headerName}</h2>
                     <div className="flex gap-6">
                         <BellOutlined className="text-lg!" />

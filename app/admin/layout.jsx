@@ -2,7 +2,6 @@ import {
     BarChartOutlined,
     CreditCardOutlined,
     ExceptionOutlined,
-    FileDoneOutlined,
     HistoryOutlined,
     InboxOutlined,
     SettingOutlined,
@@ -11,6 +10,7 @@ import {
     UserOutlined,
 } from "@ant-design/icons";
 import AdminLayout from "./components/AdminLayout";
+import { ROUTES } from "./constants/routes";
 
 export const metadata = {
     title: "Afferprice Admin",
@@ -20,47 +20,47 @@ export const metadata = {
 export default function RootLayout({ children }) {
     const menuList = [
         {
-            url: "/admin",
+            url: ROUTES.ADMIN,
             label: "แดชบอร์ด",
             icon: <BarChartOutlined className="text-lg!" />,
         },
         {
-            url: "/admin/",
+            url: ROUTES.ADMIN,
             label: "จัดการสินค้าประมูล",
             icon: <ShoppingCartOutlined className="text-lg!" />,
         },
         {
-            url: "/admin",
+            url: ROUTES.ADMIN,
             label: "ตรวจสอบการ bid",
             icon: <InboxOutlined className="text-lg!" />,
         },
         {
-            url: "/admin",
+            url: ROUTES.ADMIN,
             label: "หลังจากประมูลจบ",
             icon: <HistoryOutlined className="text-lg!" />,
         },
         {
-            url: "/admin/users",
+            url: ROUTES.ADMIN_USERS,
             label: "จัดการผู้ใช้งาน",
             icon: <UserOutlined className="text-lg!" />,
         },
         {
-            url: "/admin",
+            url: ROUTES.ADMIN,
             label: "จัดการหมวดหมู่สินค้า",
             icon: <ShopOutlined className="text-lg!" />,
         },
         {
-            url: "/admin",
+            url: ROUTES.ADMIN,
             label: "การชำระเงิน",
             icon: <CreditCardOutlined className="text-lg!" />,
         },
         {
-            url: "/admin",
+            url: ROUTES.ADMIN,
             label: "ระบบแจ้งปัญหา",
             icon: <ExceptionOutlined className="text-lg!" />,
         },
         {
-            url: "/admin",
+            url: ROUTES.ADMIN,
             label: "การตั้งค่า",
             icon: <SettingOutlined className="text-lg!" />,
         },

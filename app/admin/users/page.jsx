@@ -9,19 +9,31 @@ import { useState } from "react";
 import UseModal from "@/app/components/utils/UseModal";
 import Form from "./components/Form";
 import { useForm } from "react-hook-form";
+import { ROUTES } from "../constants/routes";
 
 function Page() {
-    const { handleSubmit, watch, control, setValue } = useForm({
+    const { control, setValue, getValues } = useForm({
         shouldUnregister: false,
     });
+    const id = getValues("id");
     const [modalUser, setModalUser] = useState(false);
+
     const dataSource = [
         {
             key: "1",
-            id: "123",
+            id: "1",
             name: "suniti sukontaprapun",
             email: "test@test.com",
             role: "132",
+            status: "1",
+            create: "09/03/2569",
+        },
+        {
+            key: "2",
+            id: "2",
+            name: "mon monza",
+            email: "test@test.com",
+            role: "222",
             status: "1",
             create: "09/03/2569",
         },
@@ -72,7 +84,7 @@ function Page() {
                         />
                     </UseTooltip>
                     <UseTooltip title="แก้ไข">
-                        <Link href={`/admin/users/${record.id}/edit`}>
+                        <Link href={`${ROUTES.ADMIN_USERS}/${record.id}/edit`}>
                             <UseButton shape="circle" icon={EditOutlined} />
                         </Link>
                     </UseTooltip>
@@ -88,6 +100,7 @@ function Page() {
             ),
         },
     ];
+
     return (
         <main className="grid gap-6">
             <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden p-4">
@@ -103,7 +116,7 @@ function Page() {
                 <div className="p-4 border-b border-slate-100 flex items-center justify-between">
                     <h3 className="text-lg font-bold text-navy-deep">การจัดการการประมูล</h3>
                     <div className="flex gap-2">
-                        <Link href="/admin/users/create">
+                        <Link href={`${ROUTES.ADMIN_USERS}/create`}>
                             <UseButton label="เพิ่มข้อมูล" icon={PlusOutlined} />
                         </Link>
                     </div>
@@ -116,7 +129,7 @@ function Page() {
                 onCancel={() => setModalUser(false)}
                 onOk={() => alert("ok")}
             >
-                <Form id={watch("id")} />
+                <Form id={id} />
             </UseModal>
         </main>
     );
