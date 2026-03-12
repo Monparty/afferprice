@@ -14,6 +14,7 @@ function InputText({
     variant = undefined,
     size = "middle",
     type = undefined,
+    disabled = false,
 }) {
     return (
         <Controller
@@ -39,6 +40,7 @@ function InputText({
                             }
                             field.onChange(value);
                         }}
+                        disabled={disabled}
                         status={error ? "error" : undefined}
                     />
                     {error && <UseHelperText errorMessage={error.message} />}

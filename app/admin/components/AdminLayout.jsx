@@ -6,21 +6,11 @@ import { BellOutlined, LogoutOutlined, QuestionCircleOutlined, UserOutlined } fr
 import UseAvatar from "@/app/components/utils/UseAvatar";
 import UsePopover from "@/app/components/utils/UsePopover";
 import UseButton from "@/app/components/inputs/UseButton";
-import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
 function AdminLayout({ children, menus }) {
     const pathname = usePathname();
-    const [headerName, setHeaderName] = useState("");
-
-    useEffect(() => {
-        const path = pathname.split("/")[2];
-        const menu = menus.find((item) => item.url.split("/")[2] === path);
-
-        if (menu) {
-            setHeaderName(menu.label);
-        }
-    }, [pathname]);
+    const headerName = menus.find((item) => item.url.split("/")[2] === pathname.split("/")[2])?.label || "";
 
     return (
         <>
@@ -35,7 +25,6 @@ function AdminLayout({ children, menus }) {
                             {menus.map((menu, index) => (
                                 <Link
                                     key={index}
-                                    onClick={() => setHeaderName(menu.label)}
                                     href={menu.url}
                                     className="flex items-center gap-3 p-2 rounded-lg hover:bg-orange-500/25 hover:text-orange-500"
                                 >

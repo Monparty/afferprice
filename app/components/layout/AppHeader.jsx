@@ -12,8 +12,7 @@ import afferpriceLogo from "../../../public/images/afferpriceLogo.png";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import UsePopover from "../utils/UsePopover";
-import { logout } from "../../../app/services/auth.service";
-import { supabase } from "@/app/lib/supabase/client";
+import { logout, subscribeAuth } from "../../../app/services/auth.service";
 import { getProfileByUserId } from "@/app/services/profile.service";
 import { notifyError } from "@/app/providers/NotificationProvider";
 
@@ -43,10 +42,8 @@ function AppHeader() {
 
     useEffect(() => {
         // ฟัง login / logout
-        const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-            setUser(session?.user ?? null);
-        });
-        return () => listener.subscription.unsubscribe();
+        const unsubscribe = subscribeAuth(setUser);
+        return unsubscribe;
     }, []);
 
     useEffect(() => {

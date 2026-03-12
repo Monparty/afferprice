@@ -7,7 +7,7 @@ function Page() {
     const [showDev, setShowDev] = useState(false);
 
     return (
-        <div className="w-full max-w-360 mx-auto px-4 md:px-10 py-6">
+        <div className="w-full max-w-360 mx-auto py-6 px-4 md:px-10">
             <div>
                 <button
                     onClick={() => setShowDev(!showDev)}

@@ -45,7 +45,7 @@ export default function RootLayout({ children }) {
             icon: <UserOutlined className="text-lg!" />,
         },
         {
-            url: ROUTES.ADMIN,
+            url: ROUTES.ADMIN_CATEGORIES,
             label: "จัดการหมวดหมู่สินค้า",
             icon: <ShopOutlined className="text-lg!" />,
         },

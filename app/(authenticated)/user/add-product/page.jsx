@@ -17,9 +17,7 @@ import { notifyError } from "@/app/providers/NotificationProvider";
 function Page() {
     const [activeStep, setActiveStep] = useState(0);
     const [categoryList, setCategoryList] = useState([]);
-    const { handleSubmit, watch, control } = useForm({
-        shouldUnregister: false,
-    });
+    const { handleSubmit, watch, control } = useForm();
     const items = [
         {
             title: "รูปภาพ",

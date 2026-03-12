@@ -4,12 +4,7 @@ import { useParams } from "next/navigation";
 
 function Page({ params }) {
     const { id } = useParams();
-    return (
-        <div>
-            user edit {id}
-            <Form id={id} />
-        </div>
-    );
+    return <Form mode="edit" id={id} />;
 }
 
 export default Page;

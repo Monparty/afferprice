@@ -17,6 +17,8 @@ function UseModal({ children, open, onOk, onCancel, title, okText = "บัน�
                 xl: "50%",
                 xxl: "40%",
             }}
+            okButtonProps={{ style: { display: !onOk ? "none" : "" } }}
+            cancelButtonProps={{ style: { display: !onCancel ? "none" : "" } }}
         >
             <>{children}</>
         </Modal>

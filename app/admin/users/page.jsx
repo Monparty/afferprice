@@ -12,11 +12,9 @@ import { useForm } from "react-hook-form";
 import { ROUTES } from "../constants/routes";
 
 function Page() {
-    const { control, setValue, getValues } = useForm({
-        shouldUnregister: false,
-    });
+    const { control, setValue, getValues } = useForm();
     const id = getValues("id");
-    const [modalUser, setModalUser] = useState(false);
+    const [modalWatch, setModalWatch] = useState(false);
 
     const dataSource = [
         {
@@ -75,7 +73,7 @@ function Page() {
                     <UseTooltip title="ดู">
                         <UseButton
                             onClick={() => {
-                                setModalUser(true);
+                                setModalWatch(true);
                                 setValue("id", record.id);
                             }}
                             shape="circle"
@@ -102,7 +100,7 @@ function Page() {
     ];
 
     return (
-        <main className="grid gap-6">
+        <main className="grid gap-4">
             <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden p-4">
                 <InputText
                     control={control}
@@ -112,24 +110,16 @@ function Page() {
                     placeholder="ค้นหาข้อมูล..."
                 />
             </div>
+            <div className="flex justify-end">
+                <Link href={`${ROUTES.ADMIN_USERS}/create`}>
+                    <UseButton label="เพิ่มข้อมูล" icon={PlusOutlined} />
+                </Link>
+            </div>
             <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-                    <h3 className="text-lg font-bold text-navy-deep">การจัดการการประมูล</h3>
-                    <div className="flex gap-2">
-                        <Link href={`${ROUTES.ADMIN_USERS}/create`}>
-                            <UseButton label="เพิ่มข้อมูล" icon={PlusOutlined} />
-                        </Link>
-                    </div>
-                </div>
                 <UseTable columns={columns} dataSource={dataSource} />
             </div>
-            <UseModal
-                title="ข้อมูลผู้ใช้"
-                open={modalUser}
-                onCancel={() => setModalUser(false)}
-                onOk={() => alert("ok")}
-            >
-                <Form id={id} />
+            <UseModal open={modalWatch} onCancel={() => setModalWatch(false)}>
+                <Form mode="watch" id={id} />
             </UseModal>
         </main>
     );
