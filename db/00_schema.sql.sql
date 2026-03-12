@@ -5,9 +5,7 @@ create table profiles (
     last_name text,
     profile_image text,
     gender text,
-    birth_day text,
-    birth_month text,
-    birth_year text,
+    birth_date date,
     role text default 'user' check (role in ('user', 'admin')),
     status text default 'active' check (
         status in ('active', 'banned')

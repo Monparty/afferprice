@@ -1,40 +1,28 @@
-"use client";
-import { Input } from "antd";
+import { Switch } from "antd";
 import { Controller } from "react-hook-form";
 import UseHelperText from "./UseHelperText";
 
-function UseInputPassword({
-    control,
-    name,
-    label = "",
-    placeholder = "",
-    className,
-    variant = undefined,
-    size = "middle",
-    disabled = false,
-}) {
+function UseSwitch({ control, name, label, onChange, defaultChecked, disabled = false }) {
     return (
         <Controller
             name={name}
             control={control}
             render={({ field, fieldState: { error } }) => (
-                <div className="grid w-full relative">
+                <div className="grid w-fit">
                     <label htmlFor={label} className="text-sm mb-0.5 w-fit">
                         {label}
                     </label>
-                    <Input.Password
+                    <Switch
                         {...field}
-                        id={label}
-                        placeholder={label && !placeholder ? `โปรดระบุ ${label}` : placeholder}
-                        variant={variant}
-                        size={size}
-                        className={`w-full ${className}`}
                         onChange={(value) => {
+                            if (onChange === typeof "function") {
+                                onChange(value);
+                            }
                             field.onChange(value);
                         }}
-                        visibilityToggle={true}
+                        defaultChecked={defaultChecked}
+                        className="w-fit"
                         disabled={disabled}
-                        status={error ? "error" : undefined}
                     />
                     {error && <UseHelperText errorMessage={error.message} />}
                 </div>
@@ -43,4 +31,4 @@ function UseInputPassword({
     );
 }
 
-export default UseInputPassword;
+export default UseSwitch;

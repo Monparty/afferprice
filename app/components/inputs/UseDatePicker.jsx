@@ -1,49 +1,42 @@
-"use client";
-import { Select } from "antd";
+import { DatePicker } from "antd";
+import React from "react";
 import { Controller } from "react-hook-form";
 import UseHelperText from "./UseHelperText";
 
-function UseSelect({
+function UseDatePicker({
     control,
     name,
     label = "",
     onChange,
     placeholder = "",
-    className,
     variant = undefined,
     size = "middle",
-    options,
-    isMultiple = false,
-    optionLabel = "label",
-    optionValue = "value",
+    type = undefined,
     disabled = false,
 }) {
-    if (!options?.length) return null;
     return (
         <Controller
             name={name}
             control={control}
             render={({ field, fieldState: { error } }) => (
-                <div className="grid w-full relative">
+                <div className="grid w-full">
                     <label htmlFor={label} className="text-sm mb-0.5 w-fit">
                         {label}
                     </label>
-                    <Select
+                    <DatePicker
                         {...field}
-                        allowClear
+                        id={label}
+                        type={type}
                         placeholder={label && !placeholder ? `โปรดระบุ ${label}` : placeholder}
-                        size={size}
-                        mode={isMultiple ? "multiple" : undefined}
-                        className={`w-full ${className}`}
                         variant={variant}
+                        size={size}
+                        className={`w-full h-fit`}
                         onChange={(value) => {
                             if (typeof onChange === "function") {
                                 onChange(value);
                             }
                             field.onChange(value);
                         }}
-                        options={options}
-                        fieldNames={{ label: optionLabel, value: optionValue }}
                         disabled={disabled}
                         status={error ? "error" : undefined}
                     />
@@ -54,4 +47,4 @@ function UseSelect({
     );
 }
 
-export default UseSelect;
+export default UseDatePicker;
