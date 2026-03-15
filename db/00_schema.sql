@@ -8,7 +8,11 @@ create table profiles (
     birth_date date,
     role text default 'user' check (role in ('user', 'admin')),
     status text default 'active' check (
-        status in ('active', 'banned')
+        status in (
+            'active',
+            'inactive',
+            'banned'
+        )
     ),
     created_at timestamptz default now(),
     updated_at timestamptz default now()

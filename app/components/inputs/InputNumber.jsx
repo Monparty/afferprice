@@ -11,17 +11,17 @@ function InputNumber({
     placeholder = "",
     className,
     icon: Icon,
-    variant = "filled",
+    variant = undefined,
     size = "middle",
     min = 1,
     max = undefined,
     step = false,
     format = false,
+    disabled = false,
 }) {
     const formatter = (value) => {
         const [start, end] = `${value}`.split(".") || [];
         const v = `${start}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        // return `฿${end ? `${v}.${end}` : `${v}`}`;
         return `${end ? `${v}.${end}` : `${v}`}`;
     };
 
@@ -54,6 +54,7 @@ function InputNumber({
                         step={step ? "0.01" : undefined} // กำหนดความละเอียดในการเพิ่ม/ลด
                         formatter={format ? formatter : undefined} // จัด format ตอนแสดง (ใส่ ฿, ใส่ ,)
                         status={error ? "error" : undefined}
+                        disabled={disabled}
                     />
                     {error && <UseHelperText errorMessage={error.message} />}
                 </div>

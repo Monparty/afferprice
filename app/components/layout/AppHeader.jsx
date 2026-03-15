@@ -50,7 +50,7 @@ function AppHeader() {
         if (!user) return;
         const fetchProfile = async () => {
             const { data, error } = await getProfileByUserId(user.id);
-            if (error) notifyError(error);
+            if (error) return notifyError(error);
             setProfile(data);
         };
         fetchProfile();

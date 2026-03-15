@@ -5,68 +5,75 @@ import UseTable from "@/app/components/utils/UseTable";
 import { DeleteFilled, EditOutlined, EyeFilled, PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import UseTooltip from "@/app/components/utils/UseTooltip";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import UseModal from "@/app/components/utils/UseModal";
 import Form from "./components/Form";
 import { useForm } from "react-hook-form";
 import { ROUTES } from "../constants/routes";
+import { deleteAuthUser, getUsersFull } from "@/app/services/admin/users.service";
+import { notifyError } from "@/app/providers/NotificationProvider";
+import { formatDateTime } from "@/app/utils/dateUtils";
+import UsePopconfirm from "@/app/components/utils/UsePopconfirm";
 
 function Page() {
     const { control, setValue, getValues } = useForm();
     const id = getValues("id");
     const [modalWatch, setModalWatch] = useState(false);
+    const [dataSource, setDataSource] = useState([]);
 
-    const dataSource = [
-        {
-            key: "1",
-            id: "1",
-            name: "suniti sukontaprapun",
-            email: "test@test.com",
-            role: "132",
-            status: "1",
-            create: "09/03/2569",
-        },
-        {
-            key: "2",
-            id: "2",
-            name: "mon monza",
-            email: "test@test.com",
-            role: "222",
-            status: "1",
-            create: "09/03/2569",
-        },
-    ];
+    const onGetUsersFull = async () => {
+        const { data, error } = await getUsersFull();
+        if (error) return notifyError(error);
+        const formatData = data.map((item) => {
+            return {
+                ...item,
+                fullName: `${item.first_name} ${item.last_name}`,
+                createdAt: formatDateTime(item.created_at),
+            };
+        });
+        setDataSource(formatData);
+    };
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        onGetUsersFull();
+    }, []);
+
+    const handleDelete = async (id) => {
+        await deleteAuthUser(id);
+        setDataSource((prev) => prev.filter((item) => item.id !== id));
+    };
 
     const columns = [
         {
             title: "ชื่อ",
-            dataIndex: "name",
-            key: "field",
+            dataIndex: "fullName",
+            key: "fullName",
         },
         {
             title: "อีเมล",
             dataIndex: "email",
-            key: "field",
+            key: "email",
         },
         {
             title: "บทบาท",
             dataIndex: "role",
-            key: "field",
+            key: "role",
         },
         {
             title: "สถานะ",
             dataIndex: "status",
-            key: "field",
+            key: "status",
         },
         {
             title: "วันที่สร้าง",
-            dataIndex: "create",
-            key: "field",
+            dataIndex: "createdAt",
+            key: "createdAt",
         },
         {
             title: "จัดการ",
-            dataIndex: "field",
-            key: "field",
+            dataIndex: "action",
+            key: "action",
             width: 160,
             render: (_, record) => (
                 <div className="flex gap-2 justify-center">
@@ -87,12 +94,13 @@ function Page() {
                         </Link>
                     </UseTooltip>
                     <UseTooltip title="ลบ">
-                        <UseButton
-                            onClick={() => alert(record.id)}
-                            shape="circle"
-                            className="bg-red-500!"
-                            icon={DeleteFilled}
-                        />
+                        <UsePopconfirm
+                            onConfirm={() => handleDelete(record.id)}
+                            title="ยืนยันการลบ"
+                            description="คุณแน่ใจใช่ไหมว่าต้องการลบข้อมูลนี้"
+                        >
+                            <UseButton shape="circle" className="bg-red-500!" icon={DeleteFilled} />
+                        </UsePopconfirm>
                     </UseTooltip>
                 </div>
             ),

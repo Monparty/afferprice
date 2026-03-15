@@ -1,7 +1,9 @@
+"use client";
 import { DatePicker } from "antd";
 import React from "react";
 import { Controller } from "react-hook-form";
 import UseHelperText from "./UseHelperText";
+import dayjs from "dayjs";
 
 function UseDatePicker({
     control,
@@ -24,18 +26,18 @@ function UseDatePicker({
                         {label}
                     </label>
                     <DatePicker
-                        {...field}
                         id={label}
                         type={type}
                         placeholder={label && !placeholder ? `โปรดระบุ ${label}` : placeholder}
                         variant={variant}
                         size={size}
                         className={`w-full h-fit`}
-                        onChange={(value) => {
+                        onChange={(value, dateString) => {
+                            const formatted = value ? value?.format("YYYY-MM-DD HH:mm:ss") : null;
+                            field.onChange(formatted);
                             if (typeof onChange === "function") {
-                                onChange(value);
+                                onChange({ value: formatted, dateString: dateString });
                             }
-                            field.onChange(value);
                         }}
                         disabled={disabled}
                         status={error ? "error" : undefined}

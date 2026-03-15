@@ -8,18 +8,44 @@ import UseInputPassword from "@/app/components/inputs/UseInputPassword";
 import UseSelect from "@/app/components/inputs/UseSelect";
 import UseSwitch from "@/app/components/inputs/UseSwitch";
 import UseDatePicker from "@/app/components/inputs/UseDatePicker";
+import InputNumber from "@/app/components/inputs/InputNumber";
+import { useEffect } from "react";
+import { getUsersById } from "@/app/services/admin/users.service";
+import { notifyError } from "@/app/providers/NotificationProvider";
 
-function Form({ id, mode }) {
+function Form({ id, mode, handleCreate }) {
     const router = useRouter();
     const isEdit = Boolean(id);
     const isWatch = Boolean(mode === "watch");
-    const { control, handleSubmit, watch } = useForm();
+    const { control, handleSubmit, watch, setValue, reset } = useForm();
     const modeIcons = {
         watch: EyeFilled,
         create: PlusOutlined,
         edit: EditOutlined,
     };
     const Icon = modeIcons[mode];
+    const inputProps = {
+        control: control,
+        size: "large",
+        disabled: isWatch,
+    };
+
+    useEffect(() => {
+        if (!id) return;
+        const onGetUsersById = async () => {
+            const { data, error } = await getUsersById(id);
+            if (error) return notifyError(error);
+            const formatData = {
+                ...data,
+                firstName: data.first_name,
+                lastName: data.last_name,
+                createdAt: data.created_at,
+            };
+            console.log("formatData", formatData)
+            reset(formatData);
+        };
+        onGetUsersById();
+    }, [id, reset]);
 
     const SubmitFrom = async (data) => {
         // console.log("data", data);
@@ -27,18 +53,12 @@ function Form({ id, mode }) {
             alert("edit");
             // await updateUser(id, data);
         } else {
-            alert("create");
-            // await createUser(data);
+            // alert("create");
+            handleCreate(data);
         }
     };
 
-    const inputProps = {
-        control: control,
-        size: "large",
-        disabled: isWatch,
-    };
-
-    console.log("watch", watch());
+    // console.log("watch", watch());
 
     return (
         <form className="grid gap-6" onSubmit={handleSubmit(SubmitFrom)}>
@@ -49,7 +69,7 @@ function Form({ id, mode }) {
                 <InputText {...inputProps} name="firstName" label="ชื่อจริง" />
                 <InputText {...inputProps} name="lastName" label="นามสกุล" />
                 <InputText {...inputProps} name="phone" label="เบอร์โทร" />
-                <InputText {...inputProps} name="gender" label="อายุ" />
+                <InputNumber {...inputProps} name="gender" label="อายุ" />
                 <UseDatePicker {...inputProps} name="birthDate" label="วันเกิด" size="large" />
                 <UseSelect
                     {...inputProps}
@@ -63,7 +83,7 @@ function Form({ id, mode }) {
                     disabled={isWatch}
                 />
                 <InputText {...inputProps} name="email" label="อีเมล" />
-                <UseInputPassword {...inputProps} name="รหัสผ่าน" label="รหัสผ่าน" />
+                <UseInputPassword {...inputProps} name="password" label="รหัสผ่าน" />
                 <UseSwitch {...inputProps} name="status" label="สถานะการใช้งาน" />
             </div>
             {!isWatch && (

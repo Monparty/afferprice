@@ -1,19 +1,19 @@
 -- สร้าง profile อัตโนมัติหลังสมัคร
-create function public.handle_new_user()
-returns trigger
-language plpgsql
-security definer
-as $$
-begin
-    insert into public.profiles (id)
-    values (new.id);
-    return new;
-end;
-$$;
+-- create function public.handle_new_user()
+-- returns trigger
+-- language plpgsql
+-- security definer
+-- as $$
+-- begin
+--     insert into public.profiles (id)
+--     values (new.id);
+--     return new;
+-- end;
+-- $$;
 
-create trigger on_auth_user_created
-after insert on auth.users
-for each row execute procedure public.handle_new_user();
+-- create trigger on_auth_user_created
+-- after insert on auth.users
+-- for each row execute procedure public.handle_new_user();
 
 -- place_bid() = ฟังก์ชันฝั่ง DB ที่ควบคุมการประมูล
 create or replace function place_bid(

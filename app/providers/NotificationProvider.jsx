@@ -17,10 +17,10 @@ export const notifyError = (error) => {
     return;
 };
 
-export const notifySuccess = (title, description) => {
+export const notifySuccess = (description) => {
     if (!notificationApi) return;
     notificationApi.success({
-        title,
+        title: "Success",
         description,
         placement: "topRight",
     });

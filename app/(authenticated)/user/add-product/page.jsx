@@ -35,7 +35,7 @@ function Page() {
     useEffect(() => {
         const fetchCategories = async () => {
             const { data, error } = await getCategories();
-            if (error) notifyError(error);
+            if (error) return notifyError(error);
             setCategoryList(data);
         };
         fetchCategories();

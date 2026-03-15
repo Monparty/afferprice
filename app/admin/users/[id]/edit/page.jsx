@@ -2,7 +2,7 @@
 import Form from "../../components/Form";
 import { useParams } from "next/navigation";
 
-function Page({ params }) {
+function Page() {
     const { id } = useParams();
     return <Form mode="edit" id={id} />;
 }

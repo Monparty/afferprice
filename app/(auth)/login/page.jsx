@@ -10,6 +10,7 @@ import afferpriceLogo from "../../../public/images/afferpriceLogo.png";
 import InputText from "../../components/inputs/InputText";
 import UseButton from "../../components/inputs/UseButton";
 import UseInputPassword from "../../components/inputs/UseInputPassword";
+import { notifyError } from "@/app/providers/NotificationProvider";
 
 function Page() {
     const {
@@ -28,9 +29,8 @@ function Page() {
         const { data, error } = await login("test@test.com", "123456"); // ม่ายต้องพิมพ์
         // const { data, error } = await login(values.email, values.password);
 
-        if (error) {
-            return alert(error.message);
-        }
+        if (error) return notifyError(error);
+        alert("ห้ามเข้า")
         router.push("/");
     };
 
