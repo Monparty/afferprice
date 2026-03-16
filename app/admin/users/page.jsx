@@ -2,8 +2,7 @@
 import InputText from "@/app/components/inputs/InputText";
 import UseButton from "@/app/components/inputs/UseButton";
 import UseTable from "@/app/components/utils/UseTable";
-import { DeleteFilled, EditOutlined, EyeFilled, PlusOutlined, SearchOutlined } from "@ant-design/icons";
-import UseTooltip from "@/app/components/utils/UseTooltip";
+import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import UseModal from "@/app/components/utils/UseModal";
@@ -13,7 +12,8 @@ import { ROUTES } from "../constants/routes";
 import { deleteAuthUser, getUsersFull } from "@/app/services/admin/users.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import { formatDateTime } from "@/app/utils/dateUtils";
-import UsePopconfirm from "@/app/components/utils/UsePopconfirm";
+import UseTag from "@/app/components/utils/UseTag";
+import BtnActionGroup from "../components/BtnActionGroup";
 
 function Page() {
     const { control, setValue, getValues } = useForm();
@@ -60,16 +60,35 @@ function Page() {
             title: "บทบาท",
             dataIndex: "role",
             key: "role",
+            render: (_, record) => (
+                <UseTag
+                    label={record.role}
+                    variant="filled"
+                    color={record.role === "user" ? "blue" : "magenta"}
+                    className="capitalize"
+                    style={{ textTransform: "capitalize" }}
+                />
+            ),
         },
         {
             title: "สถานะ",
             dataIndex: "status",
             key: "status",
+            render: (_, record) => (
+                <UseTag
+                    label={record.status}
+                    variant="filled"
+                    color={record.status === "active" ? "green" : null}
+                    className="capitalize"
+                    style={{ textTransform: "capitalize" }}
+                />
+            ),
         },
         {
             title: "วันที่สร้าง",
             dataIndex: "createdAt",
             key: "createdAt",
+            sorter: (a, b) => a.createdAt.localeCompare(b.createdAt),
         },
         {
             title: "จัดการ",
@@ -77,33 +96,13 @@ function Page() {
             key: "action",
             width: 160,
             render: (_, record) => (
-                <div className="flex gap-2 justify-center">
-                    <UseTooltip title="ดู">
-                        <UseButton
-                            onClick={() => {
-                                setModalWatch(true);
-                                setValue("id", record.id);
-                            }}
-                            shape="circle"
-                            className="bg-blue-500!"
-                            icon={EyeFilled}
-                        />
-                    </UseTooltip>
-                    <UseTooltip title="แก้ไข">
-                        <Link href={`${ROUTES.ADMIN_USERS}/${record.id}/edit`}>
-                            <UseButton shape="circle" icon={EditOutlined} />
-                        </Link>
-                    </UseTooltip>
-                    <UseTooltip title="ลบ">
-                        <UsePopconfirm
-                            onConfirm={() => handleDelete(record.id)}
-                            title="ยืนยันการลบ"
-                            description="คุณแน่ใจใช่ไหมว่าต้องการลบข้อมูลนี้"
-                        >
-                            <UseButton shape="circle" className="bg-red-500!" icon={DeleteFilled} />
-                        </UsePopconfirm>
-                    </UseTooltip>
-                </div>
+                <BtnActionGroup
+                    recordId={record.id}
+                    setModalWatch={setModalWatch}
+                    setValue={setValue}
+                    editRoute={ROUTES.ADMIN_USERS}
+                    handleDelete={handleDelete}
+                />
             ),
         },
     ];
