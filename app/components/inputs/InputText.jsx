@@ -5,6 +5,7 @@ import UseHelperText from "./UseHelperText";
 
 function InputText({
     control,
+    ref,
     name,
     label = "",
     onChange,
@@ -15,6 +16,7 @@ function InputText({
     size = "middle",
     type = undefined,
     disabled = false,
+    onPressEnter,
 }) {
     return (
         <Controller
@@ -28,6 +30,7 @@ function InputText({
                     <Input
                         {...field}
                         id={label}
+                        ref={ref}
                         type={type}
                         placeholder={label && !placeholder ? `โปรดระบุ ${label}` : placeholder}
                         variant={variant}
@@ -42,6 +45,7 @@ function InputText({
                         }}
                         disabled={disabled}
                         status={error ? "error" : undefined}
+                        onPressEnter={onPressEnter}
                     />
                     {error && <UseHelperText errorMessage={error.message} />}
                 </div>

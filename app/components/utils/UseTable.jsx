@@ -11,6 +11,7 @@ function UseTable({ dataSource, columns }) {
                     cell: "rounded-none!",
                 },
             }}
+            showSorterTooltip={{ target: "sorter-icon" }}
         />
     );
 }
