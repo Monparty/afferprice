@@ -13,11 +13,11 @@ import { useEffect } from "react";
 import { getUsersById } from "@/app/services/admin/users.service";
 import { notifyError } from "@/app/providers/NotificationProvider";
 
-function Form({ id, mode, handleCreate }) {
+function Form({ id, mode, onSubmit }) {
     const router = useRouter();
     const isEdit = Boolean(id);
     const isWatch = Boolean(mode === "watch");
-    const { control, handleSubmit, watch, setValue, reset } = useForm();
+    const { control, handleSubmit, reset } = useForm();
     const modeIcons = {
         watch: EyeFilled,
         create: PlusOutlined,
@@ -39,29 +39,22 @@ function Form({ id, mode, handleCreate }) {
                 ...data,
                 firstName: data.first_name,
                 lastName: data.last_name,
-                createdAt: data.created_at,
+                birthDate: data.birth_date,
+                status: data.status === "active",
             };
-            console.log("formatData", formatData)
             reset(formatData);
         };
         onGetUsersById();
     }, [id, reset]);
 
-    const SubmitFrom = async (data) => {
-        // console.log("data", data);
-        if (isEdit) {
-            alert("edit");
-            // await updateUser(id, data);
-        } else {
-            // alert("create");
-            handleCreate(data);
-        }
+    const submitForm = async (data) => {
+        await onSubmit(data);
     };
 
     // console.log("watch", watch());
 
     return (
-        <form className="grid gap-6" onSubmit={handleSubmit(SubmitFrom)}>
+        <form className="grid gap-6" onSubmit={handleSubmit(submitForm)}>
             <div className="flex gap-2 items-center">
                 {Icon && <UseButton shape="circle" icon={Icon} size="large" />}
             </div>
@@ -69,8 +62,22 @@ function Form({ id, mode, handleCreate }) {
                 <InputText {...inputProps} name="firstName" label="ชื่อจริง" />
                 <InputText {...inputProps} name="lastName" label="นามสกุล" />
                 <InputText {...inputProps} name="phone" label="เบอร์โทร" />
-                <InputNumber {...inputProps} name="gender" label="อายุ" />
+                <UseSelect
+                    {...inputProps}
+                    options={[
+                        { label: "ชาย", value: "male" },
+                        { label: "หญิง", value: "female" },
+                        { label: "อื่นๆ", value: "other" },
+                    ]}
+                    name="gender"
+                    label="เพศ"
+                    size="large"
+                    disabled={isWatch}
+                />
+                <InputNumber {...inputProps} name="age" label="อายุ" />
                 <UseDatePicker {...inputProps} name="birthDate" label="วันเกิด" size="large" />
+                <InputText {...inputProps} name="email" label="อีเมล" />
+                <UseInputPassword {...inputProps} name="password" label="รหัสผ่าน" />
                 <UseSelect
                     {...inputProps}
                     options={[
@@ -82,8 +89,6 @@ function Form({ id, mode, handleCreate }) {
                     size="large"
                     disabled={isWatch}
                 />
-                <InputText {...inputProps} name="email" label="อีเมล" />
-                <UseInputPassword {...inputProps} name="password" label="รหัสผ่าน" />
                 <UseSwitch {...inputProps} name="status" label="สถานะการใช้งาน" />
             </div>
             {!isWatch && (

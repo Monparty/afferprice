@@ -1,6 +1,6 @@
 "use client";
 import Form from "../components/Form";
-import { createAuthUser, createProfile, deleteAuthUser } from "@/app/services/admin/users.service";
+import { createAuthUser, upsertProfile, deleteAuthUser } from "@/app/services/admin/users.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "../../constants/routes";
@@ -8,24 +8,30 @@ import { ROUTES } from "../../constants/routes";
 function Page() {
     const router = useRouter();
     const handleCreate = async (value) => {
-        const { data: authData, error: authError } = await createAuthUser({
+        const authPayload = {
             email: value.email,
             password: value.password,
-            displayName: value.firstName,
-        });
+            user_metadata: {
+                display_name: value.firstName,
+            },
+            email_confirm: true, // ยืนยันให้เลยตั้งแต่อสร้าง
+        };
+        const { data: authData, error: authError } = await createAuthUser(authPayload);
         if (authError) return notifyError(authError);
+
         const userId = authData.user.id;
-        const payload = {
+        const profilePayload = {
             id: userId,
             phone: value.phone,
-            firstName: value.firstName,
-            lastName: value.lastName,
+            first_name: value.firstName,
+            last_name: value.lastName,
             gender: value.gender,
-            birthDate: value.birthDate,
+            age: value.age,
+            birth_date: value.birthDate,
             role: value.role,
             status: value.status ? "active" : "inactive",
         };
-        const { error: profileError } = await createProfile(payload);
+        const { error: profileError } = await upsertProfile(profilePayload);
         if (profileError) {
             await deleteAuthUser(userId);
             return notifyError(profileError);
@@ -34,7 +40,7 @@ function Page() {
         router.push(ROUTES.ADMIN_USERS);
     };
 
-    return <Form mode="create" handleCreate={handleCreate} />;
+    return <Form mode="create" onSubmit={handleCreate} />;
 }
 
 export default Page;

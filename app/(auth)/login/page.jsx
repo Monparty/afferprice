@@ -30,7 +30,6 @@ function Page() {
         // const { data, error } = await login(values.email, values.password);
 
         if (error) return notifyError(error);
-        alert("ห้ามเข้า")
         router.push("/");
     };
 

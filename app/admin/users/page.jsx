@@ -11,7 +11,7 @@ import Form from "./components/Form";
 import { useForm } from "react-hook-form";
 import { ROUTES } from "../constants/routes";
 import { deleteAuthUser, getUsersFull } from "@/app/services/admin/users.service";
-import { notifyError } from "@/app/providers/NotificationProvider";
+import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import { formatDateTime } from "@/app/utils/dateUtils";
 import UsePopconfirm from "@/app/components/utils/UsePopconfirm";
 
@@ -41,6 +41,7 @@ function Page() {
 
     const handleDelete = async (id) => {
         await deleteAuthUser(id);
+        notifySuccess("ลบข้อมูลสำเร็จ");
         setDataSource((prev) => prev.filter((item) => item.id !== id));
     };
 

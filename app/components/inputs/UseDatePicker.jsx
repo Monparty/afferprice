@@ -26,7 +26,8 @@ function UseDatePicker({
                         {label}
                     </label>
                     <DatePicker
-                        id={label}
+                        {...field}
+                        value={field.value ? dayjs(field.value) : null}
                         type={type}
                         placeholder={label && !placeholder ? `โปรดระบุ ${label}` : placeholder}
                         variant={variant}
