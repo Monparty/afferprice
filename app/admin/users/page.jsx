@@ -68,7 +68,6 @@ function Page() {
                     variant="filled"
                     color={record.role === "user" ? "blue" : "magenta"}
                     className="capitalize"
-                    style={{ textTransform: "capitalize" }}
                 />
             ),
         },
@@ -82,7 +81,6 @@ function Page() {
                     variant="filled"
                     color={record.status === "active" ? "green" : null}
                     className="capitalize"
-                    style={{ textTransform: "capitalize" }}
                 />
             ),
         },

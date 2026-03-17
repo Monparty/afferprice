@@ -1,9 +1,9 @@
 import { Tag } from "antd";
 
-function UseTag({ label, color, variant, style }) {
+function UseTag({ label, color, variant, className }) {
     // variants = ['filled', 'solid', 'outlined']
     return (
-        <Tag color={color} variant={variant} style={style}>
+        <Tag color={color} variant={variant} className={className}>
             {label}
         </Tag>
     );

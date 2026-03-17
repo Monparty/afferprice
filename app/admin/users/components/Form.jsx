@@ -15,7 +15,6 @@ import { notifyError } from "@/app/providers/NotificationProvider";
 
 function Form({ id, mode, onSubmit }) {
     const router = useRouter();
-    const isEdit = Boolean(id);
     const isWatch = Boolean(mode === "watch");
     const { control, handleSubmit, reset } = useForm();
     const modeIcons = {
@@ -51,8 +50,6 @@ function Form({ id, mode, onSubmit }) {
         await onSubmit(data);
     };
 
-    // console.log("watch", watch());
-
     return (
         <form className="grid gap-6" onSubmit={handleSubmit(submitForm)}>
             <div className="flex gap-2 items-center">
@@ -72,7 +69,6 @@ function Form({ id, mode, onSubmit }) {
                     name="gender"
                     label="เพศ"
                     size="large"
-                    disabled={isWatch}
                 />
                 <InputNumber {...inputProps} name="age" label="อายุ" />
                 <UseDatePicker {...inputProps} name="birthDate" label="วันเกิด" size="large" />
@@ -87,7 +83,6 @@ function Form({ id, mode, onSubmit }) {
                     name="role"
                     label="สิทธิ์"
                     size="large"
-                    disabled={isWatch}
                 />
                 <UseSwitch {...inputProps} name="status" label="สถานะการใช้งาน" />
             </div>

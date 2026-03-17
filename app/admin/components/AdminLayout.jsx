@@ -7,6 +7,7 @@ import UseAvatar from "@/app/components/utils/UseAvatar";
 import UsePopover from "@/app/components/utils/UsePopover";
 import UseButton from "@/app/components/inputs/UseButton";
 import { usePathname } from "next/navigation";
+import { ROUTES } from "../constants/routes";
 
 function AdminLayout({ children, menus }) {
     const pathname = usePathname();
@@ -15,8 +16,8 @@ function AdminLayout({ children, menus }) {
     return (
         <>
             <div className="w-1/6">
-                <nav className="bg-slate-800 p-6 h-dvh text-white w-1/6 fixed">
-                    <Link href="/admin" className="flex-2 flex items-center gap-3 mb-6">
+                <nav className="bg-slate-800 text-white p-6 h-dvh w-1/6 fixed">
+                    <Link href={ROUTES.ADMIN} className="flex-2 flex items-center gap-3 mb-6">
                         <Image src={afferpriceLogo} width={34} height={34} alt="Afferprice Logo" />
                         <h1 className="text-xl font-semibold">Afferprice</h1>
                     </Link>
@@ -26,7 +27,7 @@ function AdminLayout({ children, menus }) {
                                 <Link
                                     key={index}
                                     href={menu.url}
-                                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-orange-500/25 hover:text-orange-500"
+                                    className={`${headerName === menu.label ? "bg-orange-500/25 text-orange-500" : ""} flex items-center gap-3 p-2 rounded-lg hover:bg-orange-500/25 hover:text-orange-500`}
                                 >
                                     {menu.icon}
                                     {menu.label}
