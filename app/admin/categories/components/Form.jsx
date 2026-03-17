@@ -4,14 +4,10 @@ import { useForm } from "react-hook-form";
 import { PlusOutlined, EditOutlined, LeftOutlined, SaveFilled, EyeFilled } from "@ant-design/icons";
 import UseButton from "@/app/components/inputs/UseButton";
 import { useRouter } from "next/navigation";
-import UseInputPassword from "@/app/components/inputs/UseInputPassword";
-import UseSelect from "@/app/components/inputs/UseSelect";
 import UseSwitch from "@/app/components/inputs/UseSwitch";
-import UseDatePicker from "@/app/components/inputs/UseDatePicker";
-import InputNumber from "@/app/components/inputs/InputNumber";
 import { useEffect } from "react";
-import { getUserById } from "@/app/services/admin/users.service";
 import { notifyError } from "@/app/providers/NotificationProvider";
+import { getCategorieById } from "@/app/services/admin/categories.service";
 
 function Form({ id, mode, onSubmit }) {
     const router = useRouter();
@@ -31,19 +27,16 @@ function Form({ id, mode, onSubmit }) {
 
     useEffect(() => {
         if (!id) return;
-        const onGetUserById = async () => {
-            const { data, error } = await getUserById(id);
+        const onGetCategorieById = async () => {
+            const { data, error } = await getCategorieById(id);
             if (error) return notifyError(error);
             const formatData = {
                 ...data,
-                firstName: data.first_name,
-                lastName: data.last_name,
-                birthDate: data.birth_date,
                 status: data.status === "active",
             };
             reset(formatData);
         };
-        onGetUserById();
+        onGetCategorieById();
     }, [id, reset]);
 
     const submitForm = async (data) => {
@@ -56,32 +49,8 @@ function Form({ id, mode, onSubmit }) {
                 {Icon && <UseButton shape="circle" icon={Icon} size="large" />}
             </div>
             <div className="grid grid-cols-2 gap-4">
-                <InputText {...inputProps} name="firstName" label="ชื่อจริง" />
-                <InputText {...inputProps} name="lastName" label="นามสกุล" />
-                <InputText {...inputProps} name="phone" label="เบอร์โทร" />
-                <UseSelect
-                    {...inputProps}
-                    options={[
-                        { label: "ชาย", value: "male" },
-                        { label: "หญิง", value: "female" },
-                        { label: "อื่นๆ", value: "other" },
-                    ]}
-                    name="gender"
-                    label="เพศ"
-                />
-                <InputNumber {...inputProps} name="age" label="อายุ" />
-                <UseDatePicker {...inputProps} name="birthDate" label="วันเกิด" />
-                <InputText {...inputProps} name="email" label="อีเมล" />
-                <UseInputPassword {...inputProps} name="password" label="รหัสผ่าน" />
-                <UseSelect
-                    {...inputProps}
-                    options={[
-                        { label: "ผู้ใช้งาน", value: "user" },
-                        { label: "ผู้ดูแลระบบ", value: "admin" },
-                    ]}
-                    name="role"
-                    label="สิทธิ์"
-                />
+                <InputText {...inputProps} name="name" label="ชื่อหมวดหมู่" />
+                <InputText {...inputProps} name="description" label="คำอธิบาย" />
                 <UseSwitch {...inputProps} name="status" label="สถานะการใช้งาน" />
             </div>
             {!isWatch && (

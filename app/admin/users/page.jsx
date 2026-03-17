@@ -18,6 +18,7 @@ import { useColumnSearch } from "@/app/hooks/useColumnSearch";
 function Page() {
     const { control, setValue, getValues } = useForm();
     const id = getValues("id");
+    const route = ROUTES.ADMIN_USERS;
     const [modalWatch, setModalWatch] = useState(false);
     const [dataSource, setDataSource] = useState([]);
     const { columnSearch } = useColumnSearch();
@@ -89,6 +90,7 @@ function Page() {
             dataIndex: "createdAt",
             key: "createdAt",
             sorter: (a, b) => a.createdAt.localeCompare(b.createdAt),
+            defaultSortOrder: "descend",
         },
         {
             title: "จัดการ",
@@ -100,7 +102,7 @@ function Page() {
                     recordId={record.id}
                     setModalWatch={setModalWatch}
                     setValue={setValue}
-                    editRoute={ROUTES.ADMIN_USERS}
+                    editRoute={route}
                     handleDelete={handleDelete}
                 />
             ),
@@ -110,7 +112,7 @@ function Page() {
     return (
         <main className="grid gap-4">
             <div className="flex justify-end">
-                <Link href={`${ROUTES.ADMIN_USERS}/create`}>
+                <Link href={`${route}/create`}>
                     <UseButton label="เพิ่มข้อมูล" icon={PlusOutlined} />
                 </Link>
             </div>

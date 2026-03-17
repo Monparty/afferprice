@@ -17,6 +17,6 @@ export async function getUsersFull() {
     return supabaseAdmin.from("users_full").select("*");
 }
 
-export async function getUsersById(id) {
+export async function getUserById(id) {
     return supabaseAdmin.from("users_full").select("*").eq("id", id).single();
 }
