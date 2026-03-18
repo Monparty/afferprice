@@ -6,6 +6,7 @@ import { ArrowLeftOutlined, ArrowRightOutlined, CheckCircleFilled, EyeFilled } f
 import Image from "next/image";
 
 function CardAddProductPreview({ control, watch, activeStep, setActiveStep }) {
+    // ใช้ที่ "/user/add-product"
     return (
         <div className="flex flex-col gap-6">
             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-lg sticky top-12">

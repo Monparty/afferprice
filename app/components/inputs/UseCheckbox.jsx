@@ -2,7 +2,7 @@
 import { Checkbox } from "antd";
 import { Controller } from "react-hook-form";
 
-function UseCheckbox({ control, name, onChange, label, className }) {
+function UseCheckbox({ control, name, onChange, label, className, checked = false }) {
     return (
         <Controller
             name={name}
@@ -16,6 +16,7 @@ function UseCheckbox({ control, name, onChange, label, className }) {
                         field.onChange(e.target.checked);
                     }}
                     className={`${className}`}
+                    checked={checked}
                 >
                     {label}
                 </Checkbox>

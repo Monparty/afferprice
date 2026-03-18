@@ -2,6 +2,7 @@ import UseButton from "../inputs/UseButton";
 import UseTag from "./UseTag";
 
 function CardZoomImage({ backgroundImage, title, price, bid, state = false }) {
+    // ใช้ที่ "/"
     return (
         <div className="flex-none w-87.5 md:w-150 h-87.5 relative rounded-xl overflow-hidden group">
             <div

@@ -12,6 +12,7 @@ import {
 } from "@ant-design/icons";
 
 function CardProductBid() {
+    // ใช้ที่ "/product"
     const { control } = useForm();
     return (
         <div className="bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">

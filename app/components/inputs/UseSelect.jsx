@@ -17,6 +17,7 @@ function UseSelect({
     optionLabel = "label",
     optionValue = "value",
     disabled = false,
+    defaultValue,
 }) {
     if (!options?.length) return null;
     return (
@@ -44,6 +45,7 @@ function UseSelect({
                         }}
                         options={options}
                         fieldNames={{ label: optionLabel, value: optionValue }}
+                        defaultValue={defaultValue}
                         disabled={disabled}
                         status={error ? "error" : undefined}
                     />

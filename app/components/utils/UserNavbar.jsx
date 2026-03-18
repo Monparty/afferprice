@@ -9,7 +9,7 @@ function UserNavbar() {
     const [isOpenModalProfile, setIsOpenModalProfile] = useState(false);
     return (
         <>
-            <nav className="w-full grid gap-4 p-4 rounded-lg bg-white border shadow-lg  border-slate-200">
+            <nav className="w-full grid gap-4 p-4 rounded-lg bg-white border shadow-lg border-slate-200">
                 <Link href="/user/add-product">
                     <UseButton label="สร้างรายการสินค้า" icon={PlusOutlined} size="large" wFull />
                 </Link>
