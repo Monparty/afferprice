@@ -1,5 +1,5 @@
 "use client";
-import { PlusOutlined, BarChartOutlined, UserOutlined, TagOutlined } from "@ant-design/icons";
+import { PlusOutlined, BarChartOutlined, UserOutlined, TagOutlined, HeartOutlined } from "@ant-design/icons";
 import UseButton from "../../../app/components/inputs/UseButton";
 import Link from "next/link";
 import UseModal from "./UseModal";
@@ -22,7 +22,14 @@ function UserNavbar() {
                     className="flex items-center gap-2 p-2 bg-white rounded-lg hover:bg-gray-100"
                 >
                     <UseButton shape="circle" icon={TagOutlined} />
-                    รายการสินค้าของคุณ
+                    รายการสินค้าของฉัน
+                </Link>
+                <Link
+                    href="/user/favorites"
+                    className="flex items-center gap-2 p-2 bg-white rounded-lg hover:bg-gray-100"
+                >
+                    <UseButton shape="circle" icon={HeartOutlined} />
+                    สิ่งที่ฉันถูกใจ
                 </Link>
                 <div
                     className="flex items-center gap-2 p-2 bg-white rounded-lg hover:bg-gray-100 cursor-pointer"

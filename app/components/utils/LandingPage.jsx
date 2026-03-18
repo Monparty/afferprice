@@ -138,7 +138,7 @@ function LandingPage() {
                     />
                 </div>
             </section>
-            <UseCarousel>
+            <UseCarousel autoplay>
                 <div>
                     <h3 style={contentStyle}>1</h3>
                 </div>

@@ -76,21 +76,26 @@ function AppHeader() {
                     <ul className="flex justify-center gap-8 h-15 b text-gray-700">
                         <li>
                             <Link href="/" className={linkStyle}>
-                                การประมูล
+                                หน้าแรก
                             </Link>
                         </li>
                         <li>
-                            <Link href="/" className={linkStyle}>
+                            <Link href="/categories" className={linkStyle}>
                                 หมวดหมู่
                             </Link>
                         </li>
                         <li>
-                            <Link href="/" className={linkStyle}>
+                            <Link href="/auction" className={linkStyle}>
+                                การประมูล
+                            </Link>
+                        </li>
+                        <li>
+                            <Link href="/user/add-product" className={linkStyle}>
                                 ลงขาย
                             </Link>
                         </li>
                         <li>
-                            <Link href="/" className={linkStyle}>
+                            <Link href="/user/favorites" className={linkStyle}>
                                 รายการโปรด
                             </Link>
                         </li>

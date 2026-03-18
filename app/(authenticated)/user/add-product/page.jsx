@@ -107,7 +107,6 @@ function Page() {
                                     name="title"
                                     label="ชื่อสินค้า"
                                     size="large"
-                                    variant="filled"
                                 />
                                 <InputNumber
                                     control={control}
@@ -115,7 +114,6 @@ function Page() {
                                     label="ราคาเริ่มต้น (บาท)"
                                     size="large"
                                     format
-                                    variant="filled"
                                     icon={DollarOutlined}
                                 />
                             </div>
@@ -151,7 +149,6 @@ function Page() {
                                     optionLabel="name"
                                     optionValue="id"
                                     size="large"
-                                    variant="filled"
                                 />
                                 <UseSegmented
                                     control={control}

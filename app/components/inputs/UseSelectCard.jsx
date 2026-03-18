@@ -21,7 +21,11 @@ function UseSelectCard({ control, name, options, type = "radio", dot = false }) 
                         const isChecked = isRadio ? field.value === value : field.value?.includes(value);
                         const handleChange = (e) => {
                             if (isRadio) {
-                                field.onChange(value);
+                                if (field.value === value) {
+                                    field.onChange(null);
+                                } else {
+                                    field.onChange(value);
+                                }
                             } else {
                                 const checked = e.target.checked;
                                 const newValue = checked
@@ -30,6 +34,7 @@ function UseSelectCard({ control, name, options, type = "radio", dot = false }) 
                                 field.onChange(newValue);
                             }
                         };
+
                         return (
                             <label
                                 key={id}
