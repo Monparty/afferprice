@@ -92,9 +92,11 @@ function LandingPage() {
 
     const contentStyle = {
         margin: 0,
-        height: "160px",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "400px",
         color: "#fff",
-        lineHeight: "160px",
         textAlign: "center",
         background: "#364d79",
     };
