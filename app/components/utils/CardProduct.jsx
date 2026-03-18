@@ -35,7 +35,7 @@ function CardProduct({ image, time, category, name, price, bid, favorite }) {
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">{category}</p>
                     <h3 className="text-base font-bold text-slate-900 line-clamp-1">{name}</h3>
                     <div className="mt-2 flex items-baseline gap-2">
-                        <span className="text-lg font-bold text-primary">{price.toLocaleString()} บาท</span>
+                        <span className="text-lg font-bold text-primary">{price?.toLocaleString()} บาท</span>
                         <span className="text-xs text-slate-400">{bid} ประมูล</span>
                     </div>
                 </div>

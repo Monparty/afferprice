@@ -18,7 +18,7 @@ function CardZoomImage({ backgroundImage, title, price, bid, state = false }) {
                     <h3 className="text-white text-2xl font-bold mt-2">{title}</h3>
                     <div className="flex items-center gap-3 text-white/90">
                         <p className="text-lg font-medium">
-                            ราคาปัจจุบัน: <span className="text-white font-bold">{price.toLocaleString()} บาท</span>
+                            ราคาปัจจุบัน: <span className="text-white font-bold">{price?.toLocaleString()} บาท</span>
                         </p>
                         <span className="text-xs px-2 py-0.5 rounded-full bg-white/20">{bid} การประมูล</span>
                     </div>

@@ -32,7 +32,7 @@ function Page() {
                         ></div>
                         <div className="flex-1 flex flex-col justify-between">
                             <div>
-                                <h3 className="text-lg font-bold text-navy-dark dark::text-white mb-1">
+                                <h3 className="text-lg font-bold text-black dark::text-white mb-1">
                                     Rolex Submariner Date 41mm (New 2024)
                                 </h3>
                                 <p className="text-sm text-gray-500 dark::text-gray-400">รหัสการประมูล: #BD-99210</p>
@@ -40,13 +40,12 @@ function Page() {
                             <div className="mt-4 md:mt-0">
                                 <UseTag label="ราคาชนะประมูล" color="orange" />
                                 <div className="mt-1">
-                                    <span className="text-2xl font-bold text-navy-dark dark::text-white">฿450,000</span>
+                                    <span className="text-2xl font-bold text-black dark::text-white">฿450,000</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </section>
-                {/* <!-- 2. Shipping Address --> */}
                 <section className="bg-white dark::bg-gray-900 rounded-xl p-6 shadow-sm border border-gray-100 dark::border-gray-800">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-2">
@@ -58,7 +57,6 @@ function Page() {
                         <UseButton label="เพิ่มที่อยู่ใหม่" type="default" icon={PlusOutlined} />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* <!-- Address Card (Selected) --> */}
                         <div className="relative p-4 border-2 border-primary rounded-xl bg-primary/5 cursor-pointer">
                             <div className="absolute top-4 right-4">
                                 <span className="material-symbols-outlined text-primary">check_circle</span>
@@ -72,7 +70,6 @@ function Page() {
                                 โทร: 081-234-5678
                             </p>
                         </div>
-                        {/* <!-- Address Card --> */}
                         <div className="p-4 border border-gray-200 dark::border-gray-800 rounded-xl hover:border-primary transition-colors cursor-pointer group">
                             <h4 className="font-bold mb-1 dark::text-white group-hover:text-primary">
                                 สมชาย (ที่ทำงาน)
@@ -87,7 +84,6 @@ function Page() {
                         </div>
                     </div>
                 </section>
-                {/* <!-- 3. Shipping Method --> */}
                 <section className="bg-white dark::bg-gray-900 rounded-xl p-6 shadow-sm border border-gray-100 dark::border-gray-800">
                     <div className="flex items-center gap-2 mb-6">
                         <span className="flex items-center justify-center bg-orange-600 w-8 h-8 rounded-full text-white text-sm font-bold">
@@ -96,7 +92,6 @@ function Page() {
                         <h2 className="text-xl font-bold dark::text-white">รูปแบบการจัดส่ง</h2>
                     </div>
                     <div className="space-y-3">
-                        {/* <!-- Method Option --> */}
                         <label className="flex items-center justify-between p-4 border border-gray-200 dark::border-gray-800 rounded-xl cursor-pointer hover:bg-gray-50 dark::hover:bg-gray-800 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
                             <div className="flex items-center gap-4">
                                 <input
@@ -113,9 +108,8 @@ function Page() {
                                     </p>
                                 </div>
                             </div>
-                            <span className="font-bold text-navy-dark dark::text-white">฿80</span>
+                            <span className="font-bold text-black dark::text-white">฿80</span>
                         </label>
-                        {/* <!-- Method Option --> */}
                         <label className="flex items-center justify-between p-4 border border-gray-200 dark::border-gray-800 rounded-xl cursor-pointer hover:bg-gray-50 dark::hover:bg-gray-800 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
                             <div className="flex items-center gap-4">
                                 <input
@@ -131,9 +125,8 @@ function Page() {
                                     </p>
                                 </div>
                             </div>
-                            <span className="font-bold text-navy-dark dark::text-white">฿40</span>
+                            <span className="font-bold text-black dark::text-white">฿40</span>
                         </label>
-                        {/* <!-- Method Option --> */}
                         <label className="flex items-center justify-between p-4 border border-gray-200 dark::border-gray-800 rounded-xl cursor-pointer hover:bg-gray-50 dark::hover:bg-gray-800 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
                             <div className="flex items-center gap-4">
                                 <input
@@ -153,7 +146,6 @@ function Page() {
                         </label>
                     </div>
                 </section>
-                {/* <!-- 4. Payment Method --> */}
                 <section className="bg-white dark::bg-gray-900 rounded-xl p-6 shadow-sm border border-gray-100 dark::border-gray-800">
                     <div className="flex items-center gap-2 mb-6">
                         <span className="flex items-center justify-center bg-orange-600 w-8 h-8 rounded-full text-white text-sm font-bold">
@@ -162,21 +154,18 @@ function Page() {
                         <h2 className="text-xl font-bold dark::text-white">ช่องทางชำระเงิน</h2>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {/* <!-- Payment Tile --> */}
                         <label className="flex flex-col items-center justify-center p-6 border border-gray-200 dark::border-gray-800 rounded-xl cursor-pointer hover:border-primary has-[:checked]:border-primary has-[:checked]:bg-primary/5 text-center transition-all">
                             <input checked="" className="sr-only" name="payment" type="radio" value="promptpay" />
                             <QrcodeOutlined className="text-xl! text-black! mb-4" />
                             <p className="font-bold text-sm dark::text-white">Thai QR PromptPay</p>
                             <p className="text-[10px] text-gray-400 mt-1 uppercase">Instant Payment</p>
                         </label>
-                        {/* <!-- Payment Tile --> */}
                         <label className="flex flex-col items-center justify-center p-6 border border-gray-200 dark::border-gray-800 rounded-xl cursor-pointer hover:border-primary has-[:checked]:border-primary has-[:checked]:bg-primary/5 text-center transition-all">
                             <input className="sr-only" name="payment" type="radio" value="card" />
                             <CreditCardFilled className="text-xl! text-black! mb-4" />
                             <p className="font-bold text-sm dark::text-white">Credit / Debit Card</p>
                             <p className="text-[10px] text-gray-400 mt-1 uppercase">Visa, Mastercard, JCB</p>
                         </label>
-                        {/* <!-- Payment Tile --> */}
                         <label className="flex flex-col items-center justify-center p-6 border border-gray-200 dark::border-gray-800 rounded-xl cursor-pointer hover:border-primary has-[:checked]:border-primary has-[:checked]:bg-primary/5 text-center transition-all">
                             <input className="sr-only" name="payment" type="radio" value="transfer" />
                             <BankFilled className="text-xl! text-black! mb-4" />
@@ -184,7 +173,6 @@ function Page() {
                             <p className="text-[10px] text-gray-400 mt-1 uppercase">Bank Transfer</p>
                         </label>
                     </div>
-                    {/* <!-- Payment Details (Conditional) --> */}
                     <div className="mt-6 p-4 bg-gray-50 dark::bg-gray-800/80 rounded-lg flex items-center gap-4">
                         <div className="p-2 bg-white dark::bg-gray-700 rounded-lg shadow-sm">
                             <img
@@ -210,15 +198,15 @@ function Page() {
                         <div className="space-y-4 mb-6">
                             <div className="flex justify-between text-gray-600 dark::text-gray-400">
                                 <span>ราคาชนะประมูล</span>
-                                <span className="font-semibold text-navy-dark dark::text-white">฿450,000</span>
+                                <span className="font-semibold text-black dark::text-white">฿450,000</span>
                             </div>
                             <div className="flex justify-between text-gray-600 dark::text-gray-400">
                                 <span>ค่าธรรมเนียมการประมูล (5%)</span>
-                                <span className="font-semibold text-navy-dark dark::text-white">฿22,500</span>
+                                <span className="font-semibold text-black dark::text-white">฿22,500</span>
                             </div>
                             <div className="flex justify-between text-gray-600 dark::text-gray-400">
                                 <span>ค่าจัดส่ง (Express)</span>
-                                <span className="font-semibold text-navy-dark dark::text-white">฿80</span>
+                                <span className="font-semibold text-black dark::text-white">฿80</span>
                             </div>
                             <div className="pt-4 border-t border-gray-100 dark::border-gray-800 flex justify-between items-end">
                                 <div>
@@ -240,7 +228,6 @@ function Page() {
                             </p>
                         </div>
                     </div>
-                    {/* <!-- Trust Indicators --> */}
                     <div className="grid grid-cols-2 gap-3">
                         <div className="bg-gray-50 dark::bg-gray-900/50 p-4 rounded-lg border border-gray-200 dark::border-gray-800 flex gap-1 flex-col items-center text-center">
                             <SafetyOutlined className="text-lg text-blue-500!" />

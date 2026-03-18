@@ -104,7 +104,7 @@ function LandingPage() {
             <section className="mb-10">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                        <span className="flex size-2 rounded-full bg-red-500 animate-pulse"></span>
+                        <span className="flex w-3 h-3 rounded-full bg-red-500 animate-pulse"></span>
                         <h2 className="text-2xl font-bold tracking-tight">ประมูลสดตอนนี้</h2>
                     </div>
                     <UseButton label="ดูทั้งหมด" type="default" icon={ArrowRightOutlined} iconPlacement />

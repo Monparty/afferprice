@@ -9,6 +9,7 @@ function CardHighlight() {
             <div className="relative aspect-4/3 overflow-hidden">
                 <Image
                     src="https://picsum.photos/200/300"
+                    alt="img"
                     width={300}
                     height={200}
                     unoptimized
