@@ -5,7 +5,6 @@ import UseHelperText from "./UseHelperText";
 
 function InputText({
     control,
-    ref,
     name,
     label = "",
     onChange,
@@ -30,7 +29,6 @@ function InputText({
                     <Input
                         {...field}
                         id={label}
-                        ref={ref}
                         type={type}
                         placeholder={label && !placeholder ? `โปรดระบุ ${label}` : placeholder}
                         variant={variant}

@@ -11,6 +11,7 @@ function UseRadio({ control, name, options, onChange, label, className, defaultV
             render={({ field, fieldState: { error } }) => (
                 <div>
                     <Radio.Group
+                        value={field.value ?? null}
                         onChange={(e) => {
                             if (typeof onChange === "function") {
                                 onChange(e.target.value);

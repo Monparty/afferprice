@@ -1,11 +1,9 @@
 "use client";
 import { SearchOutlined } from "@ant-design/icons";
-import { useRef } from "react";
 import InputText from "@/app/components/inputs/InputText";
 import UseButton from "@/app/components/inputs/UseButton";
 
 export const useColumnSearch = () => {
-    const searchInput = useRef(null);
     const columnSearch = (dataIndex, control, setValue) => ({
         filterDropdown: ({ setSelectedKeys, confirm, clearFilters }) => (
             <div className="px-3 py-3">
@@ -13,7 +11,6 @@ export const useColumnSearch = () => {
                     control={control}
                     name={`search_${dataIndex}`}
                     icon={SearchOutlined}
-                    ref={searchInput}
                     placeholder={`ค้นหา...`}
                     onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
                     className="mb-3"
@@ -39,11 +36,6 @@ export const useColumnSearch = () => {
             String(record[dataIndex] ?? "")
                 .toLowerCase()
                 .includes(String(value).toLowerCase()),
-        onFilterDropdownOpenChange: (open) => {
-            if (open) {
-                setTimeout(() => searchInput.current?.select(), 100);
-            }
-        },
     });
 
     return { columnSearch };

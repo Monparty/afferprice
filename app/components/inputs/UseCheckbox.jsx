@@ -2,13 +2,14 @@
 import { Checkbox } from "antd";
 import { Controller } from "react-hook-form";
 
-function UseCheckbox({ control, name, onChange, label, className, checked = false }) {
+function UseCheckbox({ control, name, onChange, label, className }) {
     return (
         <Controller
             name={name}
             control={control}
             render={({ field, fieldState: { error } }) => (
                 <Checkbox
+                    checked={field.value || false}
                     onChange={(e) => {
                         if (typeof onChange === "function") {
                             onChange(e.target.checked);
@@ -16,7 +17,6 @@ function UseCheckbox({ control, name, onChange, label, className, checked = fals
                         field.onChange(e.target.checked);
                     }}
                     className={`${className}`}
-                    checked={checked}
                 >
                     {label}
                 </Checkbox>

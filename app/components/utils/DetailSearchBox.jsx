@@ -8,7 +8,13 @@ import { CheckCircleOutlined, ClockCircleOutlined, ProductOutlined, SwapOutlined
 import { useForm } from "react-hook-form";
 
 function DetailSearchBox() {
-    const { control } = useForm();
+    const { control, watch, reset } = useForm({
+        defaultValues: {
+            sortBy: "1",
+            cat1: true,
+        },
+    });
+
     return (
         <nav className="w-full grid gap-4 p-4 rounded-lg bg-white border shadow-lg border-slate-200">
             <UseSelect
@@ -21,7 +27,6 @@ function DetailSearchBox() {
                 ]}
                 name="sortBy"
                 placeholder="เรียงโดย"
-                defaultValue="1"
             />
             <div>
                 <h3 className="font-medium text-black dark::text-slate-100 mb-4 flex items-center gap-2">
@@ -31,7 +36,7 @@ function DetailSearchBox() {
                     หมวดหมู่
                 </h3>
                 <div className="flex flex-col gap-2 ps-2">
-                    <UseCheckbox control={control} name="cat1" label="ทั้งหมด" checked />
+                    <UseCheckbox control={control} name="cat1" label="ทั้งหมด" />
                     <UseCheckbox control={control} name="cat2" label="อิเล็กทรอนิกส์" />
                     <UseCheckbox control={control} name="cat3" label="ของสะสม" />
                     <UseCheckbox control={control} name="cat4" label="แฟชั่น &amp; แบรนด์เนม" />
@@ -46,9 +51,9 @@ function DetailSearchBox() {
                 </h3>
                 <div className="space-y-3">
                     <div className="flex justify-between items-center gap-2">
-                        <InputNumber control={control} name="price" placeholder="ราคาต่ำสุด" />
+                        <InputNumber control={control} name="price1" placeholder="ราคาต่ำสุด" />
                         <span className="text-black/40">-</span>
-                        <InputNumber control={control} name="price" placeholder="ราคาสูงสุด" />
+                        <InputNumber control={control} name="price2" placeholder="ราคาสูงสุด" />
                     </div>
                 </div>
             </div>
@@ -84,7 +89,7 @@ function DetailSearchBox() {
                 </div>
             </div>
             <div className="flex gap-2">
-                <UseButton label="ล้างค่า" wFull type="default" />
+                <UseButton label="ล้างค่า" onClick={() => reset(null)} wFull type="default" />
                 <UseButton label="ค้นหา" wFull />
             </div>
         </nav>
