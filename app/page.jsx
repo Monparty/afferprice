@@ -30,7 +30,7 @@ function Page() {
                             <li>เพิ่ม Omise payment</li>
                             <li>ทำ responsive</li>
                             <li>เพิ่ม login (OTP)</li>
-                            <li>เพิ่ม หน้าสำหรับ admin</li>
+                            <li>เพิ่ม หน้า login admin</li>
                             <li>เพิ่ม กล่องแชท</li>
                             <li>เพิ่ม รายละเอียดหน้าแรก</li>
                             <li>add product เพิ่ม section ประเภทต่างๆ</li>

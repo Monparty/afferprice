@@ -4,6 +4,7 @@ import InputText from "../inputs/InputText";
 import { useForm } from "react-hook-form";
 import Image from "next/image";
 import afferpriceLogo from "../../../public/images/afferpriceLogo.png";
+import Link from "next/link";
 
 function AppFooter() {
     const { control } = useForm();
@@ -25,24 +26,24 @@ function AppFooter() {
                         <h4 className="text-white font-bold mb-4">แพลตฟอร์ม</h4>
                         <ul className="space-y-2 text-sm">
                             <li>
-                                <a className="hover:text-accent-orange transition-colors" href="#">
+                                <Link className="hover:text-accent-orange transition-colors" href="/">
                                     การประมูลสด
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a className="hover:text-accent-orange transition-colors" href="#">
+                                <Link className="hover:text-accent-orange transition-colors" href="/">
                                     สินค้าใหม่เร็วๆ นี้
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a className="hover:text-accent-orange transition-colors" href="#">
+                                <Link className="hover:text-accent-orange transition-colors" href="/">
                                     ขั้นตอนการตรวจสอบ
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a className="hover:text-accent-orange transition-colors" href="#">
+                                <Link className="hover:text-accent-orange transition-colors" href="/">
                                     ค่าธรรมเนียม
-                                </a>
+                                </Link>
                             </li>
                         </ul>
                     </div>
@@ -50,24 +51,24 @@ function AppFooter() {
                         <h4 className="text-white font-bold mb-4">ช่วยเหลือ</h4>
                         <ul className="space-y-2 text-sm">
                             <li>
-                                <a className="hover:text-accent-orange transition-colors" href="#">
+                                <Link className="hover:text-accent-orange transition-colors" href="/">
                                     ศูนย์ช่วยเหลือ
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a className="hover:text-accent-orange transition-colors" href="#">
+                                <Link className="hover:text-accent-orange transition-colors" href="/">
                                     การคุ้มครองผู้ซื้อ
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a className="hover:text-accent-orange transition-colors" href="#">
+                                <Link className="hover:text-accent-orange transition-colors" href="/">
                                     คู่มือการขาย
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a className="hover:text-accent-orange transition-colors" href="#">
+                                <Link className="hover:text-accent-orange transition-colors" href="/">
                                     ติดต่อเรา
-                                </a>
+                                </Link>
                             </li>
                         </ul>
                     </div>
@@ -83,15 +84,15 @@ function AppFooter() {
                 <div className="mt-12 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
                     <p>© 2023 Afferprice Global Inc. สงวนลิขสิทธิ์.</p>
                     <div className="flex gap-6">
-                        <a className="hover:text-white" href="#">
+                        <Link className="hover:text-white" href="/">
                             นโยบายความเป็นส่วนตัว
-                        </a>
-                        <a className="hover:text-white" href="#">
+                        </Link>
+                        <Link className="hover:text-white" href="/">
                             เงื่อนไขการให้บริการ
-                        </a>
-                        <a className="hover:text-white" href="#">
+                        </Link>
+                        <Link className="hover:text-white" href="/">
                             นโยบายคุกกี้
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </div>

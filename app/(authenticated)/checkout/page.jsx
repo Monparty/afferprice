@@ -9,6 +9,7 @@ import {
     SafetyOutlined,
 } from "@ant-design/icons";
 import UseTag from "../../components/utils/UseTag";
+import Image from "next/image";
 
 function Page() {
     return (
@@ -22,14 +23,14 @@ function Page() {
                         <h2 className="text-xl font-bold dark::text-white">สรุปรายการสินค้าที่ชนะ</h2>
                     </div>
                     <div className="flex flex-col md:flex-row gap-6 p-4 border border-gray-100 dark::border-gray-800 rounded-xl bg-gray-50 dark::bg-gray-800/50">
-                        <div
+                        <Image
+                            src="https://picsum.photos/192/128"
+                            alt="image"
                             className="w-full md:w-48 h-32 bg-center bg-cover rounded-lg"
-                            data-alt="Luxury Rolex Submariner watch close up"
-                            style={{
-                                backgroundImage:
-                                    "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAr_Skt7Ha2CIOeps76mm5gfQPF90cGBQ8QIDOFavOPPhKT0s3n2ePN1aIk7bOPp1yKCh_MLaJNXNtd6IUn8Vp8MhDo4W0O6jeJIs677y6DFIp3S1L1tKxJ__Riu76P2B3WItL320AnCHmui_IA34SOQ2ayGLbTJ8qPFcK0-q-7NQW_M4tBTNTYY9iRdxW6bBFApSJqq1ISreXLHSrYpxpHvYd48mmzlSYUfXawdKlsMoAZSfS7t3OdFSECAkroJ3SJ5PjfKUdG03M')",
-                            }}
-                        ></div>
+                            width={192}
+                            height={128}
+                            unoptimized
+                        />
                         <div className="flex-1 flex flex-col justify-between">
                             <div>
                                 <h3 className="text-lg font-bold text-black dark::text-white mb-1">
@@ -175,10 +176,12 @@ function Page() {
                     </div>
                     <div className="mt-6 p-4 bg-gray-50 dark::bg-gray-800/80 rounded-lg flex items-center gap-4">
                         <div className="p-2 bg-white dark::bg-gray-700 rounded-lg shadow-sm">
-                            <img
-                                className="w-20 h-20 rounded"
-                                data-alt="Sample QR code for PromptPay payment"
+                            <Image
                                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgPpTeI_xuWHJ_ciIa3mp2Y44N0GGuZzWkoxR8hKkFZFmtcfM8wn-kzKl713KB1Zw8iTlABW5vejr4Fr-PeGnA9lg86rJlpc6tJJ8OsHE-Ru8Lf5E4AFg9wEAdIT3aBKNhtCtP4eA9Ak8PVFVnhEi0q_akWX0K_dc0E_J3PT3idw9HXR-9GJczxASKcCwi38Ox2EUzRqvXevMf2hnDtaaNA36M4ZIpWjCJEJP-73fGSWB35ulJql3clf__Dk8eex6VrjgVCB40wDY"
+                                alt="QR code for PromptPay payment"
+                                width={80}
+                                height={80}
+                                unoptimized
                             />
                         </div>
                         <div>

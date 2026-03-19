@@ -1,5 +1,6 @@
 import UseButton from "../../components/inputs/UseButton";
 import { ArrowLeftOutlined, CheckCircleFilled, DownloadOutlined, FileDoneOutlined } from "@ant-design/icons";
+import Image from "next/image";
 import Link from "next/link";
 
 function Page() {
@@ -17,10 +18,13 @@ function Page() {
                 <div className="bg-white dark::bg-zinc-900 rounded-xl shadow-xl p-6 border border-gray-100 dark::border-gray-800">
                     <div className="flex flex-col items-center gap-4">
                         <div className="flex items-center justify-center bg-[#003d6b] p-2 rounded-lg w-full max-w-45">
-                            <img
+                            <Image
+                                src="https://picsum.photos/190/190"
                                 className="h-8 object-contain brightness-0 invert"
-                                data-alt="Thai PromptPay payment system logo"
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdKHkqRA0k6KcQQnzaptvuk9uWwgQthZAtYBIFMyNpEB5TJqWWmWCxRq6-3p40XxuQczfR7OHfulocEDVl47Y0Wu81RiHh2vXw7HhZMIcnGqLceFcHkJ8BmVJnHMzmGwynsIr_X9jW9gTfv82hS7B_3nyTvOcwiZ1ZkZdLqFtXOJ6R3xcm-79CVg2pJvGE5azYpB6M_rmjvRsvHQkCY-c4vqh1DJ47EHZCUWf3G9gMR4bXBew4ahHxoZIWQ25DY1RIQ-o6_7vIN44"
+                                alt="image"
+                                width={32}
+                                height={32}
+                                unoptimized
                             />
                         </div>
                         <p className="text-sm font-medium text-gray-600 dark::text-gray-300">
@@ -29,10 +33,12 @@ function Page() {
                         <div className="bg-white p-4 rounded-lg border-2 border-gray-100 shadow-inner">
                             <div className="aspect-square w-48 bg-gray-50 flex items-center justify-center relative">
                                 <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(0,0,0,0.05)_25%,rgba(0,0,0,0.05)_50%,transparent_50%,transparent_75%,rgba(0,0,0,0.05)_75%,rgba(0,0,0,0.05)_100%)] bg-[length:20px_20px]"></div>
-                                <img
-                                    className="relative z-10 w-full h-full border border-gray-200"
-                                    data-alt="Dynamic PromptPay QR Code for transaction"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuD46wKO4QVEMUkyFZlg6mhZ7_GTGK-eS1NbC8trBzQjHcwpU5kJsZ93Kz_j-dZe-RVd1tt7-ElWkG4e9iyWXcMNIFh1E9EckARJCqoNP0-9hoTQ0DxwPDMdHSvi9mbiryeTJJxZzNUq2K4iJ8I0yhraWFWSDJgPas8oS3-Vu15nXHZ8r1iyEa37ucuXq_Jp4D9S-gQH-03oLytVkZCs1RcOU3qT-O-4OHZ4zn1pI6xQHSo7PsTENUyAv-uxGC_xlgudKWfYFZanUxw"
+                                <Image
+                                    src="https://picsum.photos/190/190"
+                                    alt="image"
+                                    width={195}
+                                    height={195}
+                                    unoptimized
                                 />
                             </div>
                         </div>

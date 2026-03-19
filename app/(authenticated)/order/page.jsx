@@ -1,3 +1,4 @@
+import Image from "next/image";
 import UseButton from "../../components/inputs/UseButton";
 import UseSteps from "../../components/utils/UseSteps";
 import UseTag from "../../components/utils/UseTag";
@@ -85,10 +86,12 @@ function Page() {
             <div className="bg-white dark::bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark::border-slate-800 p-6">
                 <div className="flex flex-col md:flex-row gap-6 items-start">
                     <div className="w-full md:w-48 aspect-square rounded-lg bg-slate-100 dark::bg-slate-800 overflow-hidden shrink-0">
-                        <img
-                            className="w-full h-full object-cover"
-                            data-alt="Luxury Rolex Submariner watch on display"
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFhOc1y_raxsIi9KyptLVWbJxrqAzGS0agWaQy93L0krh_2-OLG9IkTw-clZfgl2JxlTvEI6n0n-eVJWHawLz-2b6Tzp-YDZuD7C55s4LH6J6bhJA8o-D_KWp15S2tY3cPT_PfupXw_IwomjG5zxjmisEoM09wVCVK4Mql0Wck--bV8W9_qkD5iL9Nwfhnw1GD0M2ucydVI3mTqE725rW7R_9iInb-1riyV8AqQywxF6hWVItS_0Vf3603-Rj5VrpJOEfEbMsz6wU"
+                        <Image
+                            src="https://picsum.photos/190/190"
+                            alt="image"
+                            width={195}
+                            height={195}
+                            unoptimized
                         />
                     </div>
                     <div className="flex-1 flex flex-col justify-between h-full py-1">

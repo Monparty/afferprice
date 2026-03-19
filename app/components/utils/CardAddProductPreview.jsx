@@ -15,10 +15,13 @@ function CardAddProductPreview({ control, watch, activeStep, setActiveStep }) {
                     <EyeFilled className="text-lg text-gray-500!" />
                 </div>
                 <div className="aspect-video w-full bg-slate-100 relative">
-                    <img
+                    <Image
+                        src="https://picsum.photos/340/195"
                         alt="Product preview"
                         className="w-full h-full object-cover"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuC921Y5c16lE3ZMlaoy6xolPn0zfdw8gQ7IhtehHzvuwLAS92azbeaanRX37tIMm2AGX7oEMVCTbykL4Ckr1W_dQqsJIDkrxlNeQztkgrFlxh0lKa11D2lR73i5ZECD7v0bs7Gh0KbhDSSe79C3UPAReOuUR8xJ9nfOL7iIhXE1LeyJtLiNP34IcGV_XpyiyenoOExCdg0QOQDvT5tFimVFJIlQYqKA9MHXBZNfBxqss7zEPM3W-FQOtGgTBbgPDYlHi5IURJ5n8ik"
+                        width={340}
+                        height={195}
+                        unoptimized
                     />
                     <div className="absolute top-2 right-2 bg-orange-600 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase">
                         กำลังเริ่มเร็วๆ นี้

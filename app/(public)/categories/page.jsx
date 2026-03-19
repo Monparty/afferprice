@@ -6,9 +6,9 @@ import UsePagination from "@/app/components/utils/UsePagination";
 function Page() {
     return (
         <main className="flex gap-6">
-            <aside className="h-fit w-1/4 sticky top-12">
+            <div className="h-fit w-1/4 sticky top-12">
                 <DetailSearchBox />
-            </aside>
+            </div>
             <div className="w-full">
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                     <CardHighlight />

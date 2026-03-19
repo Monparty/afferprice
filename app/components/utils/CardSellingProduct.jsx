@@ -2,6 +2,7 @@
 import UseButton from "@/app/components/inputs/UseButton";
 import UseTag from "@/app/components/utils/UseTag";
 import { FieldTimeOutlined, MoreOutlined, TeamOutlined } from "@ant-design/icons";
+import Image from "next/image";
 
 function CardSellingProduct() {
     // ใช้ที่ "/user/selling"
@@ -14,10 +15,13 @@ function CardSellingProduct() {
                 <div className="absolute top-3 right-3 z-10">
                     <UseButton shape="circle" type="default" icon={MoreOutlined} />
                 </div>
-                <img
+                <Image
+                    src="https://picsum.photos/300/300"
+                    alt="Product"
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    data-alt="Luxury Rolex Submariner watch on dark background"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtuf8J0Pi8bPJVc2SqyiK31sXzD7D3ScxS5eePNyTso5Gd0YL3R0-9QE5OLdPODAF9VmnlltXfV_Pl1euLfDCSphOyrCSITde0xOP-cVdp5FW51T6pqK5G5nEqLzR6u58gcPFGIlYUlR9lOyA058SFLIJQ0ZVeWZqrA8GYrvz3vNnsKVPu1KGLaEy7XON5orZ-CIN0caZjITw-UT5Xh9uzL3vbe2XaqW5WhDzD9BmcnvbxAi9TegMulBSxHQmXu2rsEnBkWS6PCME"
+                    width={300}
+                    height={300}
+                    unoptimized
                 />
             </div>
             <div className="p-4 flex flex-col flex-1">
@@ -26,16 +30,16 @@ function CardSellingProduct() {
                     <span className="text-[10px] text-slate-400 uppercase font-bold">ราคาปัจจุบัน</span>
                     <span className="text-primary font-black text-lg">฿450,000</span>
                 </div>
-                <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-slate-200">
+                <div className="grid grid-cols-2 gap-1 mt-4 pt-4 border-t border-slate-200">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase">ผู้ประมูล</span>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase">เหลือเวลา</span>
                     <div className="flex flex-col">
-                        <span className="text-[10px] text-slate-400 font-bold uppercase">ผู้ประมูล</span>
                         <div className="flex items-center gap-1">
                             <TeamOutlined />
                             <span className="text-sm font-bold text-blue-500">12 ราย</span>
                         </div>
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-[10px] text-slate-400 font-bold uppercase">เหลือเวลา</span>
                         <div className="flex items-center gap-1 text-red-500">
                             <FieldTimeOutlined />
                             <span className="text-sm font-bold">02:45:10</span>
