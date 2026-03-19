@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import InputText from "../inputs/InputText";
-import { BellFilled, LogoutOutlined, SearchOutlined, UserOutlined } from "@ant-design/icons";
+import { BellFilled, LogoutOutlined, SearchOutlined, SettingOutlined, UserOutlined } from "@ant-design/icons";
 import UseButton from "../inputs/UseButton";
 import UseBadge from "../utils/UseBadge";
 import UseAvatar from "../utils/UseAvatar";
@@ -42,7 +42,7 @@ function AppHeader() {
 
     const mapPath = menus.find((item) => item.url.split("/")[1] === pathname.split("/")[1])?.label || "";
 
-    // Drawer
+    // notification drawer
     const [openDrawer, setOpenDrawer] = useState(false);
     const showDrawer = () => {
         setOpenDrawer(true);
@@ -57,8 +57,8 @@ function AppHeader() {
         router.push("/");
     };
 
+    // check login
     useEffect(() => {
-        // ฟัง login / logout
         const unsubscribe = subscribeAuth(setUser);
         return unsubscribe;
     }, []);
@@ -153,6 +153,17 @@ function AppHeader() {
                                     placement="bottomRight"
                                     content={
                                         <div className="grid gap-2 w-46">
+                                            {profile?.role === "admin" && (
+                                                <Link href="/admin">
+                                                    <UseButton
+                                                        label="Admin"
+                                                        className="justify-start! h-10!"
+                                                        type="text"
+                                                        icon={SettingOutlined}
+                                                        wFull
+                                                    />
+                                                </Link>
+                                            )}
                                             <Link href="/user">
                                                 <UseButton
                                                     label="ข้อมูลผู้ใช้"

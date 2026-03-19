@@ -25,13 +25,12 @@ function Page() {
                     <div className="h-fit w-fit bg-red-500 p-4 fixed z-100 m-4 right-0 top-51 rounded-lg font-bold text-white">
                         <div>สิ่งที่ต้องแก้ต่อ</div>
                         <ul className="ps-4 list-decimal">
-                            <li>ใช้ tag Link แทน a</li>
-                            <li>ใช้ Image แทน img</li>
                             <li>เพิ่ม Omise payment</li>
                             <li>ทำ responsive</li>
                             <li>เพิ่ม login (OTP)</li>
                             <li>เพิ่ม หน้า login admin</li>
                             <li>เพิ่ม กล่องแชท</li>
+                            <li>ทำเรื่อง file upload</li>
                             <li>เพิ่ม รายละเอียดหน้าแรก</li>
                             <li>add product เพิ่ม section ประเภทต่างๆ</li>
                             <li>ทำระบบ noti</li>

@@ -25,9 +25,7 @@ function Page() {
     const router = useRouter();
 
     const onSubmit = async (values) => {
-        console.log("values onSubmit", values);
-        const { data, error } = await login("test@test.com", "123456"); // ม่ายต้องพิมพ์
-        // const { data, error } = await login(values.email, values.password);
+        const { error } = await login(values.email, values.password);
 
         if (error) return notifyError(error);
         router.push("/");
