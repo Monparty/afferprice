@@ -1,6 +1,5 @@
 "use client";
 import Image from "next/image";
-import Link from "next/link";
 import { schema } from "./schema";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { login } from "../../services/auth.service";
@@ -47,9 +46,21 @@ function Page() {
                 {/* ใช้ test */}
                 <UseButton label="เข้าสู่ระบบ" size="large" wFull htmlType="submit" />
                 <div className="border-b border-gray-200 w-full"></div>
-                <Link href="/register">
-                    <UseButton label="ยังไม่มีบัญชี สมัครสมาชิก" size="large" type="default" wFull />
-                </Link>
+                <UseButton
+                    label="ยังไม่มีบัญชี สมัครสมาชิก"
+                    size="large"
+                    type="default"
+                    wFull
+                    onClick={() => router.push("/register")}
+                />
+                <UseButton
+                    label="กลับหน้าแรก"
+                    size="large"
+                    type="link"
+                    wFull
+                    className="text-slate-500! text-sm!"
+                    onClick={() => router.push("/")}
+                />
             </form>
         </main>
     );

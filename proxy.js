@@ -24,19 +24,31 @@ export async function proxy(req) {
     // check login
     const { data } = await supabase.auth.getUser();
     const user = data.user;
-    if (!user) {
-        return NextResponse.redirect(new URL("/login", req.url));
+
+    const pathname = req.nextUrl.pathname;
+
+    // login แล้ว → ห้ามเข้า login
+    if (pathname === "/login") {
+        if (user) {
+            return NextResponse.redirect(new URL("/admin", req.url));
+        }
+        return response;
     }
 
-    // check role
-    const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-    if (profile?.role !== "admin") {
-        return NextResponse.redirect(new URL("/", req.url));
+    // ยังไม่ login ให้ไป login
+    if (pathname.startsWith("/admin")) {
+        if (!user) {
+            return NextResponse.redirect(new URL("/login", req.url));
+        }
+        const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+        if (profile?.role !== "admin") {
+            return NextResponse.redirect(new URL("/", req.url));
+        }
     }
 
     return response;
 }
 
 export const config = {
-    matcher: ["/admin/:path*"],
+    matcher: ["/admin/:path*", "/login"],
 };

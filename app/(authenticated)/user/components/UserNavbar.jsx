@@ -1,9 +1,10 @@
 "use client";
 import { PlusOutlined, BarChartOutlined, UserOutlined, TagOutlined, HeartOutlined } from "@ant-design/icons";
-import UseButton from "../../../app/components/inputs/UseButton";
+import UseButton from "../../../components/inputs/UseButton";
 import Link from "next/link";
-import UseModal from "./UseModal";
+import UseModal from "../../../components/utils/UseModal";
 import { useState } from "react";
+import Form from "./Form";
 
 function UserNavbar() {
     const [isOpenModalProfile, setIsOpenModalProfile] = useState(false);
@@ -45,9 +46,7 @@ function UserNavbar() {
                 onCancel={() => setIsOpenModalProfile(false)}
                 onOk={() => alert("ok")}
             >
-                <p>Some contents...</p>
-                <p>Some contents...</p>
-                <p>Some contents...</p>
+                <Form />
             </UseModal>
         </>
     );

@@ -5,13 +5,13 @@ import { useState } from "react";
 import Image from "next/image";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { schema } from "./schema";
-import Link from "next/link";
 import { genderList, birthDayList, birthMonthList, birthYearList } from "./dataSelect";
 import afferpriceLogo from "../../../public/images/afferpriceLogo.png";
 import InputText from "../../components/inputs/InputText";
 import UseButton from "../../components/inputs/UseButton";
 import UseSelect from "../../components/inputs/UseSelect";
 import UseInputPassword from "../../components/inputs/UseInputPassword";
+import { useRouter } from "next/navigation";
 
 function Page() {
     const {
@@ -23,6 +23,7 @@ function Page() {
         resolver: yupResolver(schema),
         mode: "onBlur",
     });
+    const router = useRouter();
 
     const [showOtherField, setShowOtherField] = useState(false);
     const step1Fields = ["email", "phone", "gender"];
@@ -120,9 +121,21 @@ function Page() {
                         />
                     )}
                 </div>
-                <Link href="/login">
-                    <UseButton label="มีบัญชีอยู่แล้ว ล็อกอิน" size="large" type="default" wFull />
-                </Link>
+                <UseButton
+                    label="มีบัญชีอยู่แล้ว ล็อกอิน"
+                    size="large"
+                    type="default"
+                    wFull
+                    onClick={() => router.push("/login")}
+                />
+                <UseButton
+                    label="กลับหน้าแรก"
+                    size="large"
+                    type="link"
+                    wFull
+                    className="text-slate-500! text-sm!"
+                    onClick={() => router.push("/")}
+                />
             </form>
         </main>
     );

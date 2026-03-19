@@ -1,5 +1,5 @@
 "use client";
-import { notification } from "antd";
+import { FloatButton, notification } from "antd";
 import { useEffect } from "react";
 import AppHeader from "../components/layout/AppHeader";
 import AppFooter from "../components/layout/AppFooter";
@@ -42,6 +42,7 @@ export const NotificationProvider = ({ children }) => {
             {!isHidden && <AppHeader />}
             {contextHolder}
             {children}
+            <FloatButton.BackTop />
             {!isHidden && <AppFooter />}
         </>
     );
