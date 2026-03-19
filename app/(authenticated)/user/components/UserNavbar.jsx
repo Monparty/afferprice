@@ -4,7 +4,7 @@ import UseButton from "../../../components/inputs/UseButton";
 import Link from "next/link";
 import UseModal from "../../../components/utils/UseModal";
 import { useState } from "react";
-import Form from "./Form";
+import UserProfilesForm from "./UserProfilesForm";
 
 function UserNavbar() {
     const [isOpenModalProfile, setIsOpenModalProfile] = useState(false);
@@ -46,7 +46,7 @@ function UserNavbar() {
                 onCancel={() => setIsOpenModalProfile(false)}
                 onOk={() => alert("ok")}
             >
-                <Form />
+                <UserProfilesForm />
             </UseModal>
         </>
     );

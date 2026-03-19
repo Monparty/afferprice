@@ -6,12 +6,20 @@ import { BellOutlined, LogoutOutlined, QuestionCircleOutlined, UserOutlined } fr
 import UseAvatar from "@/app/components/utils/UseAvatar";
 import UsePopover from "@/app/components/utils/UsePopover";
 import UseButton from "@/app/components/inputs/UseButton";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ROUTES } from "../constants/routes";
+import { logout } from "@/app/services/auth.service";
 
 function AdminLayout({ children, menus }) {
+    const router = useRouter();
     const pathname = usePathname();
     const headerName = menus.find((item) => item.url.split("/")[2] === pathname.split("/")[2])?.label || "";
+
+    // logout
+    const handleLogout = async () => {
+        await logout();
+        router.push("/");
+    };
 
     return (
         <>
@@ -55,7 +63,7 @@ function AdminLayout({ children, menus }) {
                                         type="text"
                                         icon={LogoutOutlined}
                                         wFull
-                                        // onClick={() => handleLogout()}
+                                        onClick={() => handleLogout()}
                                     />
                                 </div>
                             }

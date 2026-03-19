@@ -13,7 +13,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import UsePopover from "../utils/UsePopover";
 import { logout, subscribeAuth } from "../../../app/services/auth.service";
-import { getProfileByUserId } from "@/app/services/profile.service";
+import { getProfileById } from "@/app/services/profile.service";
 import { notifyError } from "@/app/providers/NotificationProvider";
 
 function AppHeader() {
@@ -66,7 +66,7 @@ function AppHeader() {
     useEffect(() => {
         if (!user) return;
         const fetchProfile = async () => {
-            const { data, error } = await getProfileByUserId(user.id);
+            const { data, error } = await getProfileById(user.id);
             if (error) return notifyError(error);
             setProfile(data);
         };

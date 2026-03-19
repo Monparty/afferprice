@@ -5,7 +5,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { schema } from "./schema";
-import { genderList, birthDayList, birthMonthList, birthYearList } from "./dataSelect";
+import { genderList, birthDayList, birthMonthList, birthYearList } from "../../utils/dataSelect";
 import afferpriceLogo from "../../../public/images/afferpriceLogo.png";
 import InputText from "../../components/inputs/InputText";
 import UseButton from "../../components/inputs/UseButton";
@@ -60,7 +60,6 @@ function Page() {
                             <InputText control={control} name="firstName" label="ชื่อ" size="large" />
                             <InputText control={control} name="lastName" label="นามสกุล" size="large" />
                         </div>
-                        <UseInputPassword control={control} name="password" label="รหัสผ่าน" size="large" />
                         <div className="flex gap-4 items-start">
                             <UseSelect
                                 control={control}
@@ -83,10 +82,11 @@ function Page() {
                                 name="birthYear"
                                 label=" "
                                 size="large"
-                                options={birthYearList}
+                                options={birthYearList()}
                                 placeholder="โปรดระบุ ปี"
                             />
                         </div>
+                        <UseInputPassword control={control} name="password" label="รหัสผ่าน" size="large" />
                     </>
                 )}
                 {!showOtherField && (

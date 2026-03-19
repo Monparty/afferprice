@@ -20,7 +20,7 @@ function UseModal({ children, open, onOk, onCancel, title, okText = "บัน�
             okButtonProps={{ style: { display: !onOk ? "none" : "" } }}
             cancelButtonProps={{ style: { display: !onCancel ? "none" : "" } }}
         >
-            <>{children}</>
+            <div className="p-2">{children}</div>
         </Modal>
     );
 }
