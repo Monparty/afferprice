@@ -1,6 +1,15 @@
 import { Modal } from "antd";
 
-function UseModal({ children, open, onOk, onCancel, title, okText = "บันทึก", cancelText = "ปิด" }) {
+function UseModal({
+    children,
+    open,
+    onOk,
+    onCancel,
+    isShowCancel = true,
+    title,
+    okText = "บันทึก",
+    cancelText = "ปิด",
+}) {
     return (
         <Modal
             title={title}
@@ -18,7 +27,7 @@ function UseModal({ children, open, onOk, onCancel, title, okText = "บัน�
                 xxl: "40%",
             }}
             okButtonProps={{ style: { display: !onOk ? "none" : "" } }}
-            cancelButtonProps={{ style: { display: !onCancel ? "none" : "" } }}
+            cancelButtonProps={{ style: { display: !onCancel || !isShowCancel ? "none" : "" } }}
         >
             <div className="p-2">{children}</div>
         </Modal>

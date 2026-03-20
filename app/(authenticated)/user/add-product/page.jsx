@@ -4,7 +4,7 @@ import InputText from "@/app/components/inputs/InputText";
 import UseReactQuill from "@/app/components/inputs/UseReactQuill";
 import UseSegmented from "@/app/components/inputs/UseSegmented";
 import UseSelect from "@/app/components/inputs/UseSelect";
-import UseUploadDragger from "@/app/components/inputs/UseUploadDragger";
+import UseUpload from "@/app/components/inputs/UseUpload";
 import UseSteps from "@/app/components/utils/UseSteps";
 import { CameraFilled, DollarOutlined, EditFilled, FileTextFilled, TruckFilled } from "@ant-design/icons";
 import { useForm } from "react-hook-form";
@@ -91,7 +91,7 @@ function Page() {
                                     รูปภาพคุณภาพสูงจะช่วยเพิ่มโอกาสในการขายได้ถึง 40%
                                 </p>
                             </div>
-                            <UseUploadDragger control={control} name="myFile" multiple maxCount={3} />
+                            <UseUpload control={control} name="myFile" multiple maxCount={3} isDrag />
                         </section>
                         <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                             <div className="mb-6">
@@ -102,12 +102,7 @@ function Page() {
                                 <p className="text-slate-500 text-sm mt-1">ระบุรายละเอียดเบื้องต้นของสินค้า</p>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                                <InputText
-                                    control={control}
-                                    name="title"
-                                    label="ชื่อสินค้า"
-                                    size="large"
-                                />
+                                <InputText control={control} name="title" label="ชื่อสินค้า" size="large" />
                                 <InputNumber
                                     control={control}
                                     name="startPrice"

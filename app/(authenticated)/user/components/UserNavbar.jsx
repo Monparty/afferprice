@@ -8,6 +8,7 @@ import UserProfilesForm from "./UserProfilesForm";
 
 function UserNavbar() {
     const [isOpenModalProfile, setIsOpenModalProfile] = useState(false);
+
     return (
         <>
             <nav className="w-full grid gap-4 p-4 rounded-lg bg-white border shadow-lg border-slate-200">
@@ -44,9 +45,9 @@ function UserNavbar() {
                 title="ข้อมูลโปรไฟล์ผู้ใช้"
                 open={isOpenModalProfile}
                 onCancel={() => setIsOpenModalProfile(false)}
-                onOk={() => alert("ok")}
+                isShowCancel={false}
             >
-                <UserProfilesForm />
+                <UserProfilesForm setIsOpenModalProfile={setIsOpenModalProfile} />
             </UseModal>
         </>
     );

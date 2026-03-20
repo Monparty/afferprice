@@ -5,15 +5,21 @@ import UseSelect from "@/app/components/inputs/UseSelect";
 import { genderList, birthDayList, birthMonthList, birthYearList } from "../../../utils/dataSelect";
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
-import { getProfileById } from "@/app/services/profile.service";
+import { getProfileById, updateProfileById } from "@/app/services/profile.service";
 import { getCurrentUser } from "@/app/services/auth.service";
-import { notifyError } from "@/app/providers/NotificationProvider";
+import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
+import UseUpload from "@/app/components/inputs/UseUpload";
+import { v4 as uuid } from "uuid";
+import { getUrlAttachments, uploadAttachments } from "@/app/services/upload.service";
+import UseButton from "@/app/components/inputs/UseButton";
 
-function UserProfilesForm() {
+function UserProfilesForm({ setIsOpenModalProfile }) {
     const {
         handleSubmit,
         control,
         reset,
+        watch,
+        setValue,
         formState: { errors },
     } = useForm();
 
@@ -35,15 +41,40 @@ function UserProfilesForm() {
                 birthDay: profile.birth_date.split("-")[2],
                 birthMonth: profile.birth_date.split("-")[1],
                 birthYear: profile.birth_date.split("-")[0],
+                profileImage: [{ url: profile.profile_image }],
+                idCardImage: [{ url: profile.id_card_image }],
             };
             reset(formatData);
         };
         fetchUserAndProfile();
     }, [reset]);
 
-    const onSubmit = (values) => {
-        console.log("values onSubmit", values);
+    const onSubmit = async (value) => {
+        const birthDate = `${value.birthYear}-${value.birthMonth}-${value.birthDay}`;
+        const payload = {
+            first_name: value.firstName,
+            last_name: value.lastName,
+            profile_image: value.profileImage?.[0].url,
+            id_card_image: value.idCardImage?.[0].url,
+            gender: value.gender,
+            phone: value.phone,
+            birth_date: birthDate,
+        };
+        const { data, error } = await updateProfileById(value.id, payload);
+        if (error) return notifyError(error);
+        notifySuccess("บันทึกข้อมูลสำเร็จ");
+        // console.log("data", data);
     };
+
+    const handleUpload = async (file, name) => {
+        const fileName = uuid();
+        const { error: uploadError } = uploadAttachments({ fileName: fileName, file: file });
+        if (uploadError) return notifyError(uploadError);
+        const { data } = getUrlAttachments(fileName);
+        setValue(name, [{ url: data.publicUrl }]);
+    };
+
+    // console.log("watch()", watch())
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
@@ -83,6 +114,26 @@ function UserProfilesForm() {
                 />
             </div>
             <UseInputPassword control={control} name="password" label="รหัสผ่าน" size="large" />
+            <div className="flex gap-4 items-start">
+                <UseUpload
+                    control={control}
+                    name="profileImage"
+                    label="รูปโปรไฟล์"
+                    maxCount={1}
+                    customRequest={(file) => handleUpload(file, "profileImage")}
+                />
+                <UseUpload
+                    control={control}
+                    name="idCardImage"
+                    label="สำเนาบัตรประชาชน"
+                    maxCount={1}
+                    customRequest={(file) => handleUpload(file, "idCardImage")}
+                />
+            </div>
+            <div className="flex justify-end gap-2 ">
+                <UseButton type="default" label="ปิด" onClick={() => setIsOpenModalProfile(false)} />
+                <UseButton label="บันทึก" htmlType="submit" />
+            </div>
         </form>
     );
 }

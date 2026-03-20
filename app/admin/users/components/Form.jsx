@@ -62,9 +62,9 @@ function Form({ id, mode, onSubmit }) {
                 <UseSelect
                     {...inputProps}
                     options={[
-                        { label: "ชาย", value: "male" },
-                        { label: "หญิง", value: "female" },
-                        { label: "อื่นๆ", value: "other" },
+                        { label: "ชาย", value: "M" },
+                        { label: "หญิง", value: "F" },
+                        { label: "อื่นๆ", value: "O" },
                     ]}
                     name="gender"
                     label="เพศ"
