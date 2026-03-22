@@ -10,7 +10,7 @@ function UseUpload({
     name,
     fileList,
     multiple = false,
-    maxCount = 8,
+    maxCount = 1,
     customRequest,
     label,
     isDrag = false,
@@ -28,7 +28,6 @@ function UseUpload({
                             {label}
                         </label>
                         <Dragger
-                            {...field}
                             multiple={multiple}
                             fileList={field.value || []}
                             listType="picture-card"
@@ -36,7 +35,14 @@ function UseUpload({
                                 list: `${isDrag ? "mt-4!" : "mt-2!"} gap-4!`,
                             }}
                             maxCount={maxCount}
-                            customRequest={(options) => customRequest(options.file)}
+                            customRequest={async (options) => {
+                                try {
+                                    await customRequest(options.file);
+                                    options.onSuccess("ok");
+                                } catch (error) {
+                                    options.onError(error);
+                                }
+                            }}
                             onChange={({ fileList }) => {
                                 field.onChange(fileList);
                             }}

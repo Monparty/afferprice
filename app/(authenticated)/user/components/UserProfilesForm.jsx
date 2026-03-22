@@ -60,21 +60,38 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
             phone: value.phone,
             birth_date: birthDate,
         };
-        const { data, error } = await updateProfileById(value.id, payload);
+        const { error } = await updateProfileById(value.id, payload);
         if (error) return notifyError(error);
         notifySuccess("บันทึกข้อมูลสำเร็จ");
-        // console.log("data", data);
     };
 
     const handleUpload = async (file, name) => {
         const fileName = uuid();
-        const { error: uploadError } = uploadAttachments({ fileName: fileName, file: file });
+        const preview = URL.createObjectURL(file);
+        setValue(name, [
+            {
+                uid: fileName,
+                name: file.name,
+                status: "uploading",
+                thumbUrl: preview,
+            },
+        ]);
+        const { error: uploadError } = await uploadAttachments({
+            fileName,
+            file,
+        });
         if (uploadError) return notifyError(uploadError);
         const { data } = getUrlAttachments(fileName);
-        setValue(name, [{ url: data.publicUrl }]);
+        setValue(name, [
+            {
+                uid: fileName,
+                name: file.name,
+                status: "done",
+                url: data.publicUrl,
+            },
+        ]);
+        URL.revokeObjectURL(preview);
     };
-
-    // console.log("watch()", watch())
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
