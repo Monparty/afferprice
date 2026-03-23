@@ -26,25 +26,15 @@ function UseDrawer({ onClose, open, loading = false }) {
             size={500}
             footer={
                 <div className="bg-white flex justify-center">
-                    <UseButton
-                        label="ดูประวัติกิจกรรมทั้งหมด"
-                        icon={ArrowRightOutlined}
-                        type="default"
-                        iconPlacement
-                    />
+                    <UseButton label="ดูประวัติกิจกรรมทั้งหมด" icon={ArrowRightOutlined} type="default" iconPlacement />
                 </div>
             }
         >
             <div>
-                <div className="flex gap-2 bg-slate-50/50">
+                <div className="flex gap-2">
                     <UseButton shape="round" label="ทั้งหมด" />
                     <UseButton shape="round" label="การเสนอราคา" type={null} />
                     <UseButton shape="round" label="คำเตือน" type={null} />
-                    <div className="ml-auto flex items-center">
-                        <button className="text-xs text-slate-400 hover:text-primary transition-colors">
-                            อ่านแล้วทั้งหมด
-                        </button>
-                    </div>
                 </div>
                 <div className="flex-1 overflow-y-auto py-4 flex flex-col gap-3">
                     <div className="p-4 rounded-xl bg-white border border-red-100 hover:border-red-200 hover:shadow-md transition-all group">

@@ -25,7 +25,9 @@ function Page() {
                     <div className="h-fit w-fit bg-red-500 p-4 fixed z-100 m-4 right-0 top-51 rounded-lg font-bold text-white">
                         <div>สิ่งที่ต้องแก้ต่อ</div>
                         <ul className="ps-4 list-decimal">
+                            <li>ทำ flow สร้างสิ้นค้า ตรวจสอบ แจ้งเตือน ประมูล ชำระเงิน จัดส่ง</li>
                             <li>เพิ่ม Omise payment</li>
+                            <li>เพิ่ม ที่อยู่</li>
                             <li>ทำ responsive</li>
                             <li>เพิ่ม login (OTP)</li>
                             <li>เพิ่ม กล่องแชท</li>

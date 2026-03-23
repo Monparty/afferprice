@@ -15,6 +15,7 @@ function UseUpload({
     maxCount = 1,
     label,
     isDrag = false,
+    title,
     textFileType = "PNG/JPG",
     textFileSize = "ขนาดไฟล์ไม่เกิน 2MB",
 }) {
@@ -56,9 +57,9 @@ function UseUpload({
                                     <div className="w-16 h-16 flex justify-center items-center bg-orange-100 rounded-full">
                                         <CloudUploadOutlined className="text-3xl text-orange-600!" />
                                     </div>
-                                    <p className="text-xl font-bold">ลากและวางรูปภาพลงที่นี่</p>
+                                    <p className="text-xl font-bold">{title}</p>
                                     <div className="text-sm grid gap-1 text-[#c7c7c7]">
-                                        <p>อัปโหลดรูปภาพได้สูงสุด {maxCount} รูป</p>
+                                        <p>อัปโหลดรูปภาพได้สูงสุด {maxCount} รายการ</p>
                                         <p>
                                             {textFileType} {textFileSize}
                                         </p>

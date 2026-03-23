@@ -1,18 +1,25 @@
 "use client";
 import InputNumber from "@/app/components/inputs/InputNumber";
 import InputText from "@/app/components/inputs/InputText";
-import UseReactQuill from "@/app/components/inputs/UseReactQuill";
 import UseSegmented from "@/app/components/inputs/UseSegmented";
 import UseSelect from "@/app/components/inputs/UseSelect";
 import UseUpload from "@/app/components/inputs/UseUpload";
 import UseSteps from "@/app/components/utils/UseSteps";
-import { CameraFilled, DollarOutlined, EditFilled, FileTextFilled, TruckFilled } from "@ant-design/icons";
+import {
+    CameraFilled,
+    DollarOutlined,
+    EditFilled,
+    FileTextFilled,
+    TruckFilled,
+    VideoCameraFilled,
+} from "@ant-design/icons";
 import { useForm } from "react-hook-form";
 import UseSelectCard from "@/app/components/inputs/UseSelectCard";
 import CardAddProductPreview from "@/app/components/utils/CardAddProductPreview";
 import { Activity, useEffect, useState } from "react";
 import { getCategories } from "@/app/services/categories.service";
 import { notifyError } from "@/app/providers/NotificationProvider";
+import UseTextArea from "@/app/components/inputs/UseTextArea";
 
 function Page() {
     const [activeStep, setActiveStep] = useState(0);
@@ -28,7 +35,10 @@ function Page() {
             title: "รายละเอียดสินค้า",
         },
         {
-            title: "การตั้งค่าประมูล",
+            title: "ตรวจสอบความถูกต้อง",
+        },
+        {
+            title: "ชำระค่าธรรมเนียม",
         },
     ];
 
@@ -54,24 +64,27 @@ function Page() {
                                 0: "1",
                                 1: "2",
                                 2: "3",
-                            }[activeStep] || "1"}
-                             จาก 3
+                                3: "4",
+                            }[activeStep] || "0"}
+                             จาก 4
                         </span>
                         <span className="text-sm text-slate-400">•</span>
                         <span className="text-sm font-medium text-slate-600">
                             {{
                                 0: "อัปโหลดรูปภาพ",
                                 1: "ระบุรายละเอียดสินค้า",
-                                2: "การตั้งค่าประมูล",
-                            }[activeStep] || "1"}{" "}
+                                2: "ตรวจสอบความถูกต้อง",
+                                3: "ชำระค่าธรรมเนียม",
+                            }[activeStep] || "0"}
                         </span>
                     </div>
                     <span className="text-sm font-medium text-slate-400">
                         สำเร็จแล้ว{" "}
                         {{
                             0: "0",
-                            1: "33",
-                            2: "80",
+                            1: "25",
+                            2: "50",
+                            3: "75",
                         }[activeStep] || "0"}
                         %
                     </span>
@@ -91,13 +104,41 @@ function Page() {
                                     รูปภาพคุณภาพสูงจะช่วยเพิ่มโอกาสในการขายได้ถึง 40%
                                 </p>
                             </div>
-                            <UseUpload control={control} name="myFile" multiple maxCount={3} isDrag />
+                            <UseUpload
+                                control={control}
+                                name="myFile"
+                                title="ลากและวางรูปภาพลงที่นี่"
+                                multiple
+                                maxCount={6}
+                                isDrag
+                            />
                         </section>
                         <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                             <div className="mb-6">
                                 <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                                    <VideoCameraFilled className="text-orange-600!" />
+                                    อัปโหลด Video
+                                </h2>
+                                <p className="text-slate-500 text-sm mt-1">
+                                    วิดีโอตัวอย่างสินค้าจริง จะเพิ่มความมั่นใจก่อนกดสั่งซื้อ
+                                </p>
+                            </div>
+                            <UseUpload
+                                control={control}
+                                name="myFile"
+                                title="ลากและวาง Video ลงที่นี่"
+                                multiple
+                                maxCount={3}
+                                isDrag
+                            />
+                        </section>
+                    </Activity>
+                    <Activity mode={activeStep === 1 ? "visible" : "hidden"}>
+                        <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                            <div className="mb-6">
+                                <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
                                     <EditFilled className="text-orange-600!" />
-                                    การตั้งค่าประมูล
+                                    ตั้งค่าการประมูล
                                 </h2>
                                 <p className="text-slate-500 text-sm mt-1">ระบุรายละเอียดเบื้องต้นของสินค้า</p>
                             </div>
@@ -125,8 +166,6 @@ function Page() {
                                 />
                             </div>
                         </section>
-                    </Activity>
-                    <Activity mode={activeStep === 1 ? "visible" : "hidden"}>
                         <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                             <div className="mb-6">
                                 <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
@@ -152,17 +191,17 @@ function Page() {
                                     options={[
                                         { value: "1", label: "ใหม่" },
                                         { value: "2", label: "เหมือนใหม่" },
-                                        { value: "3", label: "ดี" },
-                                        { value: "4", label: "พอใช้" },
-                                        { value: "5", label: "มือ 2" },
+                                        { value: "3", label: "มือ 2" },
                                     ]}
                                     size="large"
                                 />
                             </div>
-                            <UseReactQuill
+                            <UseTextArea
                                 control={control}
                                 name="desc"
+                                label="รายละเอียด"
                                 placeholder="กรุณาระบุรายละเอียด เช่น สภาพสินค้า, ตำหนิ, อุปกรณ์ที่ได้รับ หรือระยะเวลาประกัน"
+                                size="large"
                             />
                         </section>
                     </Activity>
@@ -171,21 +210,21 @@ function Page() {
                             <div className="mb-6">
                                 <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
                                     <TruckFilled className="text-orange-600!" />
-                                    ตัวเลือกการจัดส่ง
+                                    ตรวจสอบความถูกต้อง
                                 </h2>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <UseSegmented
-                                    control={control}
-                                    name="periodBid"
-                                    label="สภาพสินค้า"
-                                    options={[
-                                        { value: "1", label: "ไปรษนี" },
-                                        { value: "2", label: "standard" },
-                                        { value: "3", label: "เจอกันนอกจอ" },
-                                    ]}
-                                />
+                            ตรวจสอบความถูกต้อง
+                        </section>
+                    </Activity>
+                    <Activity mode={activeStep === 3 ? "visible" : "hidden"}>
+                        <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                            <div className="mb-6">
+                                <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                                    <TruckFilled className="text-orange-600!" />
+                                    ชำระค่าธรรมเนียม
+                                </h2>
                             </div>
+                            ชำระค่าธรรมเนียม
                         </section>
                     </Activity>
                 </div>

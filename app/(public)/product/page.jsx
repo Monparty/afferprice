@@ -3,6 +3,7 @@ import { BarChartOutlined, SafetyOutlined } from "@ant-design/icons";
 import UseImageGroup from "../../components/utils/UseImageGroup";
 import CardProductBid from "../../components/utils/CardProductBid";
 import UseTag from "../../components/utils/UseTag";
+import UseButton from "@/app/components/inputs/UseButton";
 
 function Page() {
     const UseBreadcrumbItems = [
@@ -112,9 +113,7 @@ function Page() {
                                         สำเร็จการประมูล 4,821 ครั้ง • คะแนนบวก 99.8%
                                     </p>
                                 </div>
-                                <button className="text-sm font-semibold text-accent-orange hover:underline">
-                                    ส่งข้อความ
-                                </button>
+                                <UseButton label="ส่งข้อความ" type="default" />
                             </div>
                         </div>
                     </div>
@@ -176,9 +175,13 @@ function Page() {
                                     </div>
                                 </div>
                             </div>
-                            <button className="w-full py-2 text-xs font-bold text-slate-400 hover:text-accent-orange transition-colors">
-                                ดูประวัติทั้งหมด 24 รายการ
-                            </button>
+                            <div className="flex justify-center">
+                                <UseButton
+                                    label="ดูประวัติทั้งหมด 24 รายการ"
+                                    type="text"
+                                    className="text-xs! font-bold! text-slate-400!"
+                                />
+                            </div>
                         </div>
                         <div className="bg-orange-50 rounded-2xl p-6 border border-orange-100 border-l-4 border-l-orange-600">
                             <div className="flex items-start gap-3">

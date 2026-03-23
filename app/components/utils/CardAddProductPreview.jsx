@@ -68,7 +68,7 @@ function CardAddProductPreview({ control, watch, activeStep, setActiveStep }) {
                         wFull
                         className="h-12!"
                         onClick={() => {
-                            if (activeStep === 2) return;
+                            if (activeStep === 3) return;
                             setActiveStep(activeStep + 1);
                         }}
                     />
