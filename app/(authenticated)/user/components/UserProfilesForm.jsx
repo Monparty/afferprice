@@ -10,7 +10,7 @@ import { getCurrentUser } from "@/app/services/auth.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import UseUpload from "@/app/components/inputs/UseUpload";
 import { v4 as uuid } from "uuid";
-import { getUrlAttachments, uploadAttachments } from "@/app/services/upload.service";
+import { getUrlAttachments, removeAttachments, uploadAttachments } from "@/app/services/upload.service";
 import UseButton from "@/app/components/inputs/UseButton";
 
 function UserProfilesForm({ setIsOpenModalProfile }) {
@@ -41,8 +41,8 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
                 birthDay: profile.birth_date.split("-")[2],
                 birthMonth: profile.birth_date.split("-")[1],
                 birthYear: profile.birth_date.split("-")[0],
-                profileImage: [{ url: profile.profile_image }],
-                idCardImage: [{ url: profile.id_card_image }],
+                profileImage: profile.profile_image && [{ url: profile.profile_image }],
+                idCardImage: profile.id_card_image && [{ url: profile.id_card_image }],
             };
             reset(formatData);
         };
@@ -93,6 +93,16 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
         URL.revokeObjectURL(preview);
     };
 
+    const handleRemove = async (file, name) => {
+        const { error: storageError } = await removeAttachments(file);
+        if (storageError) return notifyError(storageError);
+        const payload = {
+            [name]: null,
+        };
+        const { erro: profilerError } = await updateProfileById(watch("id"), payload);
+        if (profilerError) return notifyError(profilerError);
+    };
+
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
             <InputText control={control} name="email" label="อีเมล" size="large" />
@@ -138,6 +148,7 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
                     label="รูปโปรไฟล์"
                     maxCount={1}
                     customRequest={(file) => handleUpload(file, "profileImage")}
+                    onRemove={(file) => handleRemove(file, "profile_image")}
                 />
                 <UseUpload
                     control={control}
@@ -145,6 +156,7 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
                     label="สำเนาบัตรประชาชน"
                     maxCount={1}
                     customRequest={(file) => handleUpload(file, "idCardImage")}
+                    onRemove={(file) => handleRemove(file, "id_card_image")}
                 />
             </div>
             <div className="flex justify-end gap-2 ">

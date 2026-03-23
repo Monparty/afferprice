@@ -8,10 +8,11 @@ import UseHelperText from "./UseHelperText";
 function UseUpload({
     control,
     name,
+    customRequest,
+    onRemove,
     fileList,
     multiple = false,
     maxCount = 1,
-    customRequest,
     label,
     isDrag = false,
     textFileType = "PNG/JPG",
@@ -29,10 +30,11 @@ function UseUpload({
                         </label>
                         <Dragger
                             multiple={multiple}
+                            id={label}
                             fileList={field.value || []}
                             listType="picture-card"
                             classNames={{
-                                list: `${isDrag ? "mt-4!" : "mt-2!"} gap-4!`,
+                                list: `${isDrag ? "mt-4!" : "mt-2!"} gap-4! object-fill!`,
                             }}
                             maxCount={maxCount}
                             customRequest={async (options) => {
@@ -43,6 +45,7 @@ function UseUpload({
                                     options.onError(error);
                                 }
                             }}
+                            onRemove={(file) => onRemove(file)}
                             onChange={({ fileList }) => {
                                 field.onChange(fileList);
                             }}
