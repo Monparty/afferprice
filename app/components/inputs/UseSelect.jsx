@@ -19,7 +19,6 @@ function UseSelect({
     disabled = false,
     defaultValue,
 }) {
-    if (!options?.length) return null;
     return (
         <Controller
             name={name}

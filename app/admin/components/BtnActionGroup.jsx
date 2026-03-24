@@ -28,7 +28,7 @@ function BtnActionGroup({ recordId, setModalWatch, setValue, editRoute, handleDe
                 <UsePopconfirm
                     onConfirm={() => handleDelete(recordId)}
                     title="ยืนยันการลบ"
-                    description="คุณแน่ใจใช่ไหมว่าต้องการลบข้อมูลนี้"
+                    description="ต้องการลบข้อมูลนี้ ?"
                 >
                     <UseButton shape="circle" className="bg-red-500!" icon={DeleteFilled} />
                 </UsePopconfirm>
