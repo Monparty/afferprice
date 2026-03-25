@@ -20,6 +20,7 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
         reset,
         watch,
         setValue,
+        getValues,
         formState: { errors },
     } = useForm();
 
@@ -94,12 +95,13 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
     };
 
     const handleRemove = async (file, name) => {
+        const id = getValues("id");
         const { error: storageError } = await removeAttachments(file);
         if (storageError) return notifyError(storageError);
         const payload = {
             [name]: null,
         };
-        const { erro: profilerError } = await updateProfileById(watch("id"), payload);
+        const { erro: profilerError } = await updateProfileById(id, payload);
         if (profilerError) return notifyError(profilerError);
     };
 

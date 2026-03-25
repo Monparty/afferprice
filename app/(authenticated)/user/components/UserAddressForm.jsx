@@ -10,7 +10,7 @@ function UserAddressForm() {
     return (
         <form className="grid gap-4">
             <div className="flex gap-4 items-start">
-                <InputText control={control} name="name" label="เบอร์โทรศัพท์" size="large" />
+                <InputText control={control} name="name" label="ชื่อ-นามสกุล" size="large" />
                 <InputText control={control} name="phone" label="เบอร์โทรศัพท์" size="large" />
             </div>
             <div className="flex gap-4 items-start">

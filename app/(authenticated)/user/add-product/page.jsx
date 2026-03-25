@@ -20,11 +20,13 @@ import { Activity, useEffect, useState } from "react";
 import { getCategories } from "@/app/services/categories.service";
 import { notifyError } from "@/app/providers/NotificationProvider";
 import UseTextArea from "@/app/components/inputs/UseTextArea";
+import { v4 as uuid } from "uuid";
+import { getUrlAttachments, removeAttachments, uploadAttachments } from "@/app/services/upload.service";
 
 function Page() {
     const [activeStep, setActiveStep] = useState(0);
     const [categoryList, setCategoryList] = useState([]);
-    const { handleSubmit, watch, control } = useForm();
+    const { watch, control, getValues, setValue } = useForm();
     const items = [
         {
             title: "รูปภาพ",
@@ -50,6 +52,59 @@ function Page() {
         };
         fetchCategories();
     }, []);
+
+    const onSubmit = async () => {
+        const value = getValues();
+        console.log("value", value);
+        // const payload = {
+        //     first_name: value.firstName,
+        //     last_name: value.lastName,
+        //     profile_image: value.profileImage?.[0].url,
+        //     id_card_image: value.idCardImage?.[0].url,
+        //     gender: value.gender,
+        //     phone: value.phone,
+        //     birth_date: birthDate,
+        // };
+        // const { error } = await updateProfileById(value.id, payload);
+        // if (error) return notifyError(error);
+        // notifySuccess("บันทึกข้อมูลสำเร็จ");
+    };
+
+    console.log("watch", watch());
+
+    const handleUpload = async (file, name) => {
+        const fileName = uuid();
+        const preview = URL.createObjectURL(file);
+        setValue(name, [
+            {
+                uid: fileName,
+                name: file.name,
+                status: "uploading",
+                thumbUrl: preview,
+            },
+        ]);
+        const { error: uploadError } = await uploadAttachments({
+            fileName,
+            file,
+        });
+        if (uploadError) return notifyError(uploadError);
+        const { data } = getUrlAttachments(fileName);
+        setValue(name, [
+            {
+                uid: fileName,
+                name: file.name,
+                status: "done",
+                url: data.publicUrl,
+            },
+        ]);
+        URL.revokeObjectURL(preview);
+    };
+
+    const handleRemove = async (file, name) => {
+        const id = getValues("id");
+        const { error: storageError } = await removeAttachments(file);
+        if (storageError) return notifyError(storageError);
+    };
 
     // console.log("watch", watch());
 
@@ -91,7 +146,7 @@ function Page() {
                 </div>
                 <UseSteps items={items} current={activeStep} />
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <form className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 flex flex-col gap-6">
                     <Activity mode={activeStep === 0 ? "visible" : "hidden"}>
                         <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
@@ -106,11 +161,13 @@ function Page() {
                             </div>
                             <UseUpload
                                 control={control}
-                                name="myFile"
+                                name="imageUrl"
                                 title="ลากและวางรูปภาพลงที่นี่"
                                 multiple
                                 maxCount={6}
                                 isDrag
+                                customRequest={(file) => handleUpload(file, "imageUrl")}
+                                onRemove={(file) => handleRemove(file, "image_url")}
                             />
                         </section>
                         <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
@@ -125,11 +182,13 @@ function Page() {
                             </div>
                             <UseUpload
                                 control={control}
-                                name="myFile"
+                                name="videoUrl"
                                 title="ลากและวาง Video ลงที่นี่"
                                 multiple
-                                maxCount={3}
+                                maxCount={1}
                                 isDrag
+                                customRequest={(file) => handleUpload(file, "videoUrl")}
+                                onRemove={(file) => handleRemove(file, "video_url")}
                             />
                         </section>
                     </Activity>
@@ -156,7 +215,7 @@ function Page() {
                             <div className="flex gap-4 w-full">
                                 <UseSelectCard
                                     control={control}
-                                    name="periodBid"
+                                    name="auctionEndTime"
                                     options={[
                                         { value: "1", label: "1 วัน", subTitle: "QUICK SALE" },
                                         { value: "2", label: "5 วัน", subTitle: "POPULAR" },
@@ -177,7 +236,7 @@ function Page() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                 <UseSelect
                                     control={control}
-                                    name="category_id"
+                                    name="categoryId"
                                     label="หมวดหมู่"
                                     options={categoryList}
                                     optionLabel="name"
@@ -198,7 +257,7 @@ function Page() {
                             </div>
                             <UseTextArea
                                 control={control}
-                                name="desc"
+                                name="description"
                                 label="รายละเอียด"
                                 placeholder="กรุณาระบุรายละเอียด เช่น สภาพสินค้า, ตำหนิ, อุปกรณ์ที่ได้รับ หรือระยะเวลาประกัน"
                                 size="large"
@@ -233,8 +292,9 @@ function Page() {
                     control={control}
                     activeStep={activeStep}
                     setActiveStep={setActiveStep}
+                    onSubmit={onSubmit}
                 />
-            </div>
+            </form>
         </main>
     );
 }

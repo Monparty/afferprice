@@ -5,7 +5,7 @@ import verifiedIcon from "../../../public/images/verifiedIcon.png";
 import { ArrowLeftOutlined, ArrowRightOutlined, CheckCircleFilled, EyeFilled } from "@ant-design/icons";
 import Image from "next/image";
 
-function CardAddProductPreview({ control, watch, activeStep, setActiveStep }) {
+function CardAddProductPreview({ control, watch, activeStep, setActiveStep, onSubmit }) {
     // ใช้ที่ "/user/add-product"
     return (
         <div className="flex flex-col gap-6">
@@ -49,7 +49,7 @@ function CardAddProductPreview({ control, watch, activeStep, setActiveStep }) {
                                     2: "5 วัน 24:00:00",
                                     3: "7 วัน 24:00:00",
                                     4: "10 วัน 24:00:00",
-                                }[watch("periodBid")] || "00:00:00"}
+                                }[watch("auctionEndTime")] || "00:00:00"}
                             </p>
                         </div>
                     </div>
@@ -85,7 +85,7 @@ function CardAddProductPreview({ control, watch, activeStep, setActiveStep }) {
                             }}
                         />
                     )}
-                    <UseButton label="บันทึกเป็นฉบับร่าง" type="default" wFull className="h-12!" />
+                    <UseButton label="บันทึกเป็นฉบับร่าง" type="default" wFull className="h-12!" onClick={onSubmit} />
                     <p className="text-[11px] text-center text-slate-400 px-4 leading-relaxed">
                         ในการดำเนินการต่อ คุณยอมรับนโยบายผู้ขายและโครงสร้างค่าธรรมเนียมของเรา
                     </p>
