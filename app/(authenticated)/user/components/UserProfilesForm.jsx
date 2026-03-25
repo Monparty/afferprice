@@ -9,9 +9,8 @@ import { getProfileById, updateProfileById } from "@/app/services/profile.servic
 import { getCurrentUser } from "@/app/services/auth.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import UseUpload from "@/app/components/inputs/UseUpload";
-import { v4 as uuid } from "uuid";
-import { getUrlAttachments, removeAttachments, uploadAttachments } from "@/app/services/upload.service";
 import UseButton from "@/app/components/inputs/UseButton";
+import { handleRemove, handleUpload } from "@/app/utils/storageHelper";
 
 function UserProfilesForm({ setIsOpenModalProfile }) {
     const {
@@ -23,6 +22,7 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
         getValues,
         formState: { errors },
     } = useForm();
+    const id = getValues("id");
 
     useEffect(() => {
         const fetchUserAndProfile = async () => {
@@ -42,8 +42,8 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
                 birthDay: profile.birth_date.split("-")[2],
                 birthMonth: profile.birth_date.split("-")[1],
                 birthYear: profile.birth_date.split("-")[0],
-                profileImage: profile.profile_image && [{ url: profile.profile_image }],
-                idCardImage: profile.id_card_image && [{ url: profile.id_card_image }],
+                profile_image: profile.profile_image && [{ url: profile.profile_image }],
+                id_card_image: profile.id_card_image && [{ url: profile.id_card_image }],
             };
             reset(formatData);
         };
@@ -55,8 +55,8 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
         const payload = {
             first_name: value.firstName,
             last_name: value.lastName,
-            profile_image: value.profileImage?.[0].url,
-            id_card_image: value.idCardImage?.[0].url,
+            profile_image: value.profile_image?.[0]?.url,
+            id_card_image: value.id_card_image?.[0]?.url,
             gender: value.gender,
             phone: value.phone,
             birth_date: birthDate,
@@ -64,45 +64,6 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
         const { error } = await updateProfileById(value.id, payload);
         if (error) return notifyError(error);
         notifySuccess("บันทึกข้อมูลสำเร็จ");
-    };
-
-    const handleUpload = async (file, name) => {
-        const fileName = uuid();
-        const preview = URL.createObjectURL(file);
-        setValue(name, [
-            {
-                uid: fileName,
-                name: file.name,
-                status: "uploading",
-                thumbUrl: preview,
-            },
-        ]);
-        const { error: uploadError } = await uploadAttachments({
-            fileName,
-            file,
-        });
-        if (uploadError) return notifyError(uploadError);
-        const { data } = getUrlAttachments(fileName);
-        setValue(name, [
-            {
-                uid: fileName,
-                name: file.name,
-                status: "done",
-                url: data.publicUrl,
-            },
-        ]);
-        URL.revokeObjectURL(preview);
-    };
-
-    const handleRemove = async (file, name) => {
-        const id = getValues("id");
-        const { error: storageError } = await removeAttachments(file);
-        if (storageError) return notifyError(storageError);
-        const payload = {
-            [name]: null,
-        };
-        const { erro: profilerError } = await updateProfileById(id, payload);
-        if (profilerError) return notifyError(profilerError);
     };
 
     return (
@@ -146,19 +107,23 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
             <div className="flex gap-4 items-start">
                 <UseUpload
                     control={control}
-                    name="profileImage"
+                    name="profile_image"
                     label="รูปโปรไฟล์"
                     maxCount={1}
-                    customRequest={(file) => handleUpload(file, "profileImage")}
-                    onRemove={(file) => handleRemove(file, "profile_image")}
+                    customRequest={(file) => handleUpload({ file: file, name: "profile_image", setValue: setValue })}
+                    onRemove={(file) =>
+                        handleRemove({ file: file, field: "profile_image", id: id, updateFunction: updateProfileById })
+                    }
                 />
                 <UseUpload
                     control={control}
-                    name="idCardImage"
+                    name="id_card_image"
                     label="สำเนาบัตรประชาชน"
                     maxCount={1}
-                    customRequest={(file) => handleUpload(file, "idCardImage")}
-                    onRemove={(file) => handleRemove(file, "id_card_image")}
+                    customRequest={(file) => handleUpload({ file: file, name: "id_card_image", setValue: setValue })}
+                    onRemove={(file) =>
+                        handleRemove({ file: file, field: "id_card_image", id: id, updateFunction: updateProfileById })
+                    }
                 />
             </div>
             <div className="flex justify-end gap-2 ">
