@@ -5,6 +5,7 @@ import { ConfigProvider } from "antd";
 import { NotificationProvider } from "./providers/NotificationProvider";
 import HolyLoader from "holy-loader";
 import thTH from "antd/locale/th_TH";
+import Providers from "./providers/Providers";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -39,7 +40,9 @@ export default function RootLayout({ children }) {
                     }}
                     locale={thTH}
                 >
-                    <NotificationProvider>{children}</NotificationProvider>
+                    <Providers>
+                        <NotificationProvider>{children}</NotificationProvider>
+                    </Providers>
                 </ConfigProvider>
             </body>
         </html>

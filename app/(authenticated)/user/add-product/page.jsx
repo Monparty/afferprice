@@ -18,15 +18,19 @@ import UseSelectCard from "@/app/components/inputs/UseSelectCard";
 import CardAddProductPreview from "@/app/components/utils/CardAddProductPreview";
 import { Activity, useEffect, useState } from "react";
 import { getCategories } from "@/app/services/categories.service";
-import { notifyError } from "@/app/providers/NotificationProvider";
+import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import UseTextArea from "@/app/components/inputs/UseTextArea";
-import { v4 as uuid } from "uuid";
-import { getUrlAttachments, removeAttachments, uploadAttachments } from "@/app/services/upload.service";
+import { upsertProduct } from "@/app/services/products.service";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchUser } from "@/app/features/user/userSlice";
+import dayjs from "dayjs";
 
 function Page() {
     const [activeStep, setActiveStep] = useState(0);
     const [categoryList, setCategoryList] = useState([]);
     const { watch, control, getValues, setValue } = useForm();
+    const dispatch = useDispatch();
+    const { data, loading, error } = useSelector((state) => state.user);
     const items = [
         {
             title: "รูปภาพ",
@@ -45,68 +49,43 @@ function Page() {
     ];
 
     useEffect(() => {
+        dispatch(fetchUser());
+
         const fetchCategories = async () => {
             const { data, error } = await getCategories();
             if (error) return notifyError(error);
             setCategoryList(data);
         };
         fetchCategories();
-    }, []);
+    }, [dispatch]);
 
     const onSubmit = async () => {
         const value = getValues();
-        console.log("value", value);
-        // const payload = {
-        //     first_name: value.firstName,
-        //     last_name: value.lastName,
-        //     profile_image: value.profileImage?.[0].url,
-        //     id_card_image: value.idCardImage?.[0].url,
-        //     gender: value.gender,
-        //     phone: value.phone,
-        //     birth_date: birthDate,
-        // };
-        // const { error } = await updateProfileById(value.id, payload);
-        // if (error) return notifyError(error);
-        // notifySuccess("บันทึกข้อมูลสำเร็จ");
+        const date = dayjs();
+        const formatEndTime = date.add(value.auctionEndTime, "day");
+
+        const payload = {
+            id: value?.productId ?? undefined,
+            seller_id: data?.id,
+            category_id: value.categoryId,
+            title: value.title,
+            description: value.description,
+            condition: value.condition,
+            start_price: value.startPrice,
+            auction_end_time: formatEndTime.format(),
+            status: "draft",
+        };
+
+        const { data: productData, error: productError } = await upsertProduct(payload);
+        if (productError) return notifyError(productError);
+        if (productData) {
+            setValue("productId", productData.id);
+        }
+        notifySuccess("บันทึกร่างสำเร็จ");
     };
 
-    console.log("watch", watch());
-
-    const handleUpload = async (file, name) => {
-        const fileName = uuid();
-        const preview = URL.createObjectURL(file);
-        setValue(name, [
-            {
-                uid: fileName,
-                name: file.name,
-                status: "uploading",
-                thumbUrl: preview,
-            },
-        ]);
-        const { error: uploadError } = await uploadAttachments({
-            fileName,
-            file,
-        });
-        if (uploadError) return notifyError(uploadError);
-        const { data } = getUrlAttachments(fileName);
-        setValue(name, [
-            {
-                uid: fileName,
-                name: file.name,
-                status: "done",
-                url: data.publicUrl,
-            },
-        ]);
-        URL.revokeObjectURL(preview);
-    };
-
-    const handleRemove = async (file, name) => {
-        const id = getValues("id");
-        const { error: storageError } = await removeAttachments(file);
-        if (storageError) return notifyError(storageError);
-    };
-
-    // console.log("watch", watch());
+    if (loading) return <p>Loading...</p>;
+    if (error) return <p>Error: {error}</p>;
 
     return (
         <main className="w-full flex flex-col gap-6">
@@ -161,7 +140,7 @@ function Page() {
                             </div>
                             <UseUpload
                                 control={control}
-                                name="imageUrl"
+                                name="image_url"
                                 title="ลากและวางรูปภาพลงที่นี่"
                                 multiple
                                 maxCount={6}
@@ -182,12 +161,12 @@ function Page() {
                             </div>
                             <UseUpload
                                 control={control}
-                                name="videoUrl"
+                                name="video_url"
                                 title="ลากและวาง Video ลงที่นี่"
                                 multiple
                                 maxCount={1}
                                 isDrag
-                                customRequest={(file) => handleUpload(file, "videoUrl")}
+                                customRequest={(file) => handleUpload(file, "video_url")}
                                 onRemove={(file) => handleRemove(file, "video_url")}
                             />
                         </section>
@@ -217,10 +196,10 @@ function Page() {
                                     control={control}
                                     name="auctionEndTime"
                                     options={[
-                                        { value: "1", label: "1 วัน", subTitle: "QUICK SALE" },
-                                        { value: "2", label: "5 วัน", subTitle: "POPULAR" },
-                                        { value: "3", label: "7 วัน", subTitle: "STANDARD" },
-                                        { value: "4", label: "10 วัน", subTitle: "MAXIMUM" },
+                                        { value: 1, label: "1 วัน", subTitle: "QUICK SALE" },
+                                        { value: 5, label: "5 วัน", subTitle: "POPULAR" },
+                                        { value: 7, label: "7 วัน", subTitle: "STANDARD" },
+                                        { value: 10, label: "10 วัน", subTitle: "MAXIMUM" },
                                     ]}
                                 />
                             </div>
@@ -248,9 +227,9 @@ function Page() {
                                     name="condition"
                                     label="สภาพสินค้า"
                                     options={[
-                                        { value: "1", label: "ใหม่" },
-                                        { value: "2", label: "เหมือนใหม่" },
-                                        { value: "3", label: "มือ 2" },
+                                        { value: "new", label: "ใหม่" },
+                                        { value: "like_new", label: "เหมือนใหม่" },
+                                        { value: "good", label: "มือ 2" },
                                     ]}
                                     size="large"
                                 />
