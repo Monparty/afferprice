@@ -24,6 +24,7 @@ import { upsertProduct } from "@/app/services/products.service";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUser } from "@/app/features/user/userSlice";
 import dayjs from "dayjs";
+import { handleUpload } from "@/app/utils/storageHelper";
 
 function Page() {
     const [activeStep, setActiveStep] = useState(0);
@@ -87,6 +88,8 @@ function Page() {
     if (loading) return <p>Loading...</p>;
     if (error) return <p>Error: {error}</p>;
 
+    // console.log("watch", watch());
+
     return (
         <main className="w-full flex flex-col gap-6">
             <div className="w-full bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
@@ -145,11 +148,20 @@ function Page() {
                                 multiple
                                 maxCount={6}
                                 isDrag
-                                customRequest={(file) => handleUpload(file, "imageUrl")}
-                                onRemove={(file) => handleRemove(file, "image_url")}
+                                customRequest={(fileData) =>
+                                    handleUpload({ fileData: fileData, name: "image_url", setValue: setValue })
+                                }
+                                // onRemove={(file) =>
+                                //     handleRemove({
+                                //         file: file,
+                                //         field: "image_url",
+                                //         id: id,
+                                //         updateFunction: updateProfileById,
+                                //     })
+                                // }
                             />
                         </section>
-                        <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                        {/* <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                             <div className="mb-6">
                                 <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
                                     <VideoCameraFilled className="text-orange-600!" />
@@ -169,7 +181,7 @@ function Page() {
                                 customRequest={(file) => handleUpload(file, "video_url")}
                                 onRemove={(file) => handleRemove(file, "video_url")}
                             />
-                        </section>
+                        </section> */}
                     </Activity>
                     <Activity mode={activeStep === 1 ? "visible" : "hidden"}>
                         <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">

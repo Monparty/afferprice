@@ -4,6 +4,7 @@ import UseButton from "./UseButton";
 import { CloudUploadOutlined, UploadOutlined } from "@ant-design/icons";
 import { Controller } from "react-hook-form";
 import UseHelperText from "./UseHelperText";
+import { useState } from "react";
 
 function UseUpload({
     control,
@@ -19,6 +20,7 @@ function UseUpload({
     textFileType = "PNG/JPG",
     textFileSize = "ขนาดไฟล์ไม่เกิน 2MB",
 }) {
+    const [fileListData, setFileListData] = useState([]);
     return (
         <Controller
             name={name}
@@ -38,18 +40,9 @@ function UseUpload({
                                 list: `${isDrag ? "mt-4!" : "mt-2!"} gap-4! object-fill!`,
                             }}
                             maxCount={maxCount}
-                            customRequest={async (options) => {
-                                try {
-                                    await customRequest(options.file);
-                                    options.onSuccess("ok");
-                                } catch (error) {
-                                    options.onError(error);
-                                }
-                            }}
+                            customRequest={(options) => customRequest({ options, fileListData })}
                             onRemove={(file) => onRemove(file)}
-                            onChange={({ fileList }) => {
-                                field.onChange(fileList);
-                            }}
+                            onChange={({ fileList }) => setFileListData(fileList)}
                             accept="image/*"
                         >
                             {isDrag ? (

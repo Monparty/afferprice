@@ -1,46 +1,48 @@
-import { v4 as uuid } from "uuid";
 import { getUrlAttachments, removeAttachments, uploadAttachments } from "../services/upload.service";
 import { notifyError, notifySuccess } from "../providers/NotificationProvider";
 
-// ดูตัวอย่างที่ UserProfilesForm
+const getPublicUrls = (files = []) => {
+    return files.map((file) => {
+        const { data } = getUrlAttachments(file.uid);
+        return {
+            ...file,
+            status: "done",
+            url: data.publicUrl,
+            thumbUrl: data.publicUrl,
+        };
+    });
+};
 
-/*
-    flow upload
-        - เมื่อ upload เก็บไฟล์เข้า Buckets "attachments" ทันที
-        - get url ของไฟล์และ setValue เข้า form หน้านั้น
-        - กดบันทึกหน้านั้นทำ func onSubmit และนำ url ไปเก็บในตาราง
-    สิ่งที่ต้องมี
-        - field ในตารางสำหรับเก็บ url
-        - input UseUpload และต้องระบุ name ตาม ชื่อ field ใน table
- */
-
-export const handleUpload = async ({ file, name, setValue }) => {
+export const handleUpload = async ({ fileData, name, setValue }) => {
     try {
-        const fileName = uuid();
-        const preview = URL.createObjectURL(file);
-        setValue(name, [
-            {
-                uid: fileName,
-                name: file.name,
-                status: "uploading",
+        const { options, fileListData } = fileData;
+        const uploadingList = fileListData.map((item) => {
+            const preview = item.originFileObj ? URL.createObjectURL(item.originFileObj) : item.thumbUrl;
+            return {
+                uid: item.uid,
+                name: item.name,
+                status: "done",
                 thumbUrl: preview,
-            },
-        ]);
+                _objectUrl: preview,
+            };
+        });
+        setValue(name, uploadingList);
+
+        const file = options.file;
         const { error: uploadError } = await uploadAttachments({
-            fileName,
+            fileName: file.uid,
             file,
         });
+
         if (uploadError) return notifyError(uploadError);
-        const { data } = getUrlAttachments(fileName);
-        setValue(name, [
-            {
-                uid: fileName,
-                name: file.name,
-                status: "done",
-                url: data.publicUrl,
-            },
-        ]);
-        URL.revokeObjectURL(preview);
+        const fileName = uploadingList.map((item) => item);
+        const urlResults = getPublicUrls(fileName);
+        setValue(name, urlResults);
+        uploadingList.forEach((item) => {
+            if (item._objectUrl) {
+                URL.revokeObjectURL(item._objectUrl);
+            }
+        });
         notifySuccess("บันทึกไฟล์สำเร็จ");
     } catch (error) {
         if (error) return notifyError(error);
