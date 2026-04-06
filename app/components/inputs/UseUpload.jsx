@@ -19,6 +19,7 @@ function UseUpload({
     title,
     textFileType = "PNG/JPG",
     textFileSize = "ขนาดไฟล์ไม่เกิน 2MB",
+    acceptVideo = false,
 }) {
     const [fileListData, setFileListData] = useState([]);
     return (
@@ -43,7 +44,7 @@ function UseUpload({
                             customRequest={(options) => customRequest({ options, fileListData })}
                             onRemove={(file) => onRemove(file)}
                             onChange={({ fileList }) => setFileListData(fileList)}
-                            accept="image/*"
+                            accept={acceptVideo ? "video/*" : "image/*"}
                         >
                             {isDrag ? (
                                 <div className="w-full flex flex-col justify-center items-center gap-4 p-6">

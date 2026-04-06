@@ -24,7 +24,7 @@ import { upsertProduct } from "@/app/services/products.service";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUser } from "@/app/features/user/userSlice";
 import dayjs from "dayjs";
-import { handleUpload } from "@/app/utils/storageHelper";
+import { handleRemove, handleUpload } from "@/app/utils/storageHelper";
 
 function Page() {
     const [activeStep, setActiveStep] = useState(0);
@@ -64,6 +64,16 @@ function Page() {
         const value = getValues();
         const date = dayjs();
         const formatEndTime = date.add(value.auctionEndTime, "day");
+        const formatImageUrl = value?.image_url?.map((file) => ({
+            uid: file.uid,
+            name: file.name,
+            url: file.url || file.thumbUrl,
+        }));
+        const formatVideoUrl = value?.video_url?.map((file) => ({
+            uid: file.uid,
+            name: file.name,
+            url: file.url || file.thumbUrl,
+        }));
 
         const payload = {
             id: value?.productId ?? undefined,
@@ -75,6 +85,8 @@ function Page() {
             start_price: value.startPrice,
             auction_end_time: formatEndTime.format(),
             status: "draft",
+            images_url: formatImageUrl,
+            video_url: formatVideoUrl,
         };
 
         const { data: productData, error: productError } = await upsertProduct(payload);
@@ -161,7 +173,7 @@ function Page() {
                                 // }
                             />
                         </section>
-                        {/* <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                        <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                             <div className="mb-6">
                                 <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
                                     <VideoCameraFilled className="text-orange-600!" />
@@ -178,10 +190,20 @@ function Page() {
                                 multiple
                                 maxCount={1}
                                 isDrag
-                                customRequest={(file) => handleUpload(file, "video_url")}
-                                onRemove={(file) => handleRemove(file, "video_url")}
+                                acceptVideo
+                                customRequest={(fileData) =>
+                                    handleUpload({ fileData: fileData, name: "video_url", setValue: setValue })
+                                }
+                                // onRemove={(file) =>
+                                //     handleRemove({
+                                //         file: file,
+                                //         field: "image_url",
+                                //         id: id,
+                                //         updateFunction: updateProfileById,
+                                //     })
+                                // }
                             />
-                        </section> */}
+                        </section>
                     </Activity>
                     <Activity mode={activeStep === 1 ? "visible" : "hidden"}>
                         <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
@@ -200,7 +222,6 @@ function Page() {
                                     label="ราคาเริ่มต้น (บาท)"
                                     size="large"
                                     format
-                                    icon={DollarOutlined}
                                 />
                             </div>
                             <div className="flex gap-4 w-full">

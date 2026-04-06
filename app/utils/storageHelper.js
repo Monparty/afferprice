@@ -33,8 +33,8 @@ export const handleUpload = async ({ fileData, name, setValue }) => {
             fileName: file.uid,
             file,
         });
-
         if (uploadError) return notifyError(uploadError);
+
         const fileName = uploadingList.map((item) => item);
         const urlResults = getPublicUrls(fileName);
         setValue(name, urlResults);
@@ -58,7 +58,7 @@ export const handleUpload = async ({ fileData, name, setValue }) => {
         - ชื่อ field url ในตารางที่จะลบ
  */
 
-export const handleRemove = async ({ file, field, id, updateFunction }) => {
+export const handleRemove = async ({ file, field, id, updateFunction, setValue }) => {
     try {
         const { error: storageError } = await removeAttachments(file);
         if (storageError) return notifyError(storageError);
@@ -67,6 +67,7 @@ export const handleRemove = async ({ file, field, id, updateFunction }) => {
         };
         const { erro: profilerError } = await updateFunction(id, payload);
         if (profilerError) return notifyError(profilerError);
+        setValue(field, null);
         notifySuccess("ลบไฟล์สำเร็จ");
     } catch (error) {
         if (error) return notifyError(error);

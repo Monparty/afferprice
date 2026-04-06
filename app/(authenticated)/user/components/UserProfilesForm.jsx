@@ -110,9 +110,17 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
                     name="profile_image"
                     label="รูปโปรไฟล์"
                     maxCount={1}
-                    customRequest={(file) => handleUpload({ file: file, name: "profile_image", setValue: setValue })}
-                    onRemove={(file) =>
-                        handleRemove({ file: file, field: "profile_image", id: id, updateFunction: updateProfileById })
+                    customRequest={(fileData) =>
+                        handleUpload({ fileData: fileData, name: "profile_image", setValue: setValue })
+                    }
+                    onRemove={(fileData) =>
+                        handleRemove({
+                            fileData: fileData,
+                            field: "profile_image",
+                            id: id,
+                            updateFunction: updateProfileById,
+                            setValue: setValue,
+                        })
                     }
                 />
                 <UseUpload
@@ -120,9 +128,17 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
                     name="id_card_image"
                     label="สำเนาบัตรประชาชน"
                     maxCount={1}
-                    customRequest={(file) => handleUpload({ file: file, name: "id_card_image", setValue: setValue })}
-                    onRemove={(file) =>
-                        handleRemove({ file: file, field: "id_card_image", id: id, updateFunction: updateProfileById })
+                    customRequest={(fileData) =>
+                        handleUpload({ fileData: fileData, name: "id_card_image", setValue: setValue })
+                    }
+                    onRemove={(fileData) =>
+                        handleRemove({
+                            fileData: fileData,
+                            field: "id_card_image",
+                            id: id,
+                            updateFunction: updateProfileById,
+                            setValue: setValue,
+                        })
                     }
                 />
             </div>

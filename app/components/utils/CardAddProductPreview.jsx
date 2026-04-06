@@ -45,10 +45,10 @@ function CardAddProductPreview({ control, watch, activeStep, setActiveStep, onSu
                             <p className="text-[10px] text-slate-500 uppercase font-bold">เวลาที่เหลือ</p>
                             <p className="text-sm font-bold text-slate-900">
                                 {{
-                                    1: "24:00:00",
-                                    2: "5 วัน 24:00:00",
-                                    3: "7 วัน 24:00:00",
-                                    4: "10 วัน 24:00:00",
+                                    1: "1 วัน",
+                                    5: "5 วัน",
+                                    7: "7 วัน",
+                                    10: "10 วัน",
                                 }[watch("auctionEndTime")] || "00:00:00"}
                             </p>
                         </div>
