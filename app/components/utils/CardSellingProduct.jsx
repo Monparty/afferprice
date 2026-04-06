@@ -2,22 +2,42 @@
 import UseButton from "@/app/components/inputs/UseButton";
 import UseTag from "@/app/components/utils/UseTag";
 import { FieldTimeOutlined, MoreOutlined, TeamOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
 import Image from "next/image";
+import imageNotFound from "../../../public/images/imageNotFound.png";
+import UsePopover from "./UsePopover";
+import Link from "next/link";
 
-function CardSellingProduct() {
+function CardSellingProduct({ value }) {
     // ใช้ที่ "/user/selling"
     return (
         <div className="group flex flex-col bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg hover:border-primary/20 transition-all">
             <div className="relative aspect-video overflow-hidden">
                 <div className="absolute top-3 left-3 z-10">
-                    <UseTag label="Active" color="success" variant="solid" />
+                    <UseTag
+                        label={value.status}
+                        color={value.status === "draft" ? "warning" : "success"}
+                        variant="solid"
+                        className="capitalize"
+                    />
                 </div>
                 <div className="absolute top-3 right-3 z-10">
-                    <UseButton shape="circle" type="default" icon={MoreOutlined} />
+                    <UsePopover
+                        placement="bottomRight"
+                        content={
+                            <div className="grid gap-2 w-20">
+                                <Link href={`/user/add-product/${value.id}`} className="text-black!">
+                                    แก้ไข
+                                </Link>
+                            </div>
+                        }
+                    >
+                        <UseButton shape="circle" type="default" icon={MoreOutlined} />
+                    </UsePopover>
                 </div>
                 <Image
-                    src="https://picsum.photos/300/300"
-                    alt="Product"
+                    src={value.images_url?.[0].url || imageNotFound}
+                    alt={value.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     width={300}
                     height={300}
@@ -25,10 +45,10 @@ function CardSellingProduct() {
                 />
             </div>
             <div className="p-4 flex flex-col flex-1">
-                <h3 className="text-blue-500 font-bold line-clamp-1 mb-1">Rolex Submariner Date 126610LN</h3>
+                <h3 className="text-blue-500 font-bold line-clamp-1 mb-1">{value.title}</h3>
                 <div className="flex flex-col items-baseline gap-1 mt-auto">
                     <span className="text-[10px] text-slate-400 uppercase font-bold">ราคาปัจจุบัน</span>
-                    <span className="text-primary font-black text-lg">฿450,000</span>
+                    <span className="text-primary font-black text-lg">฿{value.start_price?.toLocaleString()}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-1 mt-4 pt-4 border-t border-slate-200">
                     <span className="text-[10px] text-slate-400 font-bold uppercase">ผู้ประมูล</span>
@@ -42,7 +62,9 @@ function CardSellingProduct() {
                     <div className="flex flex-col">
                         <div className="flex items-center gap-1 text-red-500">
                             <FieldTimeOutlined />
-                            <span className="text-sm font-bold">02:45:10</span>
+                            <span className="text-sm font-bold">
+                                {Math.ceil(dayjs(value.auction_end_time).diff(dayjs(), "day", true))} วัน
+                            </span>
                         </div>
                     </div>
                 </div>

@@ -3,13 +3,17 @@ import UseSegmented from "@/app/components/inputs/UseSegmented";
 import CardSellingProduct from "@/app/components/utils/CardSellingProduct";
 import UseTabs from "@/app/components/utils/UseTabs";
 import UseTag from "@/app/components/utils/UseTag";
+import { notifyError } from "@/app/providers/NotificationProvider";
+import { getProducts } from "@/app/services/products.service";
 import { AppstoreOutlined, BarsOutlined } from "@ant-design/icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 function Page() {
     const { control } = useForm();
     const [activeTab, setActiveTab] = useState("1");
+    const [products, setProducts] = useState([]);
+
     const tabItems = [
         {
             key: "1",
@@ -34,12 +38,39 @@ function Page() {
             key: "3",
             label: (
                 <div className="flex justify-center items-center gap-2 text-sm px-3">
-                    บันทึกร่าง <UseTag label={6} color={activeTab === "3" ? "orange" : undefined} />
+                    บันทึกร่าง <UseTag label={products?.length} color={activeTab === "3" ? "orange" : undefined} />
                 </div>
             ),
-            children: "Content of Tab Pane 3",
+            children: (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {products?.map((product) => (
+                        <CardSellingProduct
+                            key={product.id}
+                            value={{
+                                id: product?.id,
+                                status: product?.status,
+                                start_price: product?.start_price,
+                                title: product?.title,
+                                auction_end_time: product?.auction_end_time,
+                                images_url: product?.images_url,
+                            }}
+                        />
+                    ))}
+                </div>
+            ),
         },
     ];
+
+    useEffect(() => {
+        getProducts("draft");
+        const onGetProducts = async () => {
+            const { data, error } = await getProducts("draft");
+            if (error) return notifyError(error);
+            setProducts(data);
+        };
+        onGetProducts();
+    }, []);
+
     return (
         <>
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
@@ -61,13 +92,8 @@ function Page() {
                 />
             </div>
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="px-6 overflow-x-auto">
+                <div className="px-6 pb-6 overflow-x-auto">
                     <UseTabs items={tabItems} size="large" onChange={(key) => setActiveTab(key)} />
-                </div>
-                <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <CardSellingProduct />
-                    <CardSellingProduct />
-                    <CardSellingProduct />
                 </div>
             </div>
         </>

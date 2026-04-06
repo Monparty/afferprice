@@ -62,8 +62,7 @@ function Page() {
 
     const onSubmit = async () => {
         const value = getValues();
-        const date = dayjs();
-        const formatEndTime = date.add(value.auctionEndTime, "day");
+        const formatEndTime = dayjs().add(value.auctionEndTime, "day").toISOString();
         const formatImageUrl = value?.image_url?.map((file) => ({
             uid: file.uid,
             name: file.name,
@@ -83,7 +82,7 @@ function Page() {
             description: value.description,
             condition: value.condition,
             start_price: value.startPrice,
-            auction_end_time: formatEndTime.format(),
+            auction_end_time: formatEndTime,
             status: "draft",
             images_url: formatImageUrl,
             video_url: formatVideoUrl,
