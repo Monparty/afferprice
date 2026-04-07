@@ -26,7 +26,7 @@ function CardSellingProduct({ value }) {
                         placement="bottomRight"
                         content={
                             <div className="grid gap-2 w-20">
-                                <Link href={`/user/add-product/${value.id}`} className="text-black!">
+                                <Link href={`/user/add-product/${value.id}/edit`} className="text-black!">
                                     แก้ไข
                                 </Link>
                             </div>
