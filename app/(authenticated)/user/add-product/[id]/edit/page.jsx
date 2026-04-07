@@ -1,7 +1,7 @@
-import React from "react";
+import AddProductLayout from "../../components/AddProductLayout";
 
 function Page() {
-    return <div>xxx</div>;
+    return <AddProductLayout />;
 }
 
 export default Page;
