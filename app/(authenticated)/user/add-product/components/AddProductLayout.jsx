@@ -4,14 +4,15 @@ import CardAddProductPreview from "@/app/components/utils/CardAddProductPreview"
 import { useEffect, useState } from "react";
 import { getCategories } from "@/app/services/categories.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
-import { upsertProduct } from "@/app/services/products.service";
+import { getProductById, upsertProduct } from "@/app/services/products.service";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUser } from "@/app/features/user/userSlice";
 import dayjs from "dayjs";
 import Form from "./Form";
 import AddProductSteps from "./AddProductSteps";
+import UseSkeleton from "@/app/components/utils/UseSkeleton";
 
-function AddProductLayout() {
+function AddProductLayout({ productId }) {
     const [activeStep, setActiveStep] = useState(0);
     const [categoryList, setCategoryList] = useState([]);
     const { watch, control, getValues, setValue } = useForm();
@@ -28,6 +29,17 @@ function AddProductLayout() {
         };
         fetchCategories();
     }, [dispatch]);
+
+    useEffect(() => {
+        if (!productId) return;
+        const onGetProductById = async () => {
+            const { data, error } = await getProductById(productId);
+            if (error) return notifyError(error);
+            console.log("data", data)
+            // setCategoryList(data);
+        };
+        onGetProductById();
+    }, [productId]);
 
     const onSubmit = async () => {
         const value = getValues();
@@ -65,7 +77,14 @@ function AddProductLayout() {
         notifySuccess("บันทึกร่างสำเร็จ");
     };
 
-    if (loading) return <p>Loading...</p>;
+    if (loading) {
+        return (
+            <div className="grid gap-6">
+                <UseSkeleton />
+                <UseSkeleton />
+            </div>
+        );
+    }
     if (error) return <p>Error: {error}</p>;
 
     return (
