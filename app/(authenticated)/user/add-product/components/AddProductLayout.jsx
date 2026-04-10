@@ -1,6 +1,6 @@
 "use client";
 import { useForm } from "react-hook-form";
-import CardAddProductPreview from "@/app/components/utils/CardAddProductPreview";
+import CardAddProductPreview from "@/app/(authenticated)/user/add-product/components/CardAddProductPreview";
 import { useEffect, useState } from "react";
 import { getCategories } from "@/app/services/categories.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
@@ -15,7 +15,11 @@ import UseSkeleton from "@/app/components/utils/UseSkeleton";
 function AddProductLayout({ productId }) {
     const [activeStep, setActiveStep] = useState(0);
     const [categoryList, setCategoryList] = useState([]);
-    const { watch, control, getValues, setValue } = useForm();
+    const { watch, control, getValues, setValue, reset } = useForm({
+        defaultValues: {
+            isSeller: true,
+        },
+    });
     const dispatch = useDispatch();
     const { data, loading, error } = useSelector((state) => state.user);
 
@@ -35,16 +39,35 @@ function AddProductLayout({ productId }) {
         const onGetProductById = async () => {
             const { data, error } = await getProductById(productId);
             if (error) return notifyError(error);
-            console.log("data", data)
-            // setCategoryList(data);
+
+            const formatData = {
+                ...data,
+                title: data.title,
+                categoryId: data.category_id,
+                condition: data.condition,
+                description: data.description,
+                isSeller: data.is_seller === "Y",
+                startPrice: data.start_price,
+                durationDays: data.duration_days,
+                images_url: data?.images_url?.map((item) => ({
+                    ...item,
+                    status: "done",
+                })),
+                video_url: data?.video_url?.map((item) => ({
+                    ...item,
+                    status: "done",
+                    thumbUrl: "/images/videoThumb.png",
+                })),
+            };
+            reset(formatData);
         };
         onGetProductById();
     }, [productId]);
 
     const onSubmit = async () => {
         const value = getValues();
-        const formatEndTime = dayjs().add(value.auctionEndTime, "day").toISOString();
-        const formatImageUrl = value?.image_url?.map((file) => ({
+        const formatEndTime = dayjs().add(value.durationDays, "day").toISOString();
+        const formatImageUrl = value?.images_url?.map((file) => ({
             uid: file.uid,
             name: file.name,
             url: file.url || file.thumbUrl,
@@ -56,17 +79,19 @@ function AddProductLayout({ productId }) {
         }));
 
         const payload = {
-            id: value?.productId ?? undefined,
+            id: value?.productId ?? productId ?? undefined,
             seller_id: data?.id,
             category_id: value.categoryId,
             title: value.title,
             description: value.description,
-            condition: value.condition,
+            condition: value.condition || "new",
             start_price: value.startPrice,
             auction_end_time: formatEndTime,
             status: "draft",
             images_url: formatImageUrl,
             video_url: formatVideoUrl,
+            duration_days: value.durationDays,
+            is_seller: value.isSeller ? "Y" : "N",
         };
 
         const { data: productData, error: productError } = await upsertProduct(payload);
@@ -91,7 +116,7 @@ function AddProductLayout({ productId }) {
         <main className="w-full flex flex-col gap-6">
             <AddProductSteps activeStep={activeStep} />
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Form activeStep={activeStep} control={control} categoryList={categoryList} />
+                <Form activeStep={activeStep} control={control} categoryList={categoryList} setValue={setValue} />
                 <CardAddProductPreview
                     watch={watch}
                     control={control}

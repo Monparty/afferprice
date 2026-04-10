@@ -63,7 +63,7 @@ function CardSellingProduct({ value }) {
                         <div className="flex items-center gap-1 text-red-500">
                             <FieldTimeOutlined />
                             <span className="text-sm font-bold">
-                                {Math.ceil(dayjs(value.auction_end_time).diff(dayjs(), "day", true))} วัน
+                                {value.duration_days} วัน
                             </span>
                         </div>
                     </div>

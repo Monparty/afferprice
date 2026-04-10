@@ -51,7 +51,7 @@ function Page() {
                                 status: product?.status,
                                 start_price: product?.start_price,
                                 title: product?.title,
-                                auction_end_time: product?.auction_end_time,
+                                duration_days: product?.duration_days,
                                 images_url: product?.images_url,
                             }}
                         />

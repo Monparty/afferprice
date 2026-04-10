@@ -10,7 +10,7 @@ import { Activity } from "react";
 import UseTextArea from "@/app/components/inputs/UseTextArea";
 import { handleUpload } from "@/app/utils/storageHelper";
 
-function Form({ activeStep, control, categoryList }) {
+function Form({ activeStep, control, categoryList, setValue }) {
     return (
         <form className="lg:col-span-2 flex flex-col gap-6">
             <Activity mode={activeStep === 0 ? "visible" : "hidden"}>
@@ -24,18 +24,18 @@ function Form({ activeStep, control, categoryList }) {
                     </div>
                     <UseUpload
                         control={control}
-                        name="image_url"
+                        name="images_url"
                         title="ลากและวางรูปภาพลงที่นี่"
                         multiple
                         maxCount={6}
                         isDrag
                         customRequest={(fileData) =>
-                            handleUpload({ fileData: fileData, name: "image_url", setValue: setValue })
+                            handleUpload({ fileData: fileData, name: "images_url", setValue: setValue })
                         }
                         // onRemove={(file) =>
                         //     handleRemove({
                         //         file: file,
-                        //         field: "image_url",
+                        //         field: "images_url",
                         //         id: id,
                         //         updateFunction: updateProfileById,
                         //     })
@@ -66,7 +66,7 @@ function Form({ activeStep, control, categoryList }) {
                         // onRemove={(file) =>
                         //     handleRemove({
                         //         file: file,
-                        //         field: "image_url",
+                        //         field: "images_url",
                         //         id: id,
                         //         updateFunction: updateProfileById,
                         //     })
@@ -96,7 +96,7 @@ function Form({ activeStep, control, categoryList }) {
                     <div className="flex gap-4 w-full">
                         <UseSelectCard
                             control={control}
-                            name="auctionEndTime"
+                            name="durationDays"
                             options={[
                                 { value: 1, label: "1 วัน", subTitle: "QUICK SALE" },
                                 { value: 5, label: "5 วัน", subTitle: "POPULAR" },

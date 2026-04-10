@@ -1,12 +1,20 @@
 "use client";
 import UseButton from "@/app/components/inputs/UseButton";
 import UseCheckbox from "@/app/components/inputs/UseCheckbox";
-import verifiedIcon from "../../../public/images/verifiedIcon.png";
 import { ArrowLeftOutlined, ArrowRightOutlined, CheckCircleFilled, EyeFilled } from "@ant-design/icons";
 import Image from "next/image";
+import { useWatch } from "react-hook-form";
+import verifiedIcon from "../../../../../public/images/verifiedIcon.png";
+import imageNotFound from "../../../../../public/images/imageNotFound.png";
 
 function CardAddProductPreview({ control, watch, activeStep, setActiveStep, onSubmit }) {
     // ใช้ที่ "/user/add-product"
+    const image = useWatch({
+        control,
+        name: "images_url.0",
+    });
+    const imageUrl = image?.url || image?.thumbUrl;
+
     return (
         <div className="flex flex-col gap-6">
             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-lg sticky top-12">
@@ -16,7 +24,7 @@ function CardAddProductPreview({ control, watch, activeStep, setActiveStep, onSu
                 </div>
                 <div className="aspect-video w-full bg-slate-100 relative">
                     <Image
-                        src="https://picsum.photos/340/195"
+                        src={imageUrl || imageNotFound}
                         alt="Product preview"
                         className="w-full h-full object-cover"
                         width={340}
@@ -32,7 +40,7 @@ function CardAddProductPreview({ control, watch, activeStep, setActiveStep, onSu
                 </div>
                 <div className="p-5">
                     <h3 className="text-lg font-bold text-slate-900 truncate">
-                        {watch("title") || "ชื่อรายการสินค้าของคุณจะแสดงที่นี่..."}
+                        {watch("title") || "ชื่อสินค้าของคุณ..."}
                     </h3>
                     <div className="mt-4 flex items-center justify-between">
                         <div>
@@ -49,7 +57,7 @@ function CardAddProductPreview({ control, watch, activeStep, setActiveStep, onSu
                                     5: "5 วัน",
                                     7: "7 วัน",
                                     10: "10 วัน",
-                                }[watch("auctionEndTime")] || "00:00:00"}
+                                }[watch("durationDays")] || "00:00:00"}
                             </p>
                         </div>
                     </div>
