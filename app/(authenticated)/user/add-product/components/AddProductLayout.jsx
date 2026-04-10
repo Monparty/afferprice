@@ -115,15 +115,19 @@ function AddProductLayout({ productId }) {
     return (
         <main className="w-full flex flex-col gap-6">
             <AddProductSteps activeStep={activeStep} />
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Form activeStep={activeStep} control={control} categoryList={categoryList} setValue={setValue} />
-                <CardAddProductPreview
-                    watch={watch}
-                    control={control}
-                    activeStep={activeStep}
-                    setActiveStep={setActiveStep}
-                    onSubmit={onSubmit}
-                />
+            <div className="flex justify-center gap-6">
+                <div className={`flex-2 ${activeStep === 2 ? "hidden" : ""}`}>
+                    <Form activeStep={activeStep} control={control} categoryList={categoryList} setValue={setValue} />
+                </div>
+                <div className={`${activeStep === 2 ? "w-1/2" : "flex-1"}`}>
+                    <CardAddProductPreview
+                        watch={watch}
+                        control={control}
+                        activeStep={activeStep}
+                        setActiveStep={setActiveStep}
+                        onSubmit={onSubmit}
+                    />
+                </div>
             </div>
         </main>
     );
