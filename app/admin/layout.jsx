@@ -25,7 +25,7 @@ export default function RootLayout({ children }) {
             icon: <BarChartOutlined className="text-lg!" />,
         },
         {
-            url: ROUTES.ADMIN,
+            url: ROUTES.ADMIN_PRODUCT,
             label: "จัดการสินค้าประมูล",
             icon: <ShoppingCartOutlined className="text-lg!" />,
         },

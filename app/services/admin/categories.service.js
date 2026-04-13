@@ -1,9 +1,8 @@
 "use server";
-import { supabase } from "@/app/lib/supabase/client";
 import { supabaseAdmin } from "../../lib/supabase/admin";
 
 export async function getCategories() {
-    return supabase.from("categories").select("*");
+    return supabaseAdmin.from("categories").select("*");
 }
 
 export async function deleteCategorie(id) {

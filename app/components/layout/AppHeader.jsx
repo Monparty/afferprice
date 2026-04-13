@@ -154,7 +154,7 @@ function AppHeader() {
                                     content={
                                         <div className="grid gap-2 w-46">
                                             {profile?.role === "admin" && (
-                                                <Link href="/admin">
+                                                <Link href="/admin" target="_blank">
                                                     <UseButton
                                                         label="Admin"
                                                         className="justify-start! h-10!"
