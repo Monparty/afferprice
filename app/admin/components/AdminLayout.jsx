@@ -22,14 +22,14 @@ function AdminLayout({ children, menus }) {
     };
 
     return (
-        <>
+        <div className="flex">
             <div className="w-1/6">
                 <nav className="bg-slate-800 text-white p-6 h-dvh w-1/6 fixed">
                     <Link href={ROUTES.ADMIN} className="flex-2 flex items-center gap-3 mb-6">
                         <Image src={afferpriceLogo} width={34} height={34} alt="Afferprice Logo" />
                         <h1 className="text-xl font-semibold">Afferprice</h1>
                     </Link>
-                    <div className="flex flex-col h-[calc(100%-120px)]">
+                    <div className="flex flex-col h-[calc(100%-120px)] min-h-fit">
                         <div className="grid gap-3">
                             {menus.map((menu, index) => (
                                 <Link
@@ -89,7 +89,7 @@ function AdminLayout({ children, menus }) {
                 </header>
                 <div className="p-6">{children}</div>
             </div>
-        </>
+        </div>
     );
 }
 

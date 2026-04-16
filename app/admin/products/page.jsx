@@ -35,7 +35,6 @@ function Page() {
                 imageUrl: item.images_url[0]?.url || null,
             };
         });
-        console.log("formatData", formatData);
         setDataSource(formatData);
     };
 
@@ -58,7 +57,7 @@ function Page() {
             key: "imageUrl",
             width: 120,
             align: "center",
-            render: (_, record) => <UseImage width={60} height={60} alt="img 1" src={record.imageUrl} />,
+            render: (_, record) => <UseImage width={60} height={60} alt="product thumbnail" src={record.imageUrl} />,
         },
         {
             title: "ชื่อสินค้า",

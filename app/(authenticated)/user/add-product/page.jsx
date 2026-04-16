@@ -1,9 +1,7 @@
 import AddProductLayout from "./components/AddProductLayout";
 
 function Page() {
-    return (
-        <AddProductLayout />
-    );
+    return <AddProductLayout />;
 }
 
 export default Page;

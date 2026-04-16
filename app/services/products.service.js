@@ -4,8 +4,8 @@ export async function upsertProduct(data) {
     return supabase.from("products").upsert(data).select("id").single();
 }
 
-export async function getProducts(status) {
-    return supabase.from("products").select("*").eq("status", status);
+export async function getProductsByState(state) {
+    return supabase.from("products").select("*").eq("state", state);
 }
 
 export async function getProductById(id) {

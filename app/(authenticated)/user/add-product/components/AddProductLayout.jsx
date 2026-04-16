@@ -2,7 +2,7 @@
 import { useForm } from "react-hook-form";
 import CardAddProductPreview from "@/app/(authenticated)/user/add-product/components/CardAddProductPreview";
 import { useEffect, useState } from "react";
-import { getCategories } from "@/app/services/categories.service";
+import { getParentCategories } from "@/app/services/categories.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import { getProductById, upsertProduct } from "@/app/services/products.service";
 import { useDispatch, useSelector } from "react-redux";
@@ -26,12 +26,12 @@ function AddProductLayout({ productId }) {
     useEffect(() => {
         dispatch(fetchUser());
 
-        const fetchCategories = async () => {
-            const { data, error } = await getCategories();
+        const onGetParentCategories = async () => {
+            const { data, error } = await getParentCategories();
             if (error) return notifyError(error);
             setCategoryList(data);
         };
-        fetchCategories();
+        onGetParentCategories();
     }, [dispatch]);
 
     useEffect(() => {
@@ -87,7 +87,7 @@ function AddProductLayout({ productId }) {
             condition: value.condition || "new",
             start_price: value.startPrice,
             auction_end_time: formatEndTime,
-            status: "draft",
+            state: "draft",
             images_url: formatImageUrl,
             video_url: formatVideoUrl,
             duration_days: value.durationDays,

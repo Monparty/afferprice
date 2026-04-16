@@ -4,15 +4,7 @@ import InputText from "@/app/components/inputs/InputText";
 import UseSegmented from "@/app/components/inputs/UseSegmented";
 import UseSelect from "@/app/components/inputs/UseSelect";
 import UseUpload from "@/app/components/inputs/UseUpload";
-import {
-    CameraFilled,
-    CheckCircleFilled,
-    CreditCardFilled,
-    EditFilled,
-    FileTextFilled,
-    TruckFilled,
-    VideoCameraFilled,
-} from "@ant-design/icons";
+import { CameraFilled, CreditCardFilled, EditFilled, FileTextFilled, VideoCameraFilled } from "@ant-design/icons";
 import UseSelectCard from "@/app/components/inputs/UseSelectCard";
 import { Activity } from "react";
 import UseTextArea from "@/app/components/inputs/UseTextArea";
@@ -105,18 +97,17 @@ function Form({ activeStep, control, categoryList, setValue }) {
                                     format
                                 />
                             </div>
-                            <div className="flex gap-4 w-full">
-                                <UseSelectCard
-                                    control={control}
-                                    name="durationDays"
-                                    options={[
-                                        { value: 1, label: "1 วัน", subTitle: "QUICK SALE" },
-                                        { value: 5, label: "5 วัน", subTitle: "POPULAR" },
-                                        { value: 7, label: "7 วัน", subTitle: "STANDARD" },
-                                        { value: 10, label: "10 วัน", subTitle: "MAXIMUM" },
-                                    ]}
-                                />
-                            </div>
+                            <UseSelectCard
+                                control={control}
+                                name="durationDays"
+                                label="ระยะเวลาประมูล"
+                                options={[
+                                    { value: 1, label: "1 วัน", subTitle: "QUICK SALE" },
+                                    { value: 5, label: "5 วัน", subTitle: "POPULAR" },
+                                    { value: 7, label: "7 วัน", subTitle: "STANDARD" },
+                                    { value: 10, label: "10 วัน", subTitle: "MAXIMUM" },
+                                ]}
+                            />
                         </section>
                         <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                             <div className="mb-6">

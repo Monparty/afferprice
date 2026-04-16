@@ -12,6 +12,7 @@ import InputNumber from "@/app/components/inputs/InputNumber";
 import { useEffect } from "react";
 import { getUserById } from "@/app/services/admin/users.service";
 import { notifyError } from "@/app/providers/NotificationProvider";
+import UseTooltip from "@/app/components/utils/UseTooltip";
 
 function Form({ id, mode, onSubmit }) {
     const router = useRouter();
@@ -55,7 +56,7 @@ function Form({ id, mode, onSubmit }) {
             <div className="flex gap-2 items-center">
                 {Icon && <UseButton shape="circle" icon={Icon} size="large" />}
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-2 gap-4">
                 <InputText {...inputProps} name="firstName" label="ชื่อจริง" />
                 <InputText {...inputProps} name="lastName" label="นามสกุล" />
                 <InputText {...inputProps} name="phone" label="เบอร์โทร" />
@@ -86,14 +87,18 @@ function Form({ id, mode, onSubmit }) {
             </div>
             {!isWatch && (
                 <div className="flex gap-2 items-center justify-end">
-                    <UseButton
-                        shape="circle"
-                        icon={LeftOutlined}
-                        size="large"
-                        type="default"
-                        onClick={() => router.back()}
-                    />
-                    <UseButton shape="circle" icon={SaveFilled} size="large" htmlType="submit" />
+                    <UseTooltip title="กลับ">
+                        <UseButton
+                            shape="circle"
+                            icon={LeftOutlined}
+                            size="large"
+                            type="default"
+                            onClick={() => router.back()}
+                        />
+                    </UseTooltip>
+                    <UseTooltip title="บันทึก">
+                        <UseButton shape="circle" icon={SaveFilled} size="large" htmlType="submit" />
+                    </UseTooltip>
                 </div>
             )}
         </form>

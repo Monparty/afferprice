@@ -4,7 +4,7 @@ import CardSellingProduct from "@/app/components/utils/CardSellingProduct";
 import UseTabs from "@/app/components/utils/UseTabs";
 import UseTag from "@/app/components/utils/UseTag";
 import { notifyError } from "@/app/providers/NotificationProvider";
-import { getProducts } from "@/app/services/products.service";
+import { getProductsByState } from "@/app/services/products.service";
 import { AppstoreOutlined, BarsOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -13,6 +13,16 @@ function Page() {
     const { control } = useForm();
     const [activeTab, setActiveTab] = useState("1");
     const [products, setProducts] = useState([]);
+
+    useEffect(() => {
+        getProductsByState("draft");
+        const onGetProductsByState = async () => {
+            const { data, error } = await getProductsByState("draft");
+            if (error) return notifyError(error);
+            setProducts(data);
+        };
+        onGetProductsByState();
+    }, []);
 
     const tabItems = [
         {
@@ -60,16 +70,6 @@ function Page() {
             ),
         },
     ];
-
-    useEffect(() => {
-        getProducts("draft");
-        const onGetProducts = async () => {
-            const { data, error } = await getProducts("draft");
-            if (error) return notifyError(error);
-            setProducts(data);
-        };
-        onGetProducts();
-    }, []);
 
     return (
         <>
