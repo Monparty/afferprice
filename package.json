@@ -11,25 +11,25 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@reduxjs/toolkit": "^2.11.2",
-    "@supabase/ssr": "^0.8.0",
-    "@supabase/supabase-js": "^2.96.0",
-    "antd": "^6.2.3",
-    "dayjs": "^1.11.19",
+    "@supabase/ssr": "^0.10.2",
+    "@supabase/supabase-js": "^2.103.2",
+    "antd": "^6.3.5",
+    "dayjs": "^1.11.20",
     "holy-loader": "^2.3.14",
-    "next": "16.1.6",
+    "next": "^16.2.4",
     "quill": "^2.0.3",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "react-hook-form": "^7.71.1",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-hook-form": "^7.72.1",
     "react-redux": "^9.2.0",
     "uuid": "^13.0.0",
     "yup": "^1.7.1"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/postcss": "^4.2.2",
     "@types/react": "^19.2.14",
-    "eslint": "^9",
-    "eslint-config-next": "16.1.6",
-    "tailwindcss": "^4"
+    "eslint": "^10.2.0",
+    "eslint-config-next": "^16.2.4",
+    "tailwindcss": "^4.2.2"
   }
 }
