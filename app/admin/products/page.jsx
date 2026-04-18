@@ -13,8 +13,7 @@ import { formatDateTime } from "@/app/utils/dateUtils";
 import UseTag from "@/app/components/utils/UseTag";
 import BtnActionGroup from "../components/BtnActionGroup";
 import { useColumnSearch } from "@/app/hooks/useColumnSearch";
-import { deleteCategorie } from "@/app/services/admin/categories.service";
-import { getProducts } from "@/app/services/admin/products.service";
+import { deleteProduct, getProducts } from "@/app/services/admin/products.service";
 import UseImage from "@/app/components/utils/UseImage";
 
 function Page() {
@@ -44,7 +43,7 @@ function Page() {
     }, []);
 
     const handleDelete = async (id) => {
-        const { error } = await deleteCategorie(id);
+        const { error } = await deleteProduct(id);
         if (error) return notifyError(error);
         notifySuccess("ลบข้อมูลสำเร็จ");
         setDataSource((prev) => prev.filter((item) => item.id !== id));
@@ -80,7 +79,7 @@ function Page() {
             render: (_, record) => <>{record.duration_days} วัน</>,
         },
         {
-            title: "สถานะ",
+            title: "สถานะสินค้า",
             dataIndex: "status",
             key: "status",
             render: (_, record) => (

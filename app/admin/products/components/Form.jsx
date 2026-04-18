@@ -15,11 +15,12 @@ import { getParentCategories } from "@/app/services/categories.service";
 import { getProductById } from "@/app/services/admin/products.service";
 import UseTooltip from "@/app/components/utils/UseTooltip";
 import UseModal from "@/app/components/utils/UseModal";
+import { handleUpload } from "@/app/utils/storageHelper";
 
 function Form({ id, mode, onSubmit }) {
     const router = useRouter();
     const isWatch = Boolean(mode === "watch");
-    const { control, handleSubmit, reset } = useForm();
+    const { control, handleSubmit, setValue, reset } = useForm();
     const modeIcons = {
         watch: EyeFilled,
         create: PlusOutlined,
@@ -31,9 +32,10 @@ function Form({ id, mode, onSubmit }) {
         size: "large",
         disabled: isWatch,
     };
-    const [modalRejected, setModalRejected] = useState(false);
 
+    const [modalRejected, setModalRejected] = useState(false);
     const [categoryList, setCategoryList] = useState([]);
+
     useEffect(() => {
         const onGetParentCategories = async () => {
             const { data, error } = await getParentCategories();
@@ -83,8 +85,27 @@ function Form({ id, mode, onSubmit }) {
                 {Icon && <UseButton shape="circle" icon={Icon} size="large" />}
             </div>
             <div className="grid md:grid-cols-2 gap-4 items-start">
-                <UseUpload {...inputProps} name="images_url" label="อัปโหลดรูปภาพ" />
-                <UseUpload {...inputProps} name="video_url" label="อัปโหลด Video" />
+                <UseUpload
+                    {...inputProps}
+                    name="images_url"
+                    label="อัปโหลดรูปภาพ"
+                    multiple
+                    maxCount={6}
+                    customRequest={(fileData) =>
+                        handleUpload({ fileData: fileData, name: "images_url", setValue: setValue })
+                    }
+                />
+                <UseUpload
+                    {...inputProps}
+                    name="video_url"
+                    label="อัปโหลด Video"
+                    multiple
+                    maxCount={6}
+                    acceptVideo
+                    customRequest={(fileData) =>
+                        handleUpload({ fileData: fileData, name: "video_url", setValue: setValue })
+                    }
+                />
                 <InputText {...inputProps} name="title" label="ชื่อสินค้า" />
                 <InputNumber {...inputProps} name="startPrice" label="ราคาเริ่มต้น (บาท)" />
                 <UseSelect
@@ -138,16 +159,18 @@ function Form({ id, mode, onSubmit }) {
                             onClick={() => router.back()}
                         />
                     </UseTooltip>
-                    <UseTooltip title="ไม่อนุมัติ">
-                        <UseButton
-                            shape="circle"
-                            icon={CloseCircleFilled}
-                            className="bg-red-500! text-white!"
-                            size="large"
-                            type="default"
-                            onClick={() => setModalRejected(true)}
-                        />
-                    </UseTooltip>
+                    {mode === "edit" && (
+                        <UseTooltip title="ไม่อนุมัติ">
+                            <UseButton
+                                shape="circle"
+                                icon={CloseCircleFilled}
+                                className="bg-red-500! text-white!"
+                                size="large"
+                                type="default"
+                                onClick={() => setModalRejected(true)}
+                            />
+                        </UseTooltip>
+                    )}
                     <UseTooltip title="บันทึก">
                         <UseButton shape="circle" icon={SaveFilled} size="large" htmlType="submit" />
                     </UseTooltip>
