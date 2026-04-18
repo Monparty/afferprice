@@ -19,40 +19,28 @@ function AddProductSteps({ activeStep }) {
         },
     ];
 
+    const dataConfig = {
+        0: { step: "1", title: "อัปโหลดรูปภาพ", percentage: "0" },
+        1: { step: "2", title: "ระบุรายละเอียดสินค้า", percentage: "25" },
+        2: { step: "3", title: "ตรวจสอบข้อมูล", percentage: "50" },
+        3: { step: "4", title: "ชำระค่าธรรมเนียม", percentage: "75" },
+    };
+
+    const { step, title, percentage } = dataConfig[activeStep] || {
+        step: "0",
+        title: "-",
+        percentage: "0",
+    };
+
     return (
         <div className="w-full bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-accent">
-                        ขั้นตอนที่ 
-                        {{
-                            0: "1",
-                            1: "2",
-                            2: "3",
-                            3: "4",
-                        }[activeStep] || "0"}
-                         จาก 4
-                    </span>
+                    <span className="text-sm font-semibold text-accent">ขั้นตอนที่ {step} จาก 4</span>
                     <span className="text-sm text-slate-400">•</span>
-                    <span className="text-sm font-medium text-slate-600">
-                        {{
-                            0: "อัปโหลดรูปภาพ",
-                            1: "ระบุรายละเอียดสินค้า",
-                            2: "ตรวจสอบข้อมูล",
-                            3: "ชำระค่าธรรมเนียม",
-                        }[activeStep] || "0"}
-                    </span>
+                    <span className="text-sm font-medium text-slate-600">{title}</span>
                 </div>
-                <span className="text-sm font-medium text-slate-400">
-                    สำเร็จแล้ว{" "}
-                    {{
-                        0: "0",
-                        1: "25",
-                        2: "50",
-                        3: "75",
-                    }[activeStep] || "0"}
-                    %
-                </span>
+                <span className="text-sm font-medium text-slate-400">สำเร็จแล้ว {percentage}%</span>
             </div>
             <UseSteps items={items} current={activeStep} />
         </div>

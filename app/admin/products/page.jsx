@@ -80,16 +80,26 @@ function Page() {
         },
         {
             title: "สถานะสินค้า",
-            dataIndex: "status",
-            key: "status",
-            render: (_, record) => (
-                <UseTag
-                    label={record.status}
-                    variant="filled"
-                    color={record.status === "draft" ? "" : null}
-                    className="capitalize"
-                />
-            ),
+            dataIndex: "state",
+            key: "state",
+            ...columnSearch("state", control, setValue),
+            render: (_, record) => {
+                // ทำเป็น function กลางงงงงงงงงงงงงงงงงงงงง
+                const dataConfig = {
+                    draft: { name: "บันทึกร่าง", color: "gray" },
+                    pending_review: { name: "รออนุมัติ", color: "blue" },
+                    rejected: { name: "ไม่อนุมัติ", color: "red" },
+                    active: { name: "กำลังประมูล", color: "darkgreen" },
+                    ended: { name: "หมดเวลาประมูล", color: "pink" },
+                    sold: { name: "มีผู้ชนะ", color: "orange" },
+                    cancelled: { name: "ยกเลิก", color: "yellow" },
+                };
+                const { name, color } = dataConfig[record.state] || {
+                    name: "-",
+                    color: "#ffffff",
+                };
+                return <UseTag label={name} variant="filled" color={color} className="capitalize" />;
+            },
         },
         {
             title: "วันที่สร้าง",

@@ -18,7 +18,7 @@ function Page() {
         dispatch(fetchUser());
     }, [dispatch]);
 
-    const handleUpdate = async (value) => {
+    const handleUpdate = async (value, state) => {
         const formatEndTime = dayjs().add(value.durationDays, "day").toISOString();
         const formatImageUrl = value?.images_url?.map((file) => ({
             uid: file.uid,
@@ -40,7 +40,8 @@ function Page() {
             condition: value.condition || "new",
             start_price: value.startPrice,
             auction_end_time: formatEndTime,
-            state: "draft",
+            state: state,
+            rejected_remark: value.rejectedRemark,
             images_url: formatImageUrl,
             video_url: formatVideoUrl,
             duration_days: value.durationDays,

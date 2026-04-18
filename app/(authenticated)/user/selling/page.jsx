@@ -58,7 +58,7 @@ function Page() {
                             key={product.id}
                             value={{
                                 id: product?.id,
-                                status: product?.status,
+                                state: product?.state,
                                 start_price: product?.start_price,
                                 title: product?.title,
                                 duration_days: product?.duration_days,

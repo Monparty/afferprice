@@ -1,7 +1,15 @@
 "use client";
 import InputText from "@/app/components/inputs/InputText";
-import { useForm } from "react-hook-form";
-import { PlusOutlined, EditOutlined, LeftOutlined, SaveFilled, EyeFilled, CloseCircleFilled } from "@ant-design/icons";
+import { useForm, useWatch } from "react-hook-form";
+import {
+    PlusOutlined,
+    EditOutlined,
+    LeftOutlined,
+    SaveFilled,
+    EyeFilled,
+    CloseCircleFilled,
+    CheckCircleFilled,
+} from "@ant-design/icons";
 import UseButton from "@/app/components/inputs/UseButton";
 import { useRouter } from "next/navigation";
 import UseSwitch from "@/app/components/inputs/UseSwitch";
@@ -20,7 +28,8 @@ import { handleUpload } from "@/app/utils/storageHelper";
 function Form({ id, mode, onSubmit }) {
     const router = useRouter();
     const isWatch = Boolean(mode === "watch");
-    const { control, handleSubmit, setValue, reset } = useForm();
+    const isCreate = Boolean(mode === "create");
+    const { control, handleSubmit, setValue, getValues, reset } = useForm();
     const modeIcons = {
         watch: EyeFilled,
         create: PlusOutlined,
@@ -30,11 +39,12 @@ function Form({ id, mode, onSubmit }) {
     const inputProps = {
         control: control,
         size: "large",
-        disabled: isWatch,
+        disabled: !isCreate,
     };
 
     const [modalRejected, setModalRejected] = useState(false);
     const [categoryList, setCategoryList] = useState([]);
+    const watchState = useWatch({ control, name: "state" });
 
     useEffect(() => {
         const onGetParentCategories = async () => {
@@ -47,36 +57,38 @@ function Form({ id, mode, onSubmit }) {
 
     useEffect(() => {
         if (!id) return;
-        const onGetProductById = async () => {
-            const { data, error } = await getProductById(id);
-            if (error) return notifyError(error);
-            const formatData = {
-                ...data,
-                title: data.title,
-                categoryId: data.category_id,
-                condition: data.condition,
-                description: data.description,
-                isSeller: data.is_seller === "Y",
-                startPrice: data.start_price,
-                durationDays: data.duration_days,
-                images_url: data?.images_url?.map((item) => ({
-                    ...item,
-                    status: "done",
-                })),
-                video_url: data?.video_url?.map((item) => ({
-                    ...item,
-                    status: "done",
-                    thumbUrl: "/images/videoThumb.png",
-                })),
-                status: data.status === "active",
-            };
-            reset(formatData);
-        };
         onGetProductById();
     }, [id, reset]);
 
-    const submitForm = async (data) => {
-        await onSubmit(data);
+    const onGetProductById = async () => {
+        const { data, error } = await getProductById(id);
+        if (error) return notifyError(error);
+        const formatData = {
+            ...data,
+            title: data.title,
+            categoryId: data.category_id,
+            condition: data.condition,
+            description: data.description,
+            isSeller: data.is_seller === "Y",
+            startPrice: data.start_price,
+            durationDays: data.duration_days,
+            rejectedRemark: data.rejected_remark,
+            images_url: data?.images_url?.map((item) => ({
+                ...item,
+                status: "done",
+            })),
+            video_url: data?.video_url?.map((item) => ({
+                ...item,
+                status: "done",
+                thumbUrl: "/images/videoThumb.png",
+            })),
+            status: data.status === "active",
+        };
+        reset(formatData);
+    };
+
+    const submitForm = async (data, state) => {
+        await onSubmit(data, state);
     };
 
     return (
@@ -138,15 +150,24 @@ function Form({ id, mode, onSubmit }) {
                         { value: "good", label: "มือ 2" },
                     ]}
                 />
+                <UseSelect
+                    {...inputProps}
+                    name="state"
+                    label="สถานะสินค้า"
+                    options={[
+                        { value: "draft", label: "บันทึกร่าง" },
+                        { value: "pending_review", label: "รออนุมัติ" },
+                        { value: "rejected", label: "ไม่อนุมัติ" },
+                        { value: "active", label: "กำลังประมูล" },
+                        { value: "ended", label: "หมดเวลาประมูล" },
+                        { value: "sold", label: "มีผู้ชนะ" },
+                        { value: "cancelled", label: "ยกเลิก" },
+                    ]}
+                />
                 <UseSwitch {...inputProps} name="status" label="สถานะการใช้งาน" />
-                <UseModal
-                    open={modalRejected}
-                    onCancel={() => setModalRejected(false)}
-                    onOk={() => {}}
-                    title="เหตุผลที่ไม่อนุมัติ"
-                >
-                    <UseTextArea {...inputProps} name="rejectedRemark" label="เหตุผล" />
-                </UseModal>
+                {watchState === "rejected" && (
+                    <UseTextArea {...inputProps} name="rejectedRemark" label="เหตุผลที่ไม่อนุมัติ" />
+                )}
             </div>
             {!isWatch && (
                 <div className="flex gap-2 items-center justify-end">
@@ -159,7 +180,22 @@ function Form({ id, mode, onSubmit }) {
                             onClick={() => router.back()}
                         />
                     </UseTooltip>
-                    {mode === "edit" && (
+                    {watchState === "draft" && (
+                        <UseTooltip title="ตรวจสอบสินค้า">
+                            <UseButton
+                                shape="circle"
+                                icon={CheckCircleFilled}
+                                className="bg-blue-500! text-white!"
+                                size="large"
+                                type="default"
+                                onClick={() => {
+                                    submitForm(getValues(), "pending_review");
+                                    onGetProductById();
+                                }}
+                            />
+                        </UseTooltip>
+                    )}
+                    {watchState === "pending_review" && (
                         <UseTooltip title="ไม่อนุมัติ">
                             <UseButton
                                 shape="circle"
@@ -171,11 +207,40 @@ function Form({ id, mode, onSubmit }) {
                             />
                         </UseTooltip>
                     )}
-                    <UseTooltip title="บันทึก">
-                        <UseButton shape="circle" icon={SaveFilled} size="large" htmlType="submit" />
-                    </UseTooltip>
+                    {watchState === "pending_review" && (
+                        <UseTooltip title="อนุมัติ">
+                            <UseButton
+                                shape="circle"
+                                icon={CheckCircleFilled}
+                                className="bg-green-500! text-white!"
+                                size="large"
+                                type="default"
+                                onClick={() => {
+                                    submitForm(getValues(), "active");
+                                    onGetProductById();
+                                }}
+                            />
+                        </UseTooltip>
+                    )}
+                    {mode === "create" && (
+                        <UseTooltip title="บันทึก">
+                            <UseButton shape="circle" icon={SaveFilled} size="large" htmlType="submit" />
+                        </UseTooltip>
+                    )}
                 </div>
             )}
+            <UseModal
+                open={modalRejected}
+                onCancel={() => setModalRejected(false)}
+                onOk={() => {
+                    submitForm(getValues(), "rejected");
+                    setModalRejected(false);
+                    onGetProductById();
+                }}
+                title="เหตุผลที่ไม่อนุมัติ"
+            >
+                <UseTextArea {...inputProps} name="rejectedRemark" label="เหตุผล" disabled={false} />
+            </UseModal>
         </form>
     );
 }

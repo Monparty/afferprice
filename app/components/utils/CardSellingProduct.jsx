@@ -15,9 +15,7 @@ function CardSellingProduct({ value }) {
             <div className="relative aspect-video overflow-hidden">
                 <div className="absolute top-3 left-3 z-10">
                     <UseTag
-                        label={value.status}
-                        color={value.status === "draft" ? "warning" : "success"}
-                        variant="solid"
+                        label={value.state}
                         className="capitalize"
                     />
                 </div>
