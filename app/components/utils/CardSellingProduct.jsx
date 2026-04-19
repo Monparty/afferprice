@@ -2,7 +2,6 @@
 import UseButton from "@/app/components/inputs/UseButton";
 import UseTag from "@/app/components/utils/UseTag";
 import { FieldTimeOutlined, MoreOutlined, TeamOutlined } from "@ant-design/icons";
-import dayjs from "dayjs";
 import Image from "next/image";
 import imageNotFound from "../../../public/images/imageNotFound.png";
 import UsePopover from "./UsePopover";

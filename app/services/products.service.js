@@ -8,6 +8,10 @@ export async function getProductsByState(state) {
     return supabase.from("products").select("*").eq("state", state);
 }
 
+export async function getProductCountByState(state) {
+    return supabase.from("products").select("*", { count: "exact", head: true }).eq("state", state);
+}
+
 export async function getProductById(id) {
     return supabase.from("products").select("*").eq("id", id).single();
 }
