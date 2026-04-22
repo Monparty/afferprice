@@ -15,6 +15,7 @@ import BtnActionGroup from "../components/BtnActionGroup";
 import { useColumnSearch } from "@/app/hooks/useColumnSearch";
 import { deleteProduct, getProducts } from "@/app/services/admin/products.service";
 import UseImage from "@/app/components/utils/UseImage";
+import { mapProductState } from "@/app/utils/mapProductState";
 
 function Page() {
     const { control, setValue, getValues } = useForm();
@@ -84,20 +85,7 @@ function Page() {
             key: "state",
             ...columnSearch("state", control, setValue),
             render: (_, record) => {
-                // ทำเป็น function กลางงงงงงงงงงงงงงงงงงงงง
-                const dataConfig = {
-                    draft: { name: "บันทึกร่าง", color: "gray" },
-                    pending_review: { name: "รออนุมัติ", color: "blue" },
-                    rejected: { name: "ไม่อนุมัติ", color: "red" },
-                    active: { name: "กำลังประมูล", color: "darkgreen" },
-                    ended: { name: "หมดเวลาประมูล", color: "pink" },
-                    sold: { name: "มีผู้ชนะ", color: "orange" },
-                    cancelled: { name: "ยกเลิก", color: "yellow" },
-                };
-                const { name, color } = dataConfig[record.state] || {
-                    name: "-",
-                    color: "#ffffff",
-                };
+                const { name, color } = mapProductState(record.state);
                 return <UseTag label={name} variant="filled" color={color} className="capitalize" />;
             },
         },

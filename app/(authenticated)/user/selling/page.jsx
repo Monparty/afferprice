@@ -9,6 +9,7 @@ import { AppstoreOutlined, BarsOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import SellingTabs from "./components/SellingTabs";
+import { mapProductState } from "@/app/utils/mapProductState";
 
 function Page() {
     const { control } = useForm();
@@ -16,6 +17,17 @@ function Page() {
     const [products, setProducts] = useState([]);
     const [countState, setCountState] = useState({});
     const [loading, setLoading] = useState(true);
+
+    const stateConfig = [
+        { key: "draft", label: "บันทึกร่าง" },
+        { key: "pending_review", label: "รออนุมัติ" },
+        { key: "rejected", label: "ไม่อนุมัติ" },
+        { key: "active", label: "กำลังประมูล" },
+        { key: "ended", label: "หมดเวลาประมูล" },
+        { key: "sold", label: "มีผู้ชนะ" },
+        { key: "cancelled", label: "ยกเลิก" },
+    ];
+    const stateKey = stateConfig.map((item) => item.key);
 
     useEffect(() => {
         const onGetProductsByState = async () => {
@@ -27,10 +39,10 @@ function Page() {
     }, [activeTab]);
 
     useEffect(() => {
-        const states = ["draft", "pending_review", "rejected", "active", "ended", "sold", "cancelled"];
+        if (!stateKey) return;
         const onGetProductCountByState = async () => {
             const counts = {};
-            for (const s of states) {
+            for (const s of stateKey) {
                 const { count } = await getProductCountByState(s);
                 counts[s] = count;
             }
@@ -40,217 +52,41 @@ function Page() {
         onGetProductCountByState();
     }, []);
 
-    const tabItems = [
-        {
-            key: "draft",
-            label: (
-                <div className="flex justify-center items-center gap-2 text-sm px-3">
-                    บันทึกร่าง
-                    <UseTag label={countState?.draft || 0} color={activeTab === "draft" ? "orange" : undefined} />
-                </div>
-            ),
-            children:
-                products && products.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {products?.map((product) => (
-                            <CardSellingProduct
-                                key={product.id}
-                                value={{
-                                    id: product?.id,
-                                    state: product?.state,
-                                    start_price: product?.start_price,
-                                    title: product?.title,
-                                    duration_days: product?.duration_days,
-                                    images_url: product?.images_url,
-                                }}
-                            />
-                        ))}
-                    </div>
-                ) : (
-                    <UseEmpty />
-                ),
-        },
-        {
-            key: "pending_review",
-            label: (
-                <div className="flex justify-center items-center gap-2 text-sm px-3">
-                    รออนุมัติ
-                    <UseTag
-                        label={countState?.pending_review || 0}
-                        color={activeTab === "pending_review" ? "orange" : undefined}
-                    />
-                </div>
-            ),
-            children:
-                products && products.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {products?.map((product) => (
-                            <CardSellingProduct
-                                key={product.id}
-                                value={{
-                                    id: product?.id,
-                                    state: product?.state,
-                                    start_price: product?.start_price,
-                                    title: product?.title,
-                                    duration_days: product?.duration_days,
-                                    images_url: product?.images_url,
-                                }}
-                            />
-                        ))}
-                    </div>
-                ) : (
-                    <UseEmpty />
-                ),
-        },
-        {
-            key: "rejected",
-            label: (
-                <div className="flex justify-center items-center gap-2 text-sm px-3">
-                    ไม่อนุมัติ
-                    <UseTag label={countState?.rejected || 0} color={activeTab === "rejected" ? "orange" : undefined} />
-                </div>
-            ),
-            children:
-                products && products.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {products?.map((product) => (
-                            <CardSellingProduct
-                                key={product.id}
-                                value={{
-                                    id: product?.id,
-                                    state: product?.state,
-                                    start_price: product?.start_price,
-                                    title: product?.title,
-                                    duration_days: product?.duration_days,
-                                    images_url: product?.images_url,
-                                }}
-                            />
-                        ))}
-                    </div>
-                ) : (
-                    <UseEmpty />
-                ),
-        },
-        {
-            key: "active",
-            label: (
-                <div className="flex justify-center items-center gap-2 text-sm px-3">
-                    กำลังประมูล
-                    <UseTag label={countState?.active || 0} color={activeTab === "active" ? "orange" : undefined} />
-                </div>
-            ),
-            children:
-                products && products.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {products?.map((product) => (
-                            <CardSellingProduct
-                                key={product.id}
-                                value={{
-                                    id: product?.id,
-                                    state: product?.state,
-                                    start_price: product?.start_price,
-                                    title: product?.title,
-                                    duration_days: product?.duration_days,
-                                    images_url: product?.images_url,
-                                }}
-                            />
-                        ))}
-                    </div>
-                ) : (
-                    <UseEmpty />
-                ),
-        },
-        {
-            key: "ended",
-            label: (
-                <div className="flex justify-center items-center gap-2 text-sm px-3">
-                    หมดเวลาประมูล
-                    <UseTag label={countState?.ended || 0} color={activeTab === "ended" ? "orange" : undefined} />
-                </div>
-            ),
-            children:
-                products && products.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {products?.map((product) => (
-                            <CardSellingProduct
-                                key={product.id}
-                                value={{
-                                    id: product?.id,
-                                    state: product?.state,
-                                    start_price: product?.start_price,
-                                    title: product?.title,
-                                    duration_days: product?.duration_days,
-                                    images_url: product?.images_url,
-                                }}
-                            />
-                        ))}
-                    </div>
-                ) : (
-                    <UseEmpty />
-                ),
-        },
-        {
-            key: "sold",
-            label: (
-                <div className="flex justify-center items-center gap-2 text-sm px-3">
-                    มีผู้ชนะ
-                    <UseTag label={countState?.sold || 0} color={activeTab === "sold" ? "orange" : undefined} />
-                </div>
-            ),
-            children:
-                products && products.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {products?.map((product) => (
-                            <CardSellingProduct
-                                key={product.id}
-                                value={{
-                                    id: product?.id,
-                                    state: product?.state,
-                                    start_price: product?.start_price,
-                                    title: product?.title,
-                                    duration_days: product?.duration_days,
-                                    images_url: product?.images_url,
-                                }}
-                            />
-                        ))}
-                    </div>
-                ) : (
-                    <UseEmpty />
-                ),
-        },
-        {
-            key: "cancelled",
-            label: (
-                <div className="flex justify-center items-center gap-2 text-sm px-3">
-                    ยกเลิก
-                    <UseTag
-                        label={countState?.cancelled || 0}
-                        color={activeTab === "cancelled" ? "orange" : undefined}
-                    />
-                </div>
-            ),
-            children:
-                products && products.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {products?.map((product) => (
-                            <CardSellingProduct
-                                key={product.id}
-                                value={{
-                                    id: product?.id,
-                                    state: product?.state,
-                                    start_price: product?.start_price,
-                                    title: product?.title,
-                                    duration_days: product?.duration_days,
-                                    images_url: product?.images_url,
-                                }}
-                            />
-                        ))}
-                    </div>
-                ) : (
-                    <UseEmpty />
-                ),
-        },
-    ];
+    const renderProducts = () =>
+        products && products.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {products.map((product) => {
+                    const { name, color } = mapProductState(product.state);
+                    return (
+                        <CardSellingProduct
+                            key={product.id}
+                            value={{
+                                id: product?.id,
+                                stateName: name,
+                                stateColor: color,
+                                start_price: product?.start_price,
+                                title: product?.title,
+                                duration_days: product?.duration_days,
+                                images_url: product?.images_url,
+                            }}
+                        />
+                    );
+                })}
+            </div>
+        ) : (
+            <UseEmpty />
+        );
+
+    const tabItems = stateConfig.map((tab) => ({
+        key: tab.key,
+        label: (
+            <div className="flex justify-center items-center gap-2 text-sm px-3">
+                {tab.label}
+                <UseTag label={countState?.[tab.key] || 0} color={activeTab === tab.key ? "orange" : undefined} />
+            </div>
+        ),
+        children: renderProducts(),
+    }));
 
     return (
         <>
