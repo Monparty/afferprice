@@ -69,14 +69,14 @@ function Page() {
             title: "ราคาเริ่มต้น",
             dataIndex: "start_price",
             key: "start_price",
-            sorter: (a, b) => a.start_price.localeCompare(b.start_price),
+            sorter: (a, b) => a.start_price - b.start_price,
             render: (_, record) => <>{record.start_price?.toLocaleString()}</>,
         },
         {
             title: "ระยะเวลา",
             dataIndex: "duration_days",
             key: "duration_days",
-            sorter: (a, b) => a.duration_days.localeCompare(b.duration_days),
+            sorter: (a, b) => a.duration_days - b.duration_days,
             render: (_, record) => <>{record.duration_days} วัน</>,
         },
         {
@@ -86,7 +86,8 @@ function Page() {
             ...columnSearch("state", control, setValue),
             render: (_, record) => {
                 const { name, color } = mapProductState(record.state);
-                return <UseTag label={name} variant="filled" color={color} className="capitalize" />;
+                return <UseTag label={record.state} variant="filled" color={color} className="capitalize" />;
+                // return <UseTag label={name} variant="filled" color={color} className="capitalize" />;
             },
         },
         {

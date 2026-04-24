@@ -1,11 +1,37 @@
-import UseBreadcrumb from "../../components/utils/UseBreadcrumb";
+"use client";
 import { BarChartOutlined, SafetyOutlined } from "@ant-design/icons";
-import UseImageGroup from "../../components/utils/UseImageGroup";
-import CardProductBid from "../../components/utils/CardProductBid";
-import UseTag from "../../components/utils/UseTag";
 import UseButton from "@/app/components/inputs/UseButton";
+import CardProductBid from "@/app/components/utils/CardProductBid";
+import UseBreadcrumb from "@/app/components/utils/UseBreadcrumb";
+import UseImageGroup from "@/app/components/utils/UseImageGroup";
+import UseTag from "@/app/components/utils/UseTag";
+import { useParams } from "next/navigation";
+import { notifyError } from "@/app/providers/NotificationProvider";
+import { getProductById } from "@/app/services/products.service";
+import { useEffect, useState } from "react";
 
 function Page() {
+    const { id } = useParams();
+    const [product, setProduct] = useState([]);
+
+    useEffect(() => {
+        if (!id) return;
+        const onGetProductById = async () => {
+            const { data, error } = await getProductById(id);
+            if (error) return notifyError(error);
+            setProduct(data);
+        };
+        onGetProductById();
+    }, [id]);
+
+    const formatProductImage = product?.images_url?.map((item) => ({
+        id: item.uid,
+        width: 100,
+        height: 100,
+        alt: item.name,
+        src: item.url,
+    }));
+
     const UseBreadcrumbItems = [
         {
             href: "",
@@ -13,44 +39,6 @@ function Page() {
         },
         {
             title: "Luxury Profes...",
-        },
-    ];
-
-    const imageGroup = [
-        {
-            id: 1,
-            width: 100,
-            height: 100,
-            alt: "Product 1",
-            src: "https://lh3.googleusercontent.com/aida-public/AB6AXuCCGH6QSO_u_UuEUCALibK4R2Djny2m206k0cHYhamSJmi1JlNJw9qM5-gbOmPUPKy3nMYILCqmYtyygBB_z_GevWbArnRQUEfYXsNPdow3epYJzRDcqezZv4RKUczfs6_cilcx0m5KMe5aElwiQpFPTtu65g5VSGYLhdPsz7nE_mGuFumqMMuYeIu3pzFX3VHh0FnoH9XrhvvOHSe0yp_7IQexb8ACJov3_bOB0uvoOb-nV_xa3lKoEGs02pXEV0ff82qnGcul0FA",
-        },
-        {
-            id: 1,
-            width: 100,
-            height: 100,
-            alt: "Product 1",
-            src: "https://picsum.photos/400/400",
-        },
-        {
-            id: 2,
-            width: 100,
-            height: 100,
-            alt: "Product 2",
-            src: "https://picsum.photos/400/401",
-        },
-        {
-            id: 3,
-            width: 100,
-            height: 100,
-            alt: "Product 3",
-            src: "https://picsum.photos/400/402",
-        },
-        {
-            id: 4,
-            width: 100,
-            height: 100,
-            alt: "Product 4",
-            src: "https://picsum.photos/400/403",
         },
     ];
 
@@ -65,33 +53,26 @@ function Page() {
                                 <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span> กำลังประมูล
                             </span>
                         </div>
-                        <UseImageGroup imageGroup={imageGroup} alone />
+                        <UseImageGroup imageGroup={formatProductImage} alone />
                     </div>
-                    <UseImageGroup imageGroup={imageGroup} />
+                    <UseImageGroup imageGroup={formatProductImage} />
                     <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm space-y-6">
                         <div>
-                            <h1 className="text-3xl font-extrabold mb-4 text-primary">
-                                Luxury Professional Diver Watch - 2023 New Model
-                            </h1>
-                            <p className="text-slate-600 leading-relaxed">
-                                นาฬิกาดำน้ำระดับพรีเมียมรุ่นล่าสุดปี 2023 ตัวเรือนขนาด 41 มม. ผลิตจาก Oystersteel
-                                ที่ทนทาน ขอบหน้าปัดเซรามิก Cerachrom สีดำที่เป็นเอกลักษณ์ ขับเคลื่อนด้วยกลไก Calibre
-                                3235 ประสิทธิภาพสูง สินค้าอยู่ในสภาพใหม่ 100% พร้อมสติกเกอร์เดิมและกล่องอุปกรณ์ครบชุด
-                                รับประกันศูนย์ถึงปี 2028
-                            </p>
+                            <h1 className="text-3xl font-extrabold mb-4 text-primary">{product.title}</h1>
+                            <p className="text-slate-600 leading-relaxed">{product.description}</p>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-6 border-y border-slate-100">
                             <div className="space-y-1">
                                 <p className="text-xs text-slate-400 uppercase font-bold tracking-widest">ปีที่ผลิต</p>
-                                <p className="font-semibold text-lg">2023</p>
+                                <p className="font-semibold text-lg">x2023</p>
                             </div>
                             <div className="space-y-1">
                                 <p className="text-xs text-slate-400 uppercase font-bold tracking-widest">สภาพสินค้า</p>
-                                <p className="font-semibold text-lg text-emerald-600">ของใหม่ (Mint)</p>
+                                <p className="font-semibold text-lg text-emerald-600">xของใหม่ (Mint)</p>
                             </div>
                             <div className="space-y-1">
                                 <p className="text-xs text-slate-400 uppercase font-bold tracking-widest">วัสดุ</p>
-                                <p className="font-semibold text-lg">Oystersteel</p>
+                                <p className="font-semibold text-lg">xOystersteel</p>
                             </div>
                             <div className="space-y-1">
                                 <p className="text-xs text-slate-400 uppercase font-bold tracking-widest">การจัดส่ง</p>
@@ -183,7 +164,7 @@ function Page() {
                                 />
                             </div>
                         </div>
-                        <div className="bg-orange-50 rounded-2xl p-6 border border-orange-100 border-l-4 border-l-orange-600">
+                        <div className="bg-orange-50 rounded-2xl p-6 border border-l-4 border-orange-600">
                             <div className="flex items-start gap-3">
                                 <BarChartOutlined className="text-2xl text-orange-600!" />
                                 <div>

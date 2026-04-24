@@ -4,21 +4,43 @@ import InputText from "@/app/components/inputs/InputText";
 import UseSegmented from "@/app/components/inputs/UseSegmented";
 import UseSelect from "@/app/components/inputs/UseSelect";
 import UseUpload from "@/app/components/inputs/UseUpload";
-import { CameraFilled, CreditCardFilled, EditFilled, FileTextFilled, VideoCameraFilled } from "@ant-design/icons";
+import {
+    CameraFilled,
+    CreditCardFilled,
+    EditFilled,
+    ExclamationCircleFilled,
+    ExclamationCircleOutlined,
+    FileTextFilled,
+    VideoCameraFilled,
+} from "@ant-design/icons";
 import UseSelectCard from "@/app/components/inputs/UseSelectCard";
 import { Activity } from "react";
 import UseTextArea from "@/app/components/inputs/UseTextArea";
 import { handleUpload } from "@/app/utils/storageHelper";
+import UseButton from "@/app/components/inputs/UseButton";
+import { useWatch } from "react-hook-form";
 
 function Form({ activeStep, control, categoryList, setValue }) {
+    const watchState = useWatch({ control, name: "state" });
+
+    console.log("watchState", watchState);
     return (
         <form className="flex flex-col gap-6">
+            {watchState === "rejected" && (
+                <div className="bg-red-50 p-6 rounded-xl border border-red-400 border-l-4">
+                    <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2 mb-6">
+                        <ExclamationCircleFilled className="text-orange-600!" />
+                        สินค้าของคุณไม่ผ่านการอนุมัติเนื่องจาก
+                    </h2>
+                    <UseTextArea control={control} name="rejected_remark" size="large" disabled />
+                </div>
+            )}
             {activeStep !== 3 && (
                 <>
                     <Activity mode={activeStep === 0 ? "visible" : "hidden"}>
                         <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                             <div className="mb-6">
-                                <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                                     <CameraFilled className="text-orange-600!" />
                                     อัปโหลดรูปภาพ
                                 </h2>
@@ -48,7 +70,7 @@ function Form({ activeStep, control, categoryList, setValue }) {
                         </section>
                         <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                             <div className="mb-6">
-                                <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                                     <VideoCameraFilled className="text-orange-600!" />
                                     อัปโหลด Video
                                 </h2>
@@ -81,7 +103,7 @@ function Form({ activeStep, control, categoryList, setValue }) {
                     <Activity mode={activeStep === 1 ? "visible" : "hidden"}>
                         <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                             <div className="mb-6">
-                                <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                                     <EditFilled className="text-orange-600!" />
                                     ตั้งค่าการประมูล
                                 </h2>
@@ -111,7 +133,7 @@ function Form({ activeStep, control, categoryList, setValue }) {
                         </section>
                         <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                             <div className="mb-6">
-                                <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                                     <FileTextFilled className="text-orange-600!" />
                                     รายละเอียดสินค้า
                                 </h2>
@@ -154,7 +176,7 @@ function Form({ activeStep, control, categoryList, setValue }) {
             <Activity mode={activeStep === 3 ? "visible" : "hidden"}>
                 <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
                     <div className="mb-6">
-                        <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                        <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                             <CreditCardFilled className="text-orange-600!" />
                             ชำระค่าธรรมเนียม
                         </h2>
