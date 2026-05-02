@@ -19,3 +19,19 @@ export async function getProductCountByState(state) {
 export async function getProductById(id) {
     return supabase.from("products").select("*").eq("id", id).single();
 }
+
+export async function getActiveProductsWithDetails() {
+    return supabase
+        .from("products")
+        .select("*, categories(name), bids(id)")
+        .eq("state", "active")
+        .order("auction_end_time", { ascending: true });
+}
+
+export async function getActiveAuctionProducts() {
+    return supabase
+        .from("products")
+        .select("*, bids(id, user_id)")
+        .eq("state", "active")
+        .order("auction_end_time", { ascending: true });
+}

@@ -8,14 +8,18 @@ import {
     CameraFilled,
     CreditCardFilled,
     EditFilled,
-    ExclamationCircleFilled, FileTextFilled,
-    VideoCameraFilled
+    ExclamationCircleFilled,
+    ExclamationCircleOutlined,
+    FileTextFilled,
+    VideoCameraFilled,
 } from "@ant-design/icons";
 import UseSelectCard from "@/app/components/inputs/UseSelectCard";
 import { Activity } from "react";
 import UseTextArea from "@/app/components/inputs/UseTextArea";
 import { handleUpload } from "@/app/utils/storageHelper";
+import UseButton from "@/app/components/inputs/UseButton";
 import { useWatch } from "react-hook-form";
+import Script from "next/script";
 import PaymentBtn from "./PaymentBtn";
 
 function Form({ activeStep, control, categoryList, setValue }) {

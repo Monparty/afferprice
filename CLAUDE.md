@@ -83,6 +83,17 @@ Schema defined in `db/00_schema.sql`. Key tables:
 
 **Product status lifecycle**: `draft` → `pending_review` → `active` → `ended` / `sold` / `cancelled`; can also move to `rejected` from `pending_review`. Helper: `app/utils/mapProductState.js`.
 
+### Payment (Omise)
+
+- **Keys**: `OMISE_SECRET_KEY` (server-only), `NEXT_PUBLIC_OMISE_PUBLIC_KEY` (client)
+- **DO NOT use `omise` npm package** — ESM interop broken in Next.js App Router. Use `fetch` โดยตรงผ่าน helper `omiseFetch` ใน `app/api/payment/promptpay/route.js`
+- **PromptPay flow**: POST `/api/payment/promptpay` → สร้าง source + charge → คืน `qrCodeUrl`
+- **Webhook**: POST `/api/payment/webhook` — รับ `charge.complete` event จาก Omise → อัป `payments.payment_status`
+- **Component**: `app/components/payment/PromptPayQR.jsx` — รับ `userId`, `amount`, `auctionResultId?`
+- **Payment page**: `/user/payment/[auctionResultId]`
+- **Listing fee payment**: `PaymentBtn.jsx` ใน add-product flow — ค่าธรรมเนียม `LISTING_FEE` บาท (ไม่มี auctionResultId)
+- **Local dev webhook**: ต้องใช้ ngrok — `ngrok http 3000` แล้วตั้ง endpoint ใน Omise Dashboard
+
 ## Key Conventions
 
 - **Imports**: `@/` alias maps to the project root (`app/`, `db/`, etc.)

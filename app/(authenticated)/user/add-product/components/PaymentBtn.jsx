@@ -1,28 +1,14 @@
 "use client";
 
-import Script from "next/script";
+import PromptPayQR from "@/app/components/payment/PromptPayQR";
+import { useSelector } from "react-redux";
+
+const LISTING_FEE = 30;
 
 function PaymentBtn() {
-    const handleLoad = () => {
-        const OmiseCard = window.OmiseCard;
+    const user = useSelector((state) => state.user.data);
 
-        OmiseCard.configure({
-            publicKey: process.env.NEXT_PUBLIC_OMISE_PUBLIC_KEY,
-            currency: "THB",
-            amount: 100000, // 1000 บาท = 100000 satang
-        });
-
-        OmiseCard.configureButton("#checkout-button");
-        OmiseCard.attach();
-    };
-    return (
-        <>
-            <button id="checkout-button" className="border p-2">
-                Pay
-            </button>
-            <Script src="https://cdn.omise.co/omise.js" strategy="afterInteractive" onLoad={handleLoad} />
-        </>
-    );
+    return <PromptPayQR userId={user?.id} amount={LISTING_FEE} />;
 }
 
 export default PaymentBtn;

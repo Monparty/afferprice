@@ -12,12 +12,13 @@ import UseButton from "../../components/inputs/UseButton";
 import UseSelect from "../../components/inputs/UseSelect";
 import UseInputPassword from "../../components/inputs/UseInputPassword";
 import { useRouter } from "next/navigation";
+import { register, loginWithGoogle } from "../../services/auth.service";
+import { notifyError, notifySuccess } from "../../providers/NotificationProvider";
 
 function Page() {
     const {
         handleSubmit,
         control,
-        watch,
         formState: { errors },
     } = useForm({
         resolver: yupResolver(schema),
@@ -26,6 +27,7 @@ function Page() {
     const router = useRouter();
 
     const [showOtherField, setShowOtherField] = useState(false);
+    const [loading, setLoading] = useState(false);
     const step1Fields = ["email", "phone", "gender"];
     const step2Fields = ["firstName", "lastName", "birthDay", "birthMonth", "birthYear", "password"];
 
@@ -35,8 +37,17 @@ function Page() {
     const isStep1Ready = step1Values.every(Boolean) && step1Fields.every((f) => !errors[f]);
     const isStep2Ready = step2Values.every(Boolean) && step2Fields.every((f) => !errors[f]);
 
-    const onSubmit = (values) => {
-        console.log("values onSubmit", values);
+    const onSubmit = async (values) => {
+        setLoading(true);
+        const { error } = await register(values);
+        setLoading(false);
+        if (error) return notifyError(error);
+        notifySuccess("สมัครสมาชิกสำเร็จ");
+        router.push("/");
+    };
+
+    const handleGoogleLogin = () => {
+        loginWithGoogle(`${window.location.origin}/auth/callback`);
     };
 
     return (
@@ -72,7 +83,7 @@ function Page() {
                             <UseSelect
                                 control={control}
                                 name="birthMonth"
-                                label=" "
+                                label=" "
                                 size="large"
                                 options={birthMonthList}
                                 placeholder="โปรดระบุ เดือน"
@@ -80,7 +91,7 @@ function Page() {
                             <UseSelect
                                 control={control}
                                 name="birthYear"
-                                label=" "
+                                label=" "
                                 size="large"
                                 options={birthYearList()}
                                 placeholder="โปรดระบุ ปี"
@@ -94,9 +105,7 @@ function Page() {
                         label="ดำเนินการต่อ"
                         size="large"
                         wFull
-                        onClick={() => {
-                            setShowOtherField(!showOtherField);
-                        }}
+                        onClick={() => setShowOtherField(true)}
                         disabled={!isStep1Ready}
                     />
                 )}
@@ -106,6 +115,7 @@ function Page() {
                         size="large"
                         wFull
                         htmlType="submit"
+                        loading={loading}
                         disabled={!isStep2Ready || !isStep1Ready}
                     />
                 )}
@@ -118,6 +128,7 @@ function Page() {
                             type="default"
                             size="large"
                             wFull
+                            onClick={handleGoogleLogin}
                         />
                     )}
                 </div>
