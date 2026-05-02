@@ -46,9 +46,16 @@ export async function proxy(req) {
         }
     }
 
+    const authenticatedPaths = ["/user", "/checkout", "/payment", "/order"];
+    if (authenticatedPaths.some((p) => pathname.startsWith(p))) {
+        if (!user) {
+            return NextResponse.redirect(new URL("/login", req.url));
+        }
+    }
+
     return response;
 }
 
 export const config = {
-    matcher: ["/admin/:path*", "/login"],
+    matcher: ["/admin/:path*", "/login", "/user/:path*", "/checkout/:path*", "/payment/:path*", "/order/:path*"],
 };

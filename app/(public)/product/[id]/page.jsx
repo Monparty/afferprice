@@ -101,7 +101,7 @@ function Page() {
                 </div>
                 <div className="lg:col-span-4">
                     <div className="sticky top-12 space-y-6">
-                        <CardProductBid />
+                        <CardProductBid product={product} />
                         <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm space-y-4">
                             <div className="flex justify-between items-center">
                                 <h3 className="font-bold flex items-center gap-2">

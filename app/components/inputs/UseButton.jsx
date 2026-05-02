@@ -10,6 +10,7 @@ function UseButton({
     size = "middle",
     wFull = false,
     disabled = false,
+    loading = false,
     className,
     htmlType = "button",
 }) {
@@ -24,6 +25,7 @@ function UseButton({
             iconPlacement={iconPlacement ? "end" : "start"}
             size={size}
             disabled={disabled}
+            loading={loading}
         >
             {label}
         </Button>

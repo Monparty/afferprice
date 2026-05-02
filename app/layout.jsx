@@ -1,11 +1,11 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { volcano } from "@ant-design/colors";
-import { ConfigProvider } from "antd";
 import { NotificationProvider } from "./providers/NotificationProvider";
 import HolyLoader from "holy-loader";
-import thTH from "antd/locale/th_TH";
 import Providers from "./providers/Providers";
+import { ThemeProvider } from "./providers/ThemeProvider";
+import { ThemeAwareConfig } from "./providers/ThemeAwareConfig";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -27,23 +27,13 @@ export default function RootLayout({ children }) {
         <html lang="en">
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
                 <HolyLoader color={volcano[5]} height={3} speed={250} easing="ease" showSpinner={false} />
-                <ConfigProvider
-                    theme={{
-                        token: {
-                            colorPrimary: volcano[5],
-                        },
-                        components: {
-                            Input: {
-                                colorPrimary: volcano[2],
-                            },
-                        },
-                    }}
-                    locale={thTH}
-                >
-                    <Providers>
-                        <NotificationProvider>{children}</NotificationProvider>
-                    </Providers>
-                </ConfigProvider>
+                <ThemeProvider>
+                    <ThemeAwareConfig>
+                        <Providers>
+                            <NotificationProvider>{children}</NotificationProvider>
+                        </Providers>
+                    </ThemeAwareConfig>
+                </ThemeProvider>
             </body>
         </html>
     );

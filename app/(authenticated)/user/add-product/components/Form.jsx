@@ -8,22 +8,18 @@ import {
     CameraFilled,
     CreditCardFilled,
     EditFilled,
-    ExclamationCircleFilled,
-    ExclamationCircleOutlined,
-    FileTextFilled,
-    VideoCameraFilled,
+    ExclamationCircleFilled, FileTextFilled,
+    VideoCameraFilled
 } from "@ant-design/icons";
 import UseSelectCard from "@/app/components/inputs/UseSelectCard";
 import { Activity } from "react";
 import UseTextArea from "@/app/components/inputs/UseTextArea";
 import { handleUpload } from "@/app/utils/storageHelper";
-import UseButton from "@/app/components/inputs/UseButton";
 import { useWatch } from "react-hook-form";
+import PaymentBtn from "./PaymentBtn";
 
 function Form({ activeStep, control, categoryList, setValue }) {
     const watchState = useWatch({ control, name: "state" });
-
-    console.log("watchState", watchState);
     return (
         <form className="flex flex-col gap-6">
             {watchState === "rejected" && (
@@ -182,6 +178,7 @@ function Form({ activeStep, control, categoryList, setValue }) {
                         </h2>
                     </div>
                     ชำระค่าธรรมเนียม
+                    <PaymentBtn />
                 </section>
             </Activity>
         </form>
