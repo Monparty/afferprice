@@ -1,10 +1,11 @@
 "use client";
 import { useForm } from "react-hook-form";
 import CardAddProductPreview from "@/app/(authenticated)/user/add-product/components/CardAddProductPreview";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getParentCategories } from "@/app/services/categories.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import { getProductById, upsertProduct } from "@/app/services/products.service";
+import { uploadPendingFiles, removeDeletedFiles } from "@/app/utils/storageHelper";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUser } from "@/app/features/user/userSlice";
 import dayjs from "dayjs";
@@ -13,8 +14,9 @@ import AddProductSteps from "./AddProductSteps";
 import UseSkeleton from "@/app/components/utils/UseSkeleton";
 
 function AddProductLayout({ productId }) {
-    // const [activeStep, setActiveStep] = useState(0);
-    const [activeStep, setActiveStep] = useState(3); // text omise
+    const [activeStep, setActiveStep] = useState(0);
+    const originalFilesRef = useRef({ images: [], video: [] });
+    // const [activeStep, setActiveStep] = useState(3); // text omise
     const [categoryList, setCategoryList] = useState([]);
     const { watch, control, getValues, setValue, reset } = useForm({
         defaultValues: {
@@ -60,47 +62,49 @@ function AddProductLayout({ productId }) {
                     thumbUrl: "/images/videoThumb.png",
                 })),
             };
+            originalFilesRef.current = {
+                images: formatData.images_url || [],
+                video: formatData.video_url || [],
+            };
             reset(formatData);
         };
         onGetProductById();
     }, [productId]);
 
     const onSubmit = async () => {
-        const value = getValues();
-        const formatEndTime = dayjs().add(value.durationDays, "day").toISOString();
-        const formatImageUrl = value?.images_url?.map((file) => ({
-            uid: file.uid,
-            name: file.name,
-            url: file.url || file.thumbUrl,
-        }));
-        const formatVideoUrl = value?.video_url?.map((file) => ({
-            uid: file.uid,
-            name: file.name,
-            url: file.url || file.thumbUrl,
-        }));
+        try {
+            const value = getValues();
+            const uploadedImages = await uploadPendingFiles(value?.images_url || []);
+            const uploadedVideos = await uploadPendingFiles(value?.video_url || []);
+            const formatEndTime = dayjs().add(value.durationDays, "day").toISOString();
 
-        const payload = {
-            id: value?.productId ?? productId ?? undefined,
-            seller_id: data?.id,
-            category_id: value.categoryId,
-            title: value.title,
-            description: value.description,
-            condition: value.condition || "new",
-            start_price: value.startPrice,
-            auction_end_time: formatEndTime,
-            state: "draft",
-            images_url: formatImageUrl,
-            video_url: formatVideoUrl,
-            duration_days: value.durationDays,
-            is_seller: value.isSeller ? "Y" : "N",
-        };
+            const payload = {
+                id: value?.productId ?? productId ?? undefined,
+                seller_id: data?.id,
+                category_id: value.categoryId,
+                title: value.title,
+                description: value.description,
+                condition: value.condition || "new",
+                start_price: value.startPrice,
+                auction_end_time: formatEndTime,
+                state: "draft",
+                images_url: uploadedImages,
+                video_url: uploadedVideos,
+                duration_days: value.durationDays,
+                is_seller: value.isSeller ? "Y" : "N",
+            };
 
-        const { data: productData, error: productError } = await upsertProduct(payload);
-        if (productError) return notifyError(productError);
-        if (productData) {
-            setValue("productId", productData.id);
+            const { data: productData, error: productError } = await upsertProduct(payload);
+            if (productError) return notifyError(productError);
+            await removeDeletedFiles(originalFilesRef.current.images, value?.images_url || []);
+            await removeDeletedFiles(originalFilesRef.current.video, value?.video_url || []);
+            if (productData) {
+                setValue("productId", productData.id);
+            }
+            notifySuccess("บันทึกร่างสำเร็จ");
+        } catch (error) {
+            notifyError(error);
         }
-        notifySuccess("บันทึกร่างสำเร็จ");
     };
 
     if (loading) {

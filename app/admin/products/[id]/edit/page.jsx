@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import UseSkeleton from "@/app/components/utils/UseSkeleton";
 import { fetchUser } from "@/app/features/user/userSlice";
 import { upsertProduct } from "@/app/services/admin/products.service";
+import { uploadPendingFiles } from "@/app/utils/storageHelper";
 
 function Page() {
     const { id } = useParams();
@@ -19,39 +20,35 @@ function Page() {
     }, [dispatch]);
 
     const handleUpdate = async (value, state) => {
-        const formatEndTime = dayjs().add(value.durationDays, "day").toISOString();
-        const formatImageUrl = value?.images_url?.map((file) => ({
-            uid: file.uid,
-            name: file.name,
-            url: file.url || file.thumbUrl,
-        }));
-        const formatVideoUrl = value?.video_url?.map((file) => ({
-            uid: file.uid,
-            name: file.name,
-            url: file.url || file.thumbUrl,
-        }));
+        try {
+            const uploadedImages = await uploadPendingFiles(value?.images_url || []);
+            const uploadedVideos = await uploadPendingFiles(value?.video_url || []);
+            const formatEndTime = dayjs().add(value.durationDays, "day").toISOString();
 
-        const payload = {
-            id: id,
-            seller_id: data?.id,
-            category_id: value.categoryId,
-            title: value.title,
-            description: value.description,
-            condition: value.condition || "new",
-            start_price: value.startPrice,
-            auction_end_time: formatEndTime,
-            state: state,
-            rejected_remark: value.rejectedRemark,
-            images_url: formatImageUrl,
-            video_url: formatVideoUrl,
-            duration_days: value.durationDays,
-            is_seller: value.isSeller ? "Y" : "N",
-            status: value.status ? "active" : "inactive",
-        };
+            const payload = {
+                id: id,
+                seller_id: data?.id,
+                category_id: value.categoryId,
+                title: value.title,
+                description: value.description,
+                condition: value.condition || "new",
+                start_price: value.startPrice,
+                auction_end_time: formatEndTime,
+                state: state,
+                rejected_remark: value.rejectedRemark,
+                images_url: uploadedImages,
+                video_url: uploadedVideos,
+                duration_days: value.durationDays,
+                is_seller: value.isSeller ? "Y" : "N",
+                status: value.status ? "active" : "inactive",
+            };
 
-        const { error: upsertError } = await upsertProduct(payload);
-        if (upsertError) return notifyError(upsertError);
-        notifySuccess("บันทึกข้อมูลสำเร็จ");
+            const { error: upsertError } = await upsertProduct(payload);
+            if (upsertError) return notifyError(upsertError);
+            notifySuccess("บันทึกข้อมูลสำเร็จ");
+        } catch (error) {
+            notifyError(error);
+        }
     };
 
     if (loading) {

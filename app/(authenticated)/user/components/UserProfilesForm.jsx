@@ -4,13 +4,13 @@ import UseInputPassword from "@/app/components/inputs/UseInputPassword";
 import UseSelect from "@/app/components/inputs/UseSelect";
 import { genderList, birthDayList, birthMonthList, birthYearList } from "../../../utils/dataSelect";
 import { useForm } from "react-hook-form";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { getProfileById, updateProfileById } from "@/app/services/profile.service";
 import { getCurrentUser } from "@/app/services/auth.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import UseUpload from "@/app/components/inputs/UseUpload";
 import UseButton from "@/app/components/inputs/UseButton";
-import { handleRemove, handleUpload } from "@/app/utils/storageHelper";
+import { handleLocalPreview, removeDeletedFiles, uploadPendingFiles } from "@/app/utils/storageHelper";
 
 function UserProfilesForm({ setIsOpenModalProfile }) {
     const {
@@ -23,6 +23,7 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
         formState: { errors },
     } = useForm();
     const id = getValues("id");
+    const originalFilesRef = useRef({ profile: [], idCard: [] });
 
     useEffect(() => {
         const fetchUserAndProfile = async () => {
@@ -42,8 +43,12 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
                 birthDay: profile.birth_date.split("-")[2],
                 birthMonth: profile.birth_date.split("-")[1],
                 birthYear: profile.birth_date.split("-")[0],
-                profile_image: profile.profile_image && [{ url: profile.profile_image }],
-                id_card_image: profile.id_card_image && [{ url: profile.id_card_image }],
+                profile_image: profile.profile_image && [{ uid: profile.profile_image.split("/").pop(), url: profile.profile_image, status: "done" }],
+                id_card_image: profile.id_card_image && [{ uid: profile.id_card_image.split("/").pop(), url: profile.id_card_image, status: "done" }],
+            };
+            originalFilesRef.current = {
+                profile: formatData.profile_image || [],
+                idCard: formatData.id_card_image || [],
             };
             reset(formatData);
         };
@@ -51,19 +56,27 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
     }, [reset]);
 
     const onSubmit = async (value) => {
-        const birthDate = `${value.birthYear}-${value.birthMonth}-${value.birthDay}`;
-        const payload = {
-            first_name: value.firstName,
-            last_name: value.lastName,
-            profile_image: value.profile_image?.[0]?.url,
-            id_card_image: value.id_card_image?.[0]?.url,
-            gender: value.gender,
-            phone: value.phone,
-            birth_date: birthDate,
-        };
-        const { error } = await updateProfileById(value.id, payload);
-        if (error) return notifyError(error);
-        notifySuccess("บันทึกข้อมูลสำเร็จ");
+        try {
+            const uploadedProfile = await uploadPendingFiles(value?.profile_image || []);
+            const uploadedIdCard = await uploadPendingFiles(value?.id_card_image || []);
+            const birthDate = `${value.birthYear}-${value.birthMonth}-${value.birthDay}`;
+            const payload = {
+                first_name: value.firstName,
+                last_name: value.lastName,
+                profile_image: uploadedProfile[0]?.url,
+                id_card_image: uploadedIdCard[0]?.url,
+                gender: value.gender,
+                phone: value.phone,
+                birth_date: birthDate,
+            };
+            const { error } = await updateProfileById(value.id, payload);
+            if (error) return notifyError(error);
+            await removeDeletedFiles(originalFilesRef.current.profile, value?.profile_image || []);
+            await removeDeletedFiles(originalFilesRef.current.idCard, value?.id_card_image || []);
+            notifySuccess("บันทึกข้อมูลสำเร็จ");
+        } catch (error) {
+            notifyError(error);
+        }
     };
 
     return (
@@ -111,16 +124,7 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
                     label="รูปโปรไฟล์"
                     maxCount={1}
                     customRequest={(fileData) =>
-                        handleUpload({ fileData: fileData, name: "profile_image", setValue: setValue })
-                    }
-                    onRemove={(fileData) =>
-                        handleRemove({
-                            fileData: fileData,
-                            field: "profile_image",
-                            id: id,
-                            updateFunction: updateProfileById,
-                            setValue: setValue,
-                        })
+                        handleLocalPreview({ fileData: fileData, name: "profile_image", setValue: setValue })
                     }
                 />
                 <UseUpload
@@ -129,16 +133,7 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
                     label="สำเนาบัตรประชาชน"
                     maxCount={1}
                     customRequest={(fileData) =>
-                        handleUpload({ fileData: fileData, name: "id_card_image", setValue: setValue })
-                    }
-                    onRemove={(fileData) =>
-                        handleRemove({
-                            fileData: fileData,
-                            field: "id_card_image",
-                            id: id,
-                            updateFunction: updateProfileById,
-                            setValue: setValue,
-                        })
+                        handleLocalPreview({ fileData: fileData, name: "id_card_image", setValue: setValue })
                     }
                 />
             </div>

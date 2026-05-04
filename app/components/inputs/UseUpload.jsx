@@ -43,7 +43,11 @@ function UseUpload({
                             }}
                             maxCount={maxCount}
                             customRequest={(options) => customRequest({ options, fileListData })}
-                            onRemove={(file) => onRemove(file)}
+                            onRemove={(file) => {
+                                const updated = (field.value || []).filter((f) => f.uid !== file.uid);
+                                field.onChange(updated);
+                                onRemove?.(file);
+                            }}
                             onChange={({ fileList }) => setFileListData(fileList)}
                             accept={acceptVideo ? "video/*" : "image/*"}
                             disabled={disabled}

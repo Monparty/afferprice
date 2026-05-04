@@ -13,6 +13,43 @@ const getPublicUrls = (files = []) => {
     });
 };
 
+export const handleLocalPreview = ({ fileData, name, setValue }) => {
+    const { options, fileListData } = fileData;
+    const previewList = fileListData.map((item) => ({
+        uid: item.uid,
+        name: item.name,
+        status: "done",
+        thumbUrl: item.thumbUrl || (item.originFileObj ? URL.createObjectURL(item.originFileObj) : null),
+        url: item.url || item.thumbUrl || null,
+        originFileObj: item.originFileObj || null,
+    }));
+    setValue(name, previewList);
+    options.onSuccess?.({});
+};
+
+export const removeDeletedFiles = async (originalFiles = [], currentFiles = []) => {
+    const currentUids = new Set(currentFiles.map((f) => f.uid));
+    const toDelete = originalFiles.filter((f) => f.uid && !currentUids.has(f.uid));
+    for (const file of toDelete) {
+        await removeAttachments(file.uid);
+    }
+};
+
+export const uploadPendingFiles = async (files = []) => {
+    const results = [];
+    for (const file of files) {
+        if (file.originFileObj) {
+            const { error } = await uploadAttachments({ fileName: file.uid, file: file.originFileObj });
+            if (error) throw error;
+            const { data } = getUrlAttachments(file.uid);
+            results.push({ uid: file.uid, name: file.name, url: data.publicUrl });
+        } else {
+            results.push({ uid: file.uid, name: file.name, url: file.url || file.thumbUrl });
+        }
+    }
+    return results;
+};
+
 export const handleUpload = async ({ fileData, name, setValue }) => {
     try {
         const { options, fileListData } = fileData;

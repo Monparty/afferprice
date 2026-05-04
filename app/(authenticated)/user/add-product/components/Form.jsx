@@ -8,18 +8,14 @@ import {
     CameraFilled,
     CreditCardFilled,
     EditFilled,
-    ExclamationCircleFilled,
-    ExclamationCircleOutlined,
-    FileTextFilled,
-    VideoCameraFilled,
+    ExclamationCircleFilled, FileTextFilled,
+    VideoCameraFilled
 } from "@ant-design/icons";
 import UseSelectCard from "@/app/components/inputs/UseSelectCard";
 import { Activity } from "react";
 import UseTextArea from "@/app/components/inputs/UseTextArea";
-import { handleUpload } from "@/app/utils/storageHelper";
-import UseButton from "@/app/components/inputs/UseButton";
+import { handleLocalPreview } from "@/app/utils/storageHelper";
 import { useWatch } from "react-hook-form";
-import Script from "next/script";
 import PaymentBtn from "./PaymentBtn";
 
 function Form({ activeStep, control, categoryList, setValue }) {
@@ -56,7 +52,7 @@ function Form({ activeStep, control, categoryList, setValue }) {
                                 maxCount={6}
                                 isDrag
                                 customRequest={(fileData) =>
-                                    handleUpload({ fileData: fileData, name: "images_url", setValue: setValue })
+                                    handleLocalPreview({ fileData: fileData, name: "images_url", setValue: setValue })
                                 }
                                 // onRemove={(file) =>
                                 //     handleRemove({
@@ -87,7 +83,7 @@ function Form({ activeStep, control, categoryList, setValue }) {
                                 isDrag
                                 acceptVideo
                                 customRequest={(fileData) =>
-                                    handleUpload({ fileData: fileData, name: "video_url", setValue: setValue })
+                                    handleLocalPreview({ fileData: fileData, name: "video_url", setValue: setValue })
                                 }
                                 // onRemove={(file) =>
                                 //     handleRemove({

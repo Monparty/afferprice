@@ -13,7 +13,7 @@ import {
 import UseButton from "@/app/components/inputs/UseButton";
 import { useRouter } from "next/navigation";
 import UseSwitch from "@/app/components/inputs/UseSwitch";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { notifyError } from "@/app/providers/NotificationProvider";
 import UseUpload from "@/app/components/inputs/UseUpload";
 import InputNumber from "@/app/components/inputs/InputNumber";
@@ -23,7 +23,7 @@ import { getParentCategories } from "@/app/services/categories.service";
 import { getProductById } from "@/app/services/admin/products.service";
 import UseTooltip from "@/app/components/utils/UseTooltip";
 import UseModal from "@/app/components/utils/UseModal";
-import { handleUpload } from "@/app/utils/storageHelper";
+import { handleLocalPreview, removeDeletedFiles } from "@/app/utils/storageHelper";
 
 function Form({ id, mode, onSubmit }) {
     const router = useRouter();
@@ -42,6 +42,7 @@ function Form({ id, mode, onSubmit }) {
         disabled: !isCreate,
     };
 
+    const originalFilesRef = useRef({ images: [], video: [] });
     const [modalRejected, setModalRejected] = useState(false);
     const [categoryList, setCategoryList] = useState([]);
     const watchState = useWatch({ control, name: "state" });
@@ -84,11 +85,17 @@ function Form({ id, mode, onSubmit }) {
             })),
             status: data.status === "active",
         };
+        originalFilesRef.current = {
+            images: formatData.images_url || [],
+            video: formatData.video_url || [],
+        };
         reset(formatData);
     };
 
     const submitForm = async (data, state) => {
         await onSubmit(data, state);
+        await removeDeletedFiles(originalFilesRef.current.images, data.images_url || []);
+        await removeDeletedFiles(originalFilesRef.current.video, data.video_url || []);
     };
 
     return (
@@ -104,7 +111,7 @@ function Form({ id, mode, onSubmit }) {
                     multiple
                     maxCount={6}
                     customRequest={(fileData) =>
-                        handleUpload({ fileData: fileData, name: "images_url", setValue: setValue })
+                        handleLocalPreview({ fileData: fileData, name: "images_url", setValue: setValue })
                     }
                 />
                 <UseUpload
@@ -115,7 +122,7 @@ function Form({ id, mode, onSubmit }) {
                     maxCount={6}
                     acceptVideo
                     customRequest={(fileData) =>
-                        handleUpload({ fileData: fileData, name: "video_url", setValue: setValue })
+                        handleLocalPreview({ fileData: fileData, name: "video_url", setValue: setValue })
                     }
                 />
                 <InputText {...inputProps} name="title" label="ชื่อสินค้า" />
