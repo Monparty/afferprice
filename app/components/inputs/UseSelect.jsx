@@ -34,7 +34,7 @@ function UseSelect({
                         placeholder={label && !placeholder ? `โปรดระบุ ${label}` : placeholder}
                         size={size}
                         mode={isMultiple ? "multiple" : undefined}
-                        className={`w-full ${className}`}
+                        className={`w-full ${className} text-left`}
                         variant={variant}
                         onChange={(value) => {
                             if (typeof onChange === "function") {

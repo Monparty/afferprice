@@ -1,3 +1,5 @@
+"use client";
+import { useEffect, useState } from "react";
 import {
     ArrowRightOutlined,
     FireOutlined,
@@ -16,9 +18,134 @@ import UseButton from "../inputs/UseButton";
 import UseSegmented from "../inputs/UseSegmented";
 import UseCarousel from "./UseCarousel";
 import UseCollapse from "./UseCollapse";
+import { getActiveProductsWithDetails } from "@/app/services/products.service";
+import UseSkeleton from "./UseSkeleton";
+
+function formatTimeRemaining(endTime) {
+    if (!endTime) return "--:--:--";
+    const diff = new Date(endTime) - new Date();
+    if (diff <= 0) return "หมดเวลา";
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+function toCardProps(p) {
+    return {
+        image: p.images_url?.[0]?.url || "https://placehold.co/400x400",
+        time: formatTimeRemaining(p.auction_end_time),
+        category: p.categories?.name,
+        name: p.title,
+        price: p.start_price,
+        bid: p.bids?.length ?? 0,
+    };
+}
+
+function CardSkeleton() {
+    return (
+        <div className="grid gap-6">
+            <UseSkeleton />
+            <UseSkeleton />
+        </div>
+    );
+}
+
+function ProductGrid({ items, loading }) {
+    if (loading) {
+        return <CardSkeleton />;
+    }
+    if (!items.length) {
+        return <p className="text-center text-slate-400 py-12">ไม่มีสินค้าในหมวดหมู่นี้</p>;
+    }
+    return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {items.map((item, i) => (
+                <CardProduct key={i} {...item} />
+            ))}
+        </div>
+    );
+}
 
 function LandingPage() {
     const { control } = useForm();
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        getActiveProductsWithDetails().then(({ data }) => {
+            if (data) setProducts(data);
+            setLoading(false);
+        });
+    }, []);
+
+    const byBids = (a, b) => (b.bids?.length ?? 0) - (a.bids?.length ?? 0);
+
+    const filterCat = (keywords) =>
+        products
+            .filter((p) => keywords.some((kw) => p.categories?.name?.includes(kw)))
+            .slice(0, 4)
+            .map(toCardProps);
+
+    const hotItems = [...products].sort(byBids).slice(0, 4).map(toCardProps);
+    const electronicItems = filterCat(["อิเล็กทรอนิกส์", "กล้อง", "คอมพิวเตอร์", "สมาร์ทวอทช์"]);
+    const artItems = filterCat(["ศิลปะ"]);
+    const jewelryItems = filterCat(["เครื่องประดับ", "นาฬิกา"]);
+    const amuletItems = filterCat(["พระเครื่อง"]);
+    const popularItems = [...products].sort(byBids).slice(0, 8).map(toCardProps);
+
+    // จับคู่ทีละ 2 เป็น slide
+    const carouselSlides = [];
+    for (let i = 0; i < Math.min(products.length, 6); i += 2) {
+        carouselSlides.push(products.slice(i, i + 2));
+    }
+
+    const collapseItems = [
+        {
+            key: "1",
+            label: "วิธีเสนอราคาประมูลทำอย่างไร?",
+            children: (
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
+                    เข้าสู่ระบบแล้วคลิก &quot;เสนอราคาประมูล&quot; ในหน้ารายการสินค้า ใส่จำนวนเงินที่ต้องการเสนอ
+                    (ต้องสูงกว่าราคาปัจจุบันอย่างน้อย 1 ขั้น) แล้วยืนยัน
+                    ระบบจะแจ้งเตือนทันทีเมื่อมีผู้เสนอราคาสูงกว่าคุณ
+                </p>
+            ),
+        },
+        {
+            key: "2",
+            label: "มีช่องทางชำระเงินอะไรบ้าง?",
+            children: (
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
+                    รองรับ 4 ช่องทาง ได้แก่ <strong>PromptPay</strong> (สแกน QR Code), <strong>บัตรเครดิต/เดบิต</strong>{" "}
+                    (Visa, Mastercard), <strong>โอนผ่านธนาคาร</strong> และ <strong>กระเป๋าเงินอิเล็กทรอนิกส์</strong> —
+                    ทุกช่องทางมีระบบเข้ารหัสความปลอดภัยมาตรฐาน PCI DSS
+                </p>
+            ),
+        },
+        {
+            key: "3",
+            label: "หากชนะการประมูลจะทราบได้อย่างไร?",
+            children: (
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
+                    เมื่อการประมูลสิ้นสุดระบบจะส่ง <strong>แจ้งเตือนในแอป</strong> และ <strong>อีเมล</strong>{" "}
+                    ให้ผู้ชนะทันที คุณมีเวลา 24 ชั่วโมงในการชำระเงิน
+                    หากเกินกำหนดระบบจะยกเลิกและมอบสิทธิ์ให้ผู้เสนอราคาถัดไป
+                </p>
+            ),
+        },
+        {
+            key: "4",
+            label: "สินค้าที่ลงประมูลต้องผ่านการตรวจสอบหรือไม่?",
+            children: (
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
+                    ใช่ — ทุกรายการต้องผ่านทีมตรวจสอบก่อนเผยแพร่ ผู้ขายต้องอัปโหลดรูปภาพและเอกสารรับรองความแท้ (ถ้ามี)
+                    กระบวนการตรวจสอบใช้เวลา 1–3 วันทำการ สินค้าที่ผ่านการตรวจจะแสดงป้าย &quot;รับรองแล้ว&quot;
+                </p>
+            ),
+        },
+    ];
+
     const tabItems = [
         {
             key: "1",
@@ -28,7 +155,7 @@ function LandingPage() {
                     มาแรง
                 </div>
             ),
-            children: "Content of Tab Pane 1",
+            children: <ProductGrid items={hotItems} loading={loading} />,
         },
         {
             key: "2",
@@ -38,7 +165,7 @@ function LandingPage() {
                     อิเล็กทรอนิกส์
                 </div>
             ),
-            children: "Content of Tab Pane 2",
+            children: <ProductGrid items={electronicItems} loading={loading} />,
         },
         {
             key: "3",
@@ -48,7 +175,7 @@ function LandingPage() {
                     ศิลปะ
                 </div>
             ),
-            children: "Content of Tab Pane 3",
+            children: <ProductGrid items={artItems} loading={loading} />,
         },
         {
             key: "4",
@@ -58,7 +185,7 @@ function LandingPage() {
                     เครื่องประดับ
                 </div>
             ),
-            children: "Content of Tab Pane 3",
+            children: <ProductGrid items={jewelryItems} loading={loading} />,
         },
         {
             key: "5",
@@ -68,42 +195,13 @@ function LandingPage() {
                     พระเครื่อง
                 </div>
             ),
-            children: "Content of Tab Pane 3",
+            children: <ProductGrid items={amuletItems} loading={loading} />,
         },
     ];
-
-    const collapseItems = [
-        {
-            key: "1",
-            label: "This is panel header 1",
-            children: <p>111</p>,
-        },
-        {
-            key: "2",
-            label: "This is panel header 2",
-            children: <p>222</p>,
-        },
-        {
-            key: "3",
-            label: "This is panel header 3",
-            children: <p>333</p>,
-        },
-    ];
-
-    const contentStyle = {
-        margin: 0,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "400px",
-        color: "#fff",
-        textAlign: "center",
-        background: "#364d79",
-    };
 
     return (
         <main className="flex min-h-screen w-full flex-col overflow-x-hidden">
-            <section className="mb-10">
+            <section className="mb-8">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                         <span className="flex w-3 h-3 rounded-full bg-red-500 animate-pulse"></span>
@@ -111,54 +209,39 @@ function LandingPage() {
                     </div>
                     <UseButton label="ดูทั้งหมด" type="default" icon={ArrowRightOutlined} iconPlacement />
                 </div>
-                <div className="flex overflow-x-auto gap-4 pb-4 no-scrollbar">
-                    <CardZoomImage
-                        backgroundImage={
-                            "https://lh3.googleusercontent.com/aida-public/AB6AXuCBFFj5qKrhsgZaW4AzQ_39biUd9UTvQhlvmqAV33C_Y_uNotow8H2jfrW8lPgYyNGh7ivKNr5iu2qyWYqaQczd9H4wahNqtKyBy1CSaRyXUfip3LgJJNAJn9vWYAoo0_F5YjaK_2a17lbG2urdICZowkJaJtMoZOTyZVC369t86-m--x1cp7NGuLwbOnYxGEbfw-p7iv22xVcUuyoaEJCUE3DZq7rTtKPkdoVlAOXpXg_0RM_eInAHek0pJAQ_7r265ZYWnEgcA3I"
-                        }
-                        title="นาฬิกาสุดหรู รุ่นซับมาริเนอร์ สีดำเงา"
-                        price={450000}
-                        bid={24}
-                    />
-                    <CardZoomImage
-                        backgroundImage={
-                            "https://lh3.googleusercontent.com/aida-public/AB6AXuB50U5YwdcaSTPsjHY8QJ6UmOwP-HyNL04F4fg71X_tIm0o5fy5P8d8YKx8mM9myGAY1uLERkXnt164d405TM4OhAO7yqrOySDq-7UcgtRJH-FyT3_q2rChpwbuyHJmUveg10fUH0YqAeqwfHb_OFWxcTsPcsklNkX0NBYfPf0VAqrQXfM4Y1ZEirScuqq_p8viJRp38EG2VufZKAFzt03McNNlXvAclqYOMQClSR5XSs8vtT6SmaO8R9iIK5OomEtcXvcG4W_fog0"
-                        }
-                        title="รถคลาสสิก วินเทจ 1967 สภาพสมบูรณ์"
-                        price={4900000}
-                        bid={40}
-                        state
-                    />
-                    <CardZoomImage
-                        backgroundImage={
-                            "https://lh3.googleusercontent.com/aida-public/AB6AXuDpd19gnQ3xYspEtUu2cdv1jFZqlbdbgzFQyUz1OK4ju5e9RX4cfXUb5myAl2W4Pq3CtXt3613zIo8gLgRyvMYSR3NnUlZejzMYz79a7YJ-x0DCGWX1-R4U3ID_-x58Mq6hpDHKvO-oYGvM5D1MpAaO6YOuoPG4Xjr2EjSSc_CgXF0jsL3hHHwWXJYtMBDx8inJMGSRaGY3rYkn7cd0oIgWjPqhB9F5XdmmOEmkiPQu5EMGfcVztwu4Wn7NC_tqB_4knMoqtzCyp5k"
-                        }
-                        title="กล้องไรก้า M11 ไดจิตัล"
-                        price={20000}
-                        bid={40}
-                        state
-                    />
-                </div>
+
+                {loading ? (
+                    <CardSkeleton />
+                ) : carouselSlides.length > 0 ? (
+                    <UseCarousel>
+                        {carouselSlides.map((pair, si) => (
+                            <div key={si}>
+                                <div className="flex gap-4">
+                                    {pair.map((p) => (
+                                        <div key={p.id} className="flex-1">
+                                            <CardZoomImage
+                                                backgroundImage={
+                                                    p.images_url?.[0]?.url || "https://placehold.co/600x400"
+                                                }
+                                                title={p.title}
+                                                price={p.start_price}
+                                                bid={p.bids?.length ?? 0}
+                                                state={new Date(p.auction_end_time) - new Date() < 3600000}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </UseCarousel>
+                ) : null}
             </section>
-            <UseCarousel autoplay>
-                <div>
-                    <h3 style={contentStyle}>1</h3>
-                </div>
-                <div>
-                    <h3 style={contentStyle}>2</h3>
-                </div>
-                <div>
-                    <h3 style={contentStyle}>3</h3>
-                </div>
-                <div>
-                    <h3 style={contentStyle}>4</h3>
-                </div>
-            </UseCarousel>
 
-            <UseCollapse items={collapseItems} />
+            <section className="mb-8">
+                <UseTabs items={tabItems} size="large" />
+            </section>
 
-            <UseTabs items={tabItems} size="large" />
-            <section>
+            <section className="mb-8">
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold tracking-tight">การประมูลยอดนิยม</h2>
                     <UseSegmented
@@ -170,43 +253,17 @@ function LandingPage() {
                         ]}
                     />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <CardProduct
-                        image="https://lh3.googleusercontent.com/aida-public/AB6AXuDOkV3_tMtPQoqrdr5RvWu1EOww1XkxtgwCGbFm1y2M9v-DAgwwt0zhKK26nDPNe2M2N8ItDy3odvDww1Hm1rxjIGkvitlqPqPD_K6xVZYKfgvwUAuJGYWUQu1fxPnWHx7bFcasneqHnjL-LNYkld-IoNU1NN4QYObUilZ4ByUwVEeE4u4e8-n_gO8HjRvDpwMkRAkLYmpXUzMKhAiaaDXZ5fPHX_h7nTmoR8dLArSWuoJqpWjDLIy69dnMsAjstO_iG5OiBoaO5uc"
-                        time="02:45:12"
-                        category="นาฬิกา"
-                        name="โอเมก้า สปีดมาสเตอร์"
-                        price={185000}
-                        bid={12}
-                        favorite
-                    />
-                    <CardProduct
-                        image="https://lh3.googleusercontent.com/aida-public/AB6AXuDpd19gnQ3xYspEtUu2cdv1jFZqlbdbgzFQyUz1OK4ju5e9RX4cfXUb5myAl2W4Pq3CtXt3613zIo8gLgRyvMYSR3NnUlZejzMYz79a7YJ-x0DCGWX1-R4U3ID_-x58Mq6hpDHKvO-oYGvM5D1MpAaO6YOuoPG4Xjr2EjSSc_CgXF0jsL3hHHwWXJYtMBDx8inJMGSRaGY3rYkn7cd0oIgWjPqhB9F5XdmmOEmkiPQu5EMGfcVztwu4Wn7NC_tqB_4knMoqtzCyp5k"
-                        time="00:15:30"
-                        category="อิเล็กทรอนิกส์"
-                        name="แมคบุ๊ค โปร M3 Max 16 นิ้ว"
-                        price={75000}
-                        bid={45}
-                        favorite
-                    />
-                    <CardProduct
-                        image="https://lh3.googleusercontent.com/aida-public/AB6AXuA7KmVEY3Ikig6_SnKkn9VIe-5-7WZQxnSRyAKDWr2q8zwePOEqrg5KUNcv8Dm3GH-G1asbDktjckcBpUMOz-DT1xRIMAfkkUeymH6N2WdX_4FWVH5rRTwWXwF7IO--7vBSKDWKZ6Titq5aFiqjmhuQH4Ea8ZpMpnP6_IslFdi7QqfZs_JfgoXoW5oSjRCxFf_f8S554N6xz6dytK7fVQaBPcecHvvt8UaVnn02fONYylZq4cwm1dxGkrsOxN6pVHPl30IcT7qYLsA"
-                        time="05:22:10"
-                        category="อิเล็กทรอนิกส์"
-                        name="กล้องไรก้า M11 ไดจิตัล"
-                        price={240000}
-                        bid={8}
-                    />
-                    <CardProduct
-                        image="https://lh3.googleusercontent.com/aida-public/AB6AXuAXlKlFNpWGuvM15RYs6LZYnoVBP30D9RMgG1cOLcwMJWK5Gku1uha-gS1_Vjyzm2Bp5awq4I8QKAJ2aJb75U24df_hql4aRxeMSSUerdjZ3oYFNQ5PR6wdWcFF8oKpe33K-1gubeT-Xu2xpyjoigaXQOMUqZ8ioZLLnfcFtFhB37HCE-KBxCj6vXdGXJOldG96bIKt0-Bf6YGYqWupvBG4b_g1AJXlVbf8HjTdU2G3WjME0kRaLhnJLuNZ5e9pcBTRnV31PXokZhk"
-                        time="01:10:45"
-                        category="ศิลปะ"
-                        name="ภาพวาดสีน้ำมันแนวแอ็บสแตรกต์"
-                        price={150000}
-                        bid={31}
-                    />
-                </div>
+                {loading ? (
+                    <CardSkeleton />
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {popularItems.map((item, i) => (
+                            <CardProduct key={i} {...item} />
+                        ))}
+                    </div>
+                )}
             </section>
+            <UseCollapse items={collapseItems} />
         </main>
     );
 }

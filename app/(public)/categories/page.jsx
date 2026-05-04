@@ -4,6 +4,7 @@ import CardHighlight from "@/app/components/utils/CardHighlight";
 import DetailSearchBox from "@/app/components/utils/DetailSearchBox";
 import UsePagination from "@/app/components/utils/UsePagination";
 import { getActiveProductsWithDetails } from "@/app/services/products.service";
+import UseSkeleton from "@/app/components/utils/UseSkeleton";
 
 function formatTimeRemaining(endTime) {
     if (!endTime) return "--:--:--";
@@ -15,12 +16,23 @@ function formatTimeRemaining(endTime) {
     return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
+function CardSkeleton() {
+    return (
+        <div className="grid gap-6">
+            <UseSkeleton />
+            <UseSkeleton />
+        </div>
+    );
+}
+
 function Page() {
     const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         getActiveProductsWithDetails().then(({ data }) => {
             if (data) setProducts(data);
+            setLoading(false);
         });
     }, []);
 
@@ -30,25 +42,33 @@ function Page() {
                 <DetailSearchBox />
             </div>
             <div className="w-full">
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {products.map((p) => (
-                        <CardHighlight
-                            key={p.id}
-                            image={p.images_url?.[0]?.url}
-                            time={formatTimeRemaining(p.auction_end_time)}
-                            category={p.categories?.name}
-                            name={p.title}
-                            price={p.start_price}
-                            bidCount={p.bids?.length}
-                        />
-                    ))}
-                </div>
-                <div className="mt-12">
-                    <UsePagination />
-                </div>
+                {loading ? (
+                    <CardSkeleton />
+                ) : (
+                    <>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {products.map((p) => (
+                                <CardHighlight
+                                    key={p.id}
+                                    image={p.images_url?.[0]?.url}
+                                    time={formatTimeRemaining(p.auction_end_time)}
+                                    category={p.categories?.name}
+                                    name={p.title}
+                                    price={p.start_price}
+                                    bidCount={p.bids?.length}
+                                />
+                            ))}
+                        </div>
+                        <div className="mt-12">
+                            <UsePagination />
+                        </div>
+                    </>
+                )}
             </div>
         </main>
     );
 }
 
+{
+}
 export default Page;

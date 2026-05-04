@@ -4,7 +4,7 @@ import UseTag from "./UseTag";
 function CardZoomImage({ backgroundImage, title, price, bid, state = false }) {
     // ใช้ที่ "/"
     return (
-        <div className="flex-none w-87.5 md:w-150 h-87.5 relative rounded-xl overflow-hidden group">
+        <div className="flex-none w-87.5 md:w-full h-87.5 relative rounded-xl overflow-hidden group">
             <div
                 className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
                 style={{

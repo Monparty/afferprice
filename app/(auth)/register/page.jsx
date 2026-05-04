@@ -71,7 +71,7 @@ function Page() {
                             <InputText control={control} name="firstName" label="ชื่อ" size="large" />
                             <InputText control={control} name="lastName" label="นามสกุล" size="large" />
                         </div>
-                        <div className="flex gap-4 items-start">
+                        <div className="flex gap-4 items-end">
                             <UseSelect
                                 control={control}
                                 name="birthDay"
@@ -83,7 +83,6 @@ function Page() {
                             <UseSelect
                                 control={control}
                                 name="birthMonth"
-                                label=" "
                                 size="large"
                                 options={birthMonthList}
                                 placeholder="โปรดระบุ เดือน"
@@ -91,7 +90,6 @@ function Page() {
                             <UseSelect
                                 control={control}
                                 name="birthYear"
-                                label=" "
                                 size="large"
                                 options={birthYearList()}
                                 placeholder="โปรดระบุ ปี"

@@ -4,6 +4,7 @@ import UseButton from "@/app/components/inputs/UseButton";
 import CardProductLive from "@/app/components/utils/CardProductLive";
 import UsePagination from "@/app/components/utils/UsePagination";
 import { getActiveAuctionProducts } from "@/app/services/products.service";
+import UseSkeleton from "@/app/components/utils/UseSkeleton";
 
 function formatTimeRemaining(endTime) {
     if (!endTime) return "--:--:--";
@@ -13,6 +14,15 @@ function formatTimeRemaining(endTime) {
     const m = Math.floor((diff % 3600000) / 60000);
     const s = Math.floor((diff % 60000) / 1000);
     return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+function CardSkeleton() {
+    return (
+        <div className="grid gap-6">
+            <UseSkeleton />
+            <UseSkeleton />
+        </div>
+    );
 }
 
 function getAuctionState(endTime) {
@@ -25,10 +35,12 @@ function getAuctionState(endTime) {
 
 function Page() {
     const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         getActiveAuctionProducts().then(({ data }) => {
             if (data) setProducts(data);
+            setLoading(false);
         });
     }, []);
 
@@ -50,23 +62,29 @@ function Page() {
                     <UseButton label="ยอดนิยม" type="default" size="large" />
                 </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {products.map((p) => (
-                    <CardProductLive
-                        key={p.id}
-                        state={getAuctionState(p.auction_end_time)}
-                        src={p.images_url?.[0]?.url || "https://picsum.photos/200/300"}
-                        productName={p.title}
-                        price={p.start_price}
-                        items={Array(Math.min(p.bids?.length || 0, 5)).fill({ firstName: "?" })}
-                        desc={`${p.bids?.length || 0} บิดทั้งหมด`}
-                        time={formatTimeRemaining(p.auction_end_time)}
-                    />
-                ))}
-            </div>
-            <div className="mt-12">
-                <UsePagination />
-            </div>
+            {loading ? (
+                <CardSkeleton />
+            ) : (
+                <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {products.map((p) => (
+                            <CardProductLive
+                                key={p.id}
+                                state={getAuctionState(p.auction_end_time)}
+                                src={p.images_url?.[0]?.url || "https://picsum.photos/200/300"}
+                                productName={p.title}
+                                price={p.start_price}
+                                items={Array(Math.min(p.bids?.length || 0, 5)).fill({ firstName: "?" })}
+                                desc={`${p.bids?.length || 0} บิดทั้งหมด`}
+                                time={formatTimeRemaining(p.auction_end_time)}
+                            />
+                        ))}
+                    </div>
+                    <div className="mt-12">
+                        <UsePagination />
+                    </div>
+                </>
+            )}
         </main>
     );
 }
