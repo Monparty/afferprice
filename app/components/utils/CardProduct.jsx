@@ -1,10 +1,12 @@
-"use client";
 import Image from "next/image";
 import UseButton from "../inputs/UseButton";
 import { FieldTimeOutlined, HeartFilled, HeartOutlined } from "@ant-design/icons";
+import { useRouter } from "next/navigation";
 
-function CardProduct({ image, time, category, name, price, bid, favorite }) {
+function CardProduct({ id, image, time, category, name, price, bid, favorite }) {
     // ใช้ที่ "/"
+    const router = useRouter();
+
     return (
         <div className="bg-white dark:bg-zinc-800 rounded-xl overflow-hidden border border-slate-200 dark:border-zinc-700 flex flex-col group transition-all hover:shadow-xl hover:-translate-y-1">
             <div className="relative aspect-square">
@@ -32,14 +34,16 @@ function CardProduct({ image, time, category, name, price, bid, favorite }) {
             </div>
             <div className="p-4 flex flex-col flex-1">
                 <div className="mb-3">
-                    <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">{category}</p>
+                    <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">
+                        {category}
+                    </p>
                     <h3 className="text-base font-bold text-slate-900 dark:text-white line-clamp-1">{name}</h3>
                     <div className="mt-2 flex items-baseline gap-2">
                         <span className="text-lg font-bold text-primary">{price?.toLocaleString()} บาท</span>
                         <span className="text-xs text-slate-400 dark:text-slate-500">{bid} ประมูล</span>
                     </div>
                 </div>
-                <UseButton label="เสนอราคาประมูล" size="large" wFull />
+                <UseButton label="เสนอราคาประมูล" size="large" onClick={() => router.push(`/product/${id}`)} wFull />
             </div>
         </div>
     );

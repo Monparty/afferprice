@@ -1,4 +1,3 @@
-"use client";
 import UseButton from "@/app/components/inputs/UseButton";
 import UseTag from "@/app/components/utils/UseTag";
 import { FieldTimeOutlined, MoreOutlined, TeamOutlined } from "@ant-design/icons";
@@ -13,20 +12,27 @@ function CardSellingProduct({ value }) {
         <div className="group flex flex-col bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg hover:border-primary/20 transition-all">
             <div className="relative aspect-video overflow-hidden">
                 <div className="absolute top-3 left-3 z-10">
-                    <UseTag
-                        label={value.stateName}
-                        color={value.stateColor}
-                        className="capitalize"
-                    />
+                    <UseTag label={value.stateName} color={value.stateColor} className="capitalize" />
                 </div>
                 <div className="absolute top-3 right-3 z-10">
                     <UsePopover
                         placement="bottomRight"
                         content={
-                            <div className="grid gap-2 w-20">
-                                <Link href={`/user/add-product/${value.id}/edit`} className="text-black!">
+                            <div className="grid gap-1 w-20">
+                                <Link
+                                    href={`/user/add-product/${value.id}/edit`}
+                                    className="text-black! hover:bg-gray-100! p-1 rounded-sm text-sm"
+                                >
                                     แก้ไข
                                 </Link>
+                                {value.stateName === "กำลังประมูล" && (
+                                    <Link
+                                        href={`/product/${value.id}`}
+                                        className="text-black! hover:bg-gray-100! p-1 rounded-sm text-sm"
+                                    >
+                                        ดูสินค้า
+                                    </Link>
+                                )}
                             </div>
                         }
                     >
@@ -60,9 +66,7 @@ function CardSellingProduct({ value }) {
                     <div className="flex flex-col">
                         <div className="flex items-center gap-1 text-red-500">
                             <FieldTimeOutlined />
-                            <span className="text-sm font-bold">
-                                {value.duration_days} วัน
-                            </span>
+                            <span className="text-sm font-bold">{value.duration_days} วัน</span>
                         </div>
                     </div>
                 </div>

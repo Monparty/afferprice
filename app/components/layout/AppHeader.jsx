@@ -167,25 +167,25 @@ function AppHeader() {
 
                 {/* Right actions */}
                 <div className="flex items-center gap-2 ms-auto">
-                    {/* Dark mode toggle */}
-                    <button
-                        onClick={toggleTheme}
-                        className="size-9 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-zinc-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
-                        title={isDark ? "สลับโหมดสว่าง" : "สลับโหมดมืด"}
-                    >
-                        {isDark ? <SunOutlined style={{ fontSize: 18 }} /> : <MoonOutlined style={{ fontSize: 18 }} />}
-                    </button>
-
                     {/* User actions */}
                     {!user ? (
                         <Link href="/login" className="hidden sm:block">
                             <UseButton label="เข้าสู่ระบบ" />
                         </Link>
                     ) : (
-                        <div className="flex gap-3 items-center">
-                            <span className="hidden lg:block text-sm dark:text-gray-300">
-                                สวัสดีคุณ {profile?.first_name ?? user.email}
-                            </span>
+                        <div className="flex gap-4 items-center">
+                            {/* Dark mode toggle */}
+                            <button
+                                onClick={toggleTheme}
+                                className="size-9 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-zinc-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                                title={isDark ? "สลับโหมดสว่าง" : "สลับโหมดมืด"}
+                            >
+                                {isDark ? (
+                                    <SunOutlined style={{ fontSize: 18 }} />
+                                ) : (
+                                    <MoonOutlined style={{ fontSize: 18 }} />
+                                )}
+                            </button>
                             <UseBadge dot>
                                 <UseButton onClick={() => setOpenDrawer(true)} icon={BellFilled} />
                             </UseBadge>
@@ -224,7 +224,7 @@ function AppHeader() {
                                     </div>
                                 }
                             >
-                                <UseAvatar src={"https://picsum.photos/30/30"} />
+                                <UseAvatar src={profile?.profile_image || "https://picsum.photos/30/30"} />
                             </UsePopover>
                         </div>
                     )}

@@ -10,8 +10,10 @@ import {
 } from "@ant-design/icons";
 import UseButton from "../inputs/UseButton";
 import UseAvatarGroup from "./UseAvatarGroup";
+import { useRouter } from "next/navigation";
 
-function CardProductLive({ state = 1, src, productName, price = 2000, favorite = false, items = [], desc, time }) {
+function CardProductLive({ id, state = 1, src, productName, price = 2000, favorite = false, items = [], desc, time }) {
+    const router = useRouter();
     const priceBid = price + 500;
     const countItems = items.length;
     const dataConfig = {
@@ -113,7 +115,7 @@ function CardProductLive({ state = 1, src, productName, price = 2000, favorite =
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                     <UseButton label={`฿${priceBid?.toLocaleString()}`} size="large" type="default" wFull />
-                    <UseButton label="เสนอราคาด่วน" size="large" wFull />
+                    <UseButton label="เสนอราคาด่วน" size="large" onClick={() => router.push(`/product/${id}`)} wFull />
                 </div>
             </div>
         </div>

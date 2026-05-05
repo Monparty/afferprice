@@ -14,8 +14,7 @@ import AddProductSteps from "./AddProductSteps";
 import UseSkeleton from "@/app/components/utils/UseSkeleton";
 
 function AddProductLayout({ productId }) {
-    // const [activeStep, setActiveStep] = useState(0);
-    const [activeStep, setActiveStep] = useState(3); // text omise
+    const [activeStep, setActiveStep] = useState(0);
     const originalFilesRef = useRef({ images: [], video: [] });
     const [categoryList, setCategoryList] = useState([]);
     const { watch, control, getValues, setValue, reset } = useForm({

@@ -70,6 +70,7 @@ function Page() {
                         {products.map((p) => (
                             <CardProductLive
                                 key={p.id}
+                                id={p.id}
                                 state={getAuctionState(p.auction_end_time)}
                                 src={p.images_url?.[0]?.url || "https://picsum.photos/200/300"}
                                 productName={p.title}

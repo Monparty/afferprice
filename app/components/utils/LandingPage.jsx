@@ -33,6 +33,7 @@ function formatTimeRemaining(endTime) {
 
 function toCardProps(p) {
     return {
+        id: p.id,
         image: p.images_url?.[0]?.url || "https://placehold.co/400x400",
         time: formatTimeRemaining(p.auction_end_time),
         category: p.categories?.name,
@@ -220,6 +221,7 @@ function LandingPage() {
                                     {pair.map((p) => (
                                         <div key={p.id} className="flex-1">
                                             <CardZoomImage
+                                                id={p.id}
                                                 backgroundImage={
                                                     p.images_url?.[0]?.url || "https://placehold.co/600x400"
                                                 }
