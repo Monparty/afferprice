@@ -47,6 +47,15 @@ export async function getActiveAuctionProducts() {
         .order("auction_end_time", { ascending: true });
 }
 
+export async function searchProducts(query) {
+    return supabase
+        .from("products")
+        .select("id, title, start_price, images_url")
+        .eq("state", "active")
+        .ilike("title", `%${query}%`)
+        .limit(8);
+}
+
 export async function getFilteredProducts({ sortBy, categoryIds, priceMin, priceMax, condition } = {}) {
     let query = supabase
         .from("products")

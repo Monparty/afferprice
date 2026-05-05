@@ -24,8 +24,10 @@ import { usePathname, useRouter } from "next/navigation";
 import UsePopover from "../utils/UsePopover";
 import { logout, subscribeAuth } from "../../../app/services/auth.service";
 import { getProfileById } from "@/app/services/profile.service";
+import { searchProducts } from "@/app/services/products.service";
 import { notifyError } from "@/app/providers/NotificationProvider";
 import { useTheme } from "@/app/providers/ThemeProvider";
+import UseAutoComplete from "../inputs/UseAutoComplete";
 
 function AppHeader() {
     const { control } = useForm();
@@ -34,6 +36,25 @@ function AppHeader() {
     const [profile, setProfile] = useState(null);
     const router = useRouter();
     const { isDark, toggleTheme } = useTheme();
+
+    const fetchProductOptions = async (text) => {
+        const { data } = await searchProducts(text);
+        return (data || []).map((p) => ({
+            value: p.title,
+            id: p.id,
+            label: (
+                <div className="flex items-center gap-2">
+                    {p.images_url?.[0]?.url ? (
+                        <img src={p.images_url[0]?.url} className="w-8 h-8 object-cover rounded shrink-0" />
+                    ) : (
+                        <div className="w-8 h-8 rounded bg-slate-100 shrink-0" />
+                    )}
+                    <span className="truncate flex-1 text-sm">{p.title}</span>
+                    <span className="text-orange-600 text-xs shrink-0">฿{p.start_price?.toLocaleString()}</span>
+                </div>
+            ),
+        }));
+    };
 
     const linkStyle =
         "h-15 flex items-center transition-all border-transparent border-b-3 hover:border-b-3 hover:text-orange-600 hover:border-orange-600";
@@ -122,12 +143,15 @@ function AppHeader() {
                 {/* Desktop search + nav */}
                 <div className="hidden md:flex items-center flex-1 gap-8 justify-end pr-8">
                     <div className="w-52">
-                        <InputText
+                        <UseAutoComplete
                             control={control}
                             name="search"
                             placeholder="ค้นหาสินค้าประมูล..."
                             variant="underlined"
                             icon={SearchOutlined}
+                            fetchOptions={fetchProductOptions}
+                            onSelectOption={(_, option) => router.push(`/product/${option.id}`)}
+                            popupWidth={320}
                         />
                     </div>
                     <ul className="flex gap-6 h-15 text-gray-700 dark:text-gray-300">
