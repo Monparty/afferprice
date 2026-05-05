@@ -9,7 +9,7 @@ import {
     FrownOutlined,
     SmileOutlined,
 } from "@ant-design/icons";
-import { getProducts } from "@/app/services/products.service";
+import { getSellerProducts } from "@/app/services/products.service";
 import { notifyError } from "@/app/providers/NotificationProvider";
 import { useRouter } from "next/navigation";
 
@@ -19,7 +19,7 @@ function CardDrawer({ onClose }) {
 
     useEffect(() => {
         const onGetProducts = async () => {
-            const { data, error } = await getProducts();
+            const { data, error } = await getSellerProducts();
             if (error) return notifyError(error);
             setProducts(data);
         };

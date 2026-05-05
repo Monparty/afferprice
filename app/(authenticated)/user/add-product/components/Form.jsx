@@ -8,15 +8,17 @@ import {
     CameraFilled,
     CreditCardFilled,
     EditFilled,
-    ExclamationCircleFilled, FileTextFilled,
-    VideoCameraFilled
+    ExclamationCircleFilled,
+    FileTextFilled,
+    VideoCameraFilled,
 } from "@ant-design/icons";
 import UseSelectCard from "@/app/components/inputs/UseSelectCard";
 import { Activity } from "react";
 import UseTextArea from "@/app/components/inputs/UseTextArea";
 import { handleLocalPreview } from "@/app/utils/storageHelper";
 import { useWatch } from "react-hook-form";
-import PaymentBtn from "./PaymentBtn";
+import PromptPayQR from "@/app/components/payment/PromptPayQR";
+import UseButton from "@/app/components/inputs/UseButton";
 
 function Form({ activeStep, control, categoryList, setValue }) {
     const watchState = useWatch({ control, name: "state" });
@@ -54,14 +56,6 @@ function Form({ activeStep, control, categoryList, setValue }) {
                                 customRequest={(fileData) =>
                                     handleLocalPreview({ fileData: fileData, name: "images_url", setValue: setValue })
                                 }
-                                // onRemove={(file) =>
-                                //     handleRemove({
-                                //         file: file,
-                                //         field: "images_url",
-                                //         id: id,
-                                //         updateFunction: updateProfileById,
-                                //     })
-                                // }
                             />
                         </section>
                         <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
@@ -85,14 +79,6 @@ function Form({ activeStep, control, categoryList, setValue }) {
                                 customRequest={(fileData) =>
                                     handleLocalPreview({ fileData: fileData, name: "video_url", setValue: setValue })
                                 }
-                                // onRemove={(file) =>
-                                //     handleRemove({
-                                //         file: file,
-                                //         field: "images_url",
-                                //         id: id,
-                                //         updateFunction: updateProfileById,
-                                //     })
-                                // }
                             />
                         </section>
                     </Activity>
@@ -177,8 +163,11 @@ function Form({ activeStep, control, categoryList, setValue }) {
                             ชำระค่าธรรมเนียม
                         </h2>
                     </div>
-                    ชำระค่าธรรมเนียม
-                    <PaymentBtn />
+                    <div className="grid gap-2">
+                        <PromptPayQR />
+                        <UseButton label="ชําระด้วย TrueMoney" />
+                        <UseButton label="ชําระด้วย Line Pay" />
+                    </div>
                 </section>
             </Activity>
         </form>

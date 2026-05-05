@@ -1,4 +1,6 @@
 "use client";
+import { useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
 import {
     DownloadOutlined,
     EyeFilled,
@@ -13,97 +15,120 @@ import UseTag from "../../components/utils/UseTag";
 import UseSegmented from "../../components/inputs/UseSegmented";
 import UseButton from "../../components/inputs/UseButton";
 import { useForm } from "react-hook-form";
+import { getMyActiveBids, getMyFavoritesCount, getMyWonAuctionsCount } from "@/app/services/bids.service";
+import { notifyError } from "@/app/providers/NotificationProvider";
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
+
+dayjs.extend(duration);
+
+function getTimeRemaining(endTime) {
+    const diff = dayjs(endTime).diff(dayjs());
+    if (diff <= 0) return "หมดเวลาแล้ว";
+    const d = dayjs.duration(diff);
+    const days = Math.floor(d.asDays());
+    const hours = d.hours();
+    const mins = d.minutes();
+    if (days > 0) return `${days} วัน ${hours} ชม. ${mins} นาที`;
+    if (hours > 0) return `${hours} ชม. ${mins} นาที`;
+    return `${mins} นาที`;
+}
 
 function Page() {
-    const { control, watch } = useForm();
-    const dataSource = [
-        {
-            key: "1",
-            img: "https://picsum.photos/400/400",
-            status: "1",
-            offerPrice: 1000,
-            currentPrice: 200,
-            remainTime: "1 วัน 2 ชั่วโมง 14 นาที",
-        },
-        {
-            key: "2",
-            img: "https://picsum.photos/400/401",
-            status: "2",
-            offerPrice: 555666,
-            currentPrice: 230,
-            remainTime: "1 วัน 2 ชั่วโมง 14 นาที",
-        },
-        {
-            key: "3",
-            img: "https://picsum.photos/400/402",
-            status: "3",
-            offerPrice: 220,
-            currentPrice: 210,
-            remainTime: "1 วัน 2 ชั่วโมง 14 นาที",
-        },
-    ];
+    const { control, watch } = useForm({ defaultValues: { filter: "1" } });
+    const filter = watch("filter");
+    const user = useSelector((state) => state.user.data);
+
+    const [bids, setBids] = useState([]);
+    const [stats, setStats] = useState({ active: 0, won: 0, favorites: 0 });
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const [bidsRes, wonRes, favRes] = await Promise.all([
+                getMyActiveBids(),
+                getMyWonAuctionsCount(),
+                getMyFavoritesCount(),
+            ]);
+
+            if (bidsRes.error) return notifyError(bidsRes.error);
+
+            const seenProducts = new Set();
+            const uniqueActiveBids = (bidsRes.data || []).filter((bid) => {
+                if (!bid.products || bid.products.state !== "active") return false;
+                if (seenProducts.has(bid.product_id)) return false;
+                seenProducts.add(bid.product_id);
+                return true;
+            });
+
+            setBids(uniqueActiveBids);
+            setStats({
+                active: uniqueActiveBids.length,
+                won: wonRes.count || 0,
+                favorites: favRes.count || 0,
+            });
+        };
+        fetchData();
+    }, []);
+
+    const filteredBids = useMemo(() => {
+        if (filter === "2") return bids.filter((b) => b.is_winning);
+        if (filter === "3") return bids.filter((b) => !b.is_winning);
+        return bids;
+    }, [bids, filter]);
 
     const columns = [
         {
             title: "รายละเอียด",
-            dataIndex: "img",
             key: "img",
-            width: 120,
+            width: 80,
             align: "center",
-            render: (_, record) => <UseImage width={60} height={60} alt="img 1" src={record.img} />,
+            render: (_, record) => (
+                <UseImage
+                    width={60}
+                    height={60}
+                    alt={record.products?.title}
+                    src={record.products?.images_url?.[0]?.url}
+                />
+            ),
+        },
+        {
+            title: "ชื่อสินค้า",
+            key: "title",
+            render: (_, record) => <div className="font-medium">{record.products?.title}</div>,
         },
         {
             title: "สถานะ",
-            dataIndex: "status",
             key: "status",
             align: "center",
-            render: (_, record) => {
-                return (
-                    <>
-                        {record.status === "1" && <UseTag label="คุณกำลังนำ" color="green" />}
-                        {record.status === "2" && <UseTag label="ถูกประมูลแซง" color="volcano" />}
-                        {record.status === "3" && <UseTag label="กำลังติดตาม" />}
-                    </>
-                );
-            },
+            render: (_, record) =>
+                record.is_winning ? (
+                    <UseTag label="คุณกำลังนำ" color="green" />
+                ) : (
+                    <UseTag label="ถูกประมูลแซง" color="volcano" />
+                ),
         },
         {
             title: "ราคาที่เสนอ",
-            dataIndex: "offerPrice",
-            key: "offerPrice",
-            render: (_, record) => <div className="font-bold">฿{record.offerPrice?.toLocaleString()}</div>,
-        },
-        {
-            title: "ราคาปัจจุบัน",
-            dataIndex: "currentPrice",
-            key: "currentPrice",
-            render: (_, record) => <div className="font-bold">฿{record.currentPrice?.toLocaleString()}</div>,
+            key: "bid_price",
+            render: (_, record) => <div className="font-bold">฿{record.bid_price?.toLocaleString()}</div>,
         },
         {
             title: "เวลาคงเหลือ",
-            dataIndex: "remainTime",
             key: "remainTime",
             render: (_, record) => (
                 <>
-                    <FieldTimeOutlined /> {record.remainTime}
+                    <FieldTimeOutlined /> {getTimeRemaining(record.products?.auction_end_time)}
                 </>
             ),
         },
         {
             title: "จัดการ",
             align: "center",
-            render: (_, record) => {
-                return (
-                    <>
-                        {record.status === "1" && <UseButton shape="circle" icon={MoreOutlined} />}
-                        {record.status === "2" && <UseButton label="ประมูลด่วน" />}
-                        {record.status === "3" && <UseButton label="เริ่มประมูล" type="default" />}
-                    </>
-                );
-            },
+            render: (_, record) =>
+                record.is_winning ? <UseButton shape="circle" icon={MoreOutlined} /> : <UseButton label="ประมูลด่วน" />,
         },
     ];
-    
+
     return (
         <>
             <div className="flex flex-wrap justify-between items-end gap-4 mb-8">
@@ -112,7 +137,7 @@ function Page() {
                         แดชบอร์ดผู้ใช้งาน
                     </h1>
                     <p className="text-slate-500 text-base font-normal">
-                        ยินดีต้อนรับกลับมา, คุณอเล็กซ์ นี่คือสรุปภาพรวมการประมูลของคุณ
+                        ยินดีต้อนรับกลับมา {user?.first_name || ""} นี่คือสรุปภาพรวมการประมูลของคุณ
                     </p>
                 </div>
                 <UseButton label="ดาวน์โหลดรายงาน" icon={DownloadOutlined} />
@@ -125,33 +150,21 @@ function Page() {
                         </p>
                         <RiseOutlined className="text-2xl text-green-500!" />
                     </div>
-                    <p className="text-3xl font-bold leading-tight">12</p>
-                    <div className="flex items-center gap-1">
-                        <span className="text-accent-success text-xs font-bold">+2 วันนี้</span>
-                        <span className="text-slate-400 text-xs">จากเมื่อวาน</span>
-                    </div>
+                    <p className="text-3xl font-bold leading-tight">{stats.active}</p>
                 </div>
                 <div className="flex flex-col gap-2 rounded-xl p-6 bg-white shadow-sm border border-slate-200">
                     <div className="flex justify-between items-start">
                         <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">สินค้าที่ชนะ</p>
                         <TrophyFilled className="text-2xl text-blue-500!" />
                     </div>
-                    <p className="text-3xl font-bold leading-tight">48</p>
-                    <div className="flex items-center gap-1">
-                        <span className="text-accent-success text-xs font-bold">+1 สัปดาห์นี้</span>
-                        <span className="text-slate-400 text-xs">มูลค่ารวม $12.4k</span>
-                    </div>
+                    <p className="text-3xl font-bold leading-tight">{stats.won}</p>
                 </div>
                 <div className="flex flex-col gap-2 rounded-xl p-6 bg-white shadow-sm border border-slate-200">
                     <div className="flex justify-between items-start">
                         <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">กำลังติดตาม</p>
                         <EyeFilled className="text-2xl text-orange-600!" />
                     </div>
-                    <p className="text-3xl font-bold leading-tight">25</p>
-                    <div className="flex items-center gap-1">
-                        <span className="text-accent-success text-xs font-bold">+5 รายการใหม่</span>
-                        <span className="text-slate-400 text-xs">กำลังจะสิ้นสุด</span>
-                    </div>
+                    <p className="text-3xl font-bold leading-tight">{stats.favorites}</p>
                 </div>
             </div>
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -167,10 +180,7 @@ function Page() {
                         ]}
                     />
                 </div>
-                <UseTable columns={columns} dataSource={dataSource} />
-                <div className="p-4 bg-slate-50 flex justify-center">
-                    <UseButton type="default" label="ดูประวัติการประมูลทั้งหมด" />
-                </div>
+                <UseTable columns={columns} dataSource={filteredBids} rowKey="id" />
             </div>
         </>
     );
