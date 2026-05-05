@@ -1,9 +1,13 @@
+"use client";
 import { FieldTimeOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import UseButton from "../inputs/UseButton";
 import UseTag from "./UseTag";
+import { useRouter } from "next/navigation";
 
-function CardHighlight({ image, time, category, name, price, bidCount }) {
+function CardHighlight({ id, image, time, category, name, price, bidCount }) {
+    const router = useRouter();
+
     return (
         <div className="group bg-white dark::bg-blue-500/20 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
             <div className="relative aspect-4/3 overflow-hidden">
@@ -24,7 +28,9 @@ function CardHighlight({ image, time, category, name, price, bidCount }) {
                 </div>
             </div>
             <div className="p-5">
-                <p className="text-xs text-primary font-bold mb-1 uppercase tracking-tight">{category || "ไม่มีหมวดหมู่"}</p>
+                <p className="text-xs text-primary font-bold mb-1 uppercase tracking-tight">
+                    {category || "ไม่มีหมวดหมู่"}
+                </p>
                 <h3 className="font-bold text-black dark::text-slate-100 text-lg line-clamp-1 mb-3">
                     {name || "ไม่มีชื่อสินค้า"}
                 </h3>
@@ -38,10 +44,12 @@ function CardHighlight({ image, time, category, name, price, bidCount }) {
                 </div>
                 <div className="flex justify-between items-end">
                     <div>
-                        <p className="text-xl font-bold text-black dark::text-slate-100">฿{price?.toLocaleString() || 0}</p>
+                        <p className="text-xl font-bold text-black dark::text-slate-100">
+                            ฿{price?.toLocaleString() || 0}
+                        </p>
                     </div>
                     <div className="text-right">
-                        <UseButton label="ประมูล" />
+                        <UseButton label="ประมูล" onClick={() => router.push(`/product/${id}`)} />
                     </div>
                 </div>
             </div>

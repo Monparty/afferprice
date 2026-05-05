@@ -46,3 +46,21 @@ export async function getActiveAuctionProducts() {
         .eq("state", "active")
         .order("auction_end_time", { ascending: true });
 }
+
+export async function getFilteredProducts({ sortBy, categoryIds, priceMin, priceMax, condition } = {}) {
+    let query = supabase
+        .from("products")
+        .select("*, categories(name), bids(id)")
+        .eq("state", "active");
+
+    if (categoryIds?.length) query = query.in("category_id", categoryIds);
+    if (priceMin != null) query = query.gte("start_price", priceMin);
+    if (priceMax != null) query = query.lte("start_price", priceMax);
+    if (condition) query = query.eq("condition", condition);
+
+    if (sortBy === "2") query = query.order("start_price", { ascending: true });
+    else if (sortBy === "3") query = query.order("start_price", { ascending: false });
+    else query = query.order("auction_end_time", { ascending: true });
+
+    return query;
+}

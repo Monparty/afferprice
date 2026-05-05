@@ -1,9 +1,9 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import CardHighlight from "@/app/components/utils/CardHighlight";
 import DetailSearchBox from "@/app/components/utils/DetailSearchBox";
 import UsePagination from "@/app/components/utils/UsePagination";
-import { getActiveProductsWithDetails } from "@/app/services/products.service";
+import { getActiveProductsWithDetails, getFilteredProducts } from "@/app/services/products.service";
 import UseSkeleton from "@/app/components/utils/UseSkeleton";
 
 function formatTimeRemaining(endTime) {
@@ -29,17 +29,34 @@ function Page() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        getActiveProductsWithDetails().then(({ data }) => {
-            if (data) setProducts(data);
-            setLoading(false);
-        });
+    const loadProducts = useCallback(async (filters) => {
+        setLoading(true);
+        const { data } = filters ? await getFilteredProducts(filters) : await getActiveProductsWithDetails();
+        let result = data || [];
+
+        if (filters?.sortBy === "1") {
+            result = [...result].sort((a, b) => (b.bids?.length ?? 0) - (a.bids?.length ?? 0));
+        }
+        if (filters?.timeMaxHours) {
+            const maxMs = filters.timeMaxHours * 3600000;
+            result = result.filter((p) => {
+                const diff = new Date(p.auction_end_time) - new Date();
+                return diff > 0 && diff <= maxMs;
+            });
+        }
+
+        setProducts(result);
+        setLoading(false);
     }, []);
+
+    useEffect(() => {
+        loadProducts(null);
+    }, [loadProducts]);
 
     return (
         <main className="flex gap-6">
             <div className="h-fit w-1/4 sticky top-12">
-                <DetailSearchBox />
+                <DetailSearchBox onSearch={loadProducts} />
             </div>
             <div className="w-full">
                 {loading ? (
@@ -50,6 +67,7 @@ function Page() {
                             {products.map((p) => (
                                 <CardHighlight
                                     key={p.id}
+                                    id={p.id}
                                     image={p.images_url?.[0]?.url}
                                     time={formatTimeRemaining(p.auction_end_time)}
                                     category={p.categories?.name}
@@ -69,6 +87,4 @@ function Page() {
     );
 }
 
-{
-}
 export default Page;

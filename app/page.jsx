@@ -28,11 +28,11 @@ function Page() {
                             <li>ทำเรื่อง file upload (ให้ ai แก้ใหม่)</li>
                             <li>ทำ flow สร้างสิ้นค้า ตรวจสอบ แจ้งเตือน ประมูล ชำระเงิน จัดส่ง</li>
                             <li>เพิ่ม Omise payment (เพิ่ม linepay, wallet)</li>
-                            <li>เพิ่ม ที่อยู่เชื่อต่อ db</li>
                             <li>เพิ่ม login (OTP)</li>
                             <li>เพิ่ม รายละเอียดหน้าแรก</li>
                             <li>add product เพิ่ม section ประเภทต่างๆ</li>
-                            <li>ทำระบบ noti</li>
+                            <li>เพิ่มหน้า search</li>
+                            <li>ปรับ SEO</li>
                         </ul>
                     </div>
                 </div>

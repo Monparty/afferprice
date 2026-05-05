@@ -120,7 +120,7 @@ function AppHeader() {
                 </Link>
 
                 {/* Desktop search + nav */}
-                <div className="hidden md:flex items-center flex-1 gap-4 justify-between px-4">
+                <div className="hidden md:flex items-center flex-1 gap-8 justify-end pr-8">
                     <div className="w-52">
                         <InputText
                             control={control}
