@@ -1,4 +1,4 @@
-import { createClient } from "@/app/lib/supabase/client";
+import { createClient } from "@supabase/supabase-js";
 
 const BASE_URL = "https://www.afferprice.com";
 
