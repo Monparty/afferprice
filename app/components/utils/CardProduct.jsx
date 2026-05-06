@@ -16,7 +16,7 @@ function CardProduct({ id, image, time, category, name, price, bid, favorite }) 
                     height={40}
                     alt={name}
                     className="w-full h-90 object-cover"
-                    unoptimized
+                    sizes="(max-width: 768px) 100vw, 50vw"
                 />
                 <div className="absolute top-3 right-3">
                     <button className="size-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-slate-600 hover:text-red-600 transition-colors cursor-pointer">

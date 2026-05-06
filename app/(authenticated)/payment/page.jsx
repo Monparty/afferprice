@@ -24,7 +24,7 @@ function Page() {
                                 alt="image"
                                 width={32}
                                 height={32}
-                                unoptimized
+                                sizes="195px"
                             />
                         </div>
                         <p className="text-sm font-medium text-gray-600 dark::text-gray-300">
@@ -38,7 +38,7 @@ function Page() {
                                     alt="image"
                                     width={195}
                                     height={195}
-                                    unoptimized
+                                    sizes="195px"
                                 />
                             </div>
                         </div>

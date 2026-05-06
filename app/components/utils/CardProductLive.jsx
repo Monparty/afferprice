@@ -60,7 +60,7 @@ function CardProductLive({ id, state = 1, src, productName, price = 2000, favori
                     alt={productName}
                     width={300}
                     height={200}
-                    unoptimized
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 {state === 3 && (

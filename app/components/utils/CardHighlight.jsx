@@ -16,7 +16,7 @@ function CardHighlight({ id, image, time, category, name, price, bidCount }) {
                     alt={name || "product"}
                     width={300}
                     height={200}
-                    unoptimized
+                    sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute top-3 right-3 bg-white/90 dark::bgbg-blue-500/90 px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">

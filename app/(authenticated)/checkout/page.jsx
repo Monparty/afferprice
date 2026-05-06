@@ -29,7 +29,7 @@ function Page() {
                             className="w-full md:w-48 h-32 bg-center bg-cover rounded-lg"
                             width={192}
                             height={128}
-                            unoptimized
+                            sizes="(max-width: 768px) 100vw, 192px"
                         />
                         <div className="flex-1 flex flex-col justify-between">
                             <div>
@@ -181,7 +181,7 @@ function Page() {
                                 alt="QR code for PromptPay payment"
                                 width={80}
                                 height={80}
-                                unoptimized
+                                sizes="(max-width: 768px) 100vw, 192px"
                             />
                         </div>
                         <div>

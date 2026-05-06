@@ -29,7 +29,7 @@ function CardAddProductPreview({ control, watch, activeStep, setActiveStep, onSu
                         className="w-full h-full object-cover"
                         width={340}
                         height={195}
-                        unoptimized
+                        sizes="340px"
                     />
                     <div className="absolute top-2 right-2 bg-orange-600 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase">
                         กำลังเริ่มเร็วๆ นี้

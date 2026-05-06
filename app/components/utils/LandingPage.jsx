@@ -34,7 +34,7 @@ function formatTimeRemaining(endTime) {
 function toCardProps(p) {
     return {
         id: p.id,
-        image: p.images_url?.[0]?.url || "https://placehold.co/400x400",
+        image: p.images_url?.[0]?.url,
         time: formatTimeRemaining(p.auction_end_time),
         category: p.categories?.name,
         name: p.title,
@@ -86,9 +86,7 @@ function LandingPage() {
     const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
 
     const filterCat = (keywords) =>
-        shuffle(
-            activeProducts.filter((p) => keywords.some((kw) => p.categories?.name?.includes(kw)))
-        )
+        shuffle(activeProducts.filter((p) => keywords.some((kw) => p.categories?.name?.includes(kw))))
             .slice(0, 4)
             .map(toCardProps);
 
@@ -103,9 +101,7 @@ function LandingPage() {
         .map(toCardProps);
 
     // UseCarousel: activeProducts ordered by auction_end_time asc (ending soonest first)
-    const endingSoon = [...activeProducts].sort(
-        (a, b) => new Date(a.auction_end_time) - new Date(b.auction_end_time)
-    );
+    const endingSoon = [...activeProducts].sort((a, b) => new Date(a.auction_end_time) - new Date(b.auction_end_time));
     const carouselSlides = [];
     for (let i = 0; i < Math.min(endingSoon.length, 6); i += 2) {
         carouselSlides.push(endingSoon.slice(i, i + 2));
@@ -232,9 +228,7 @@ function LandingPage() {
                                         <div key={p.id} className="flex-1">
                                             <CardZoomImage
                                                 id={p.id}
-                                                backgroundImage={
-                                                    p.images_url?.[0]?.url || "https://placehold.co/600x400"
-                                                }
+                                                backgroundImage={p.images_url?.[0]?.url}
                                                 title={p.title}
                                                 price={p.start_price}
                                                 bid={p.bids?.length ?? 0}

@@ -91,7 +91,7 @@ function Page() {
                             alt="image"
                             width={195}
                             height={195}
-                            unoptimized
+                            sizes="195px"
                         />
                     </div>
                     <div className="flex-1 flex flex-col justify-between h-full py-1">

@@ -45,7 +45,7 @@ function CardSellingProduct({ value }) {
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     width={300}
                     height={300}
-                    unoptimized
+                    sizes="(max-width: 768px) 100vw, 50vw"
                 />
             </div>
             <div className="p-4 flex flex-col flex-1">

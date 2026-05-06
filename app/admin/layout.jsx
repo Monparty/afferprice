@@ -14,7 +14,7 @@ import { ROUTES } from "./constants/routes";
 
 export const metadata = {
     title: "Afferprice Admin",
-    description: "แหล่งรวมการประมูลสิ้นค้าจากทั่วไทย",
+    description: "แหล่งรวมการประมูลสินค้าจากทั่วไทย",
 };
 
 export default function RootLayout({ children }) {
