@@ -14,6 +14,7 @@ import {
     RiseOutlined,
 } from "@ant-design/icons";
 import { insertBid } from "@/app/services/bids.service";
+import { updateProductPrice } from "@/app/services/products.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import { fetchUser } from "@/app/features/user/userSlice";
 
@@ -21,7 +22,7 @@ function padTwo(n) {
     return String(n).padStart(2, "0");
 }
 
-function CardProductBid({ product }) {
+function CardProductBid({ product, onBidSuccess }) {
     const { control, handleSubmit, setValue, watch } = useForm({ defaultValues: { bidPrice: null } });
     const dispatch = useDispatch();
     const { data: userData, loading: userLoading, error } = useSelector((state) => state.user);
@@ -29,10 +30,16 @@ function CardProductBid({ product }) {
     useEffect(() => {
         dispatch(fetchUser());
     }, [dispatch]);
+
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
     const [ended, setEnded] = useState(false);
+    const [currentPrice, setCurrentPrice] = useState(product?.start_price);
+
+    useEffect(() => {
+        if (product?.start_price) setCurrentPrice(product.start_price);
+    }, [product?.start_price]);
 
     useEffect(() => {
         if (!product?.auction_end_time) return;
@@ -56,13 +63,11 @@ function CardProductBid({ product }) {
     }, [product?.auction_end_time]);
 
     const onQuickBid = (amount) => {
-        const current = watch("bidPrice") || product?.start_price || 0;
+        const current = watch("bidPrice") || currentPrice || 0;
         setValue("bidPrice", Number(current) + amount);
     };
 
     const onSubmit = async ({ bidPrice }) => {
-        console.log("userData", userData);
-        return;
         if (!userData) {
             router.push("/login");
             return;
@@ -70,19 +75,21 @@ function CardProductBid({ product }) {
         setLoading(true);
         const { error } = await insertBid({
             product_id: product.id,
-            user_id: user.id,
+            user_id: userData.id,
             bid_price: bidPrice,
         });
         setLoading(false);
         if (error) return notifyError(error);
+        await updateProductPrice(product.id, bidPrice);
+        setCurrentPrice(bidPrice);
+        onBidSuccess?.();
         notifySuccess("วางประมูลสำเร็จ");
     };
 
-    const startPrice = product?.start_price;
     const formatPrice = (price) => (price ? `฿${Number(price).toLocaleString("th-TH")}` : "—");
-    const quickSteps = [0.1, 0.2, 0.3].map((pct) => Math.round((startPrice || 0) * pct));
+    const quickSteps = [0.1, 0.2, 0.3].map((pct) => Math.round((currentPrice || 0) * pct));
     const bidPrice = watch("bidPrice");
-    const isBelowMin = !bidPrice || Number(bidPrice) < (startPrice || 0);
+    const isBelowMin = !bidPrice || Number(bidPrice) < (currentPrice || 0);
 
     return (
         <div className="bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
@@ -113,9 +120,9 @@ function CardProductBid({ product }) {
             </div>
             <div className="p-6 space-y-6">
                 <div>
-                    <p className="text-slate-500 text-sm font-medium mb-1">ราคาเริ่มต้น</p>
+                    <p className="text-slate-500 text-sm font-medium mb-1">ราคาปัจจุบัน</p>
                     <div className="flex items-baseline gap-2">
-                        <h2 className="text-4xl font-extrabold text-primary">{formatPrice(startPrice)}</h2>
+                        <h2 className="text-4xl font-extrabold text-primary">{formatPrice(currentPrice)}</h2>
                         <span className="text-emerald-600 text-sm font-bold flex items-center">
                             <RiseOutlined />
                         </span>

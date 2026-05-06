@@ -18,6 +18,10 @@ export async function getProductsByState(state) {
     return supabase.from("products").select("*").eq("state", state).eq("seller_id", user.id);
 }
 
+export async function updateProductPrice(id, price) {
+    return supabase.from("products").update({ start_price: price }).eq("id", id);
+}
+
 export async function upsertProduct(data) {
     return supabase.from("products").upsert(data).select("id").single();
 }

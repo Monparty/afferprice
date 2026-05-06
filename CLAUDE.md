@@ -74,7 +74,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
 | `profiles` | Extends `auth.users`; `role` = `user` \| `admin` |
 | `products` | Core auction listings; status lifecycle below |
 | `product_images` | Ordered images per product |
-| `bids` | Bids with `is_winning` flag |
+| `bids` | Bids with `is_winning` flag — **flag ไม่ได้ถูก set อัตโนมัติ** ยังไม่มี trigger/cron; ใช้ `getHighestBid()` แทนการเชื่อ flag นี้ |
 | `auction_results` | Winner + final price per auction |
 | `payments` | Methods: `bank`, `credit_card`, `promptpay`, `wallet` |
 | `shipments` | Tracking info |
@@ -82,6 +82,15 @@ Schema defined in `db/00_schema.sql`. Key tables:
 | `categories` | Hierarchical via `parent_id` |
 
 **Product status lifecycle**: `draft` → `pending_review` → `active` → `ended` / `sold` / `cancelled`; can also move to `rejected` from `pending_review`. Helper: `app/utils/mapProductState.js`.
+
+**`products.start_price` หลัง bid**: ทำหน้าที่เป็น "ราคาปัจจุบัน / floor ของ bid ถัดไป" — `updateProductPrice()` ใน `products.service.js` จะ update ค่านี้ทุกครั้งที่ bid สำเร็จ ไม่มีคอลัมน์ `current_price` แยกต่างหาก
+
+### Bid Flow (`app/components/utils/CardProductBid.jsx`)
+
+- รับ `product` และ `onBidSuccess` prop (callback หลัง bid สำเร็จ — ใช้ refresh bid list)
+- `currentPrice` state sync กับ `product.start_price` ผ่าน useEffect (เพราะ product โหลด async)
+- หลัง submit: `insertBid` → `updateProductPrice` → `setCurrentPrice` → `onBidSuccess?.()`
+- `getBidsByProduct(productId)` ใน `bids.service.js` — ดึง bid history เรียงตาม `bid_time DESC`
 
 ### Payment (Omise)
 

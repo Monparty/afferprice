@@ -8,11 +8,27 @@ import UseTag from "@/app/components/utils/UseTag";
 import { useParams } from "next/navigation";
 import { notifyError } from "@/app/providers/NotificationProvider";
 import { getProductById } from "@/app/services/products.service";
+import { getBidsByProduct } from "@/app/services/bids.service";
 import { useEffect, useState } from "react";
+
+function formatTimeAgo(time) {
+    const mins = Math.floor((Date.now() - new Date(time)) / 60000);
+    if (mins < 1) return "เมื่อสักครู่";
+    if (mins < 60) return `${mins} นาทีที่แล้ว`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs} ชั่วโมงที่แล้ว`;
+    return `${Math.floor(hrs / 24)} วันที่แล้ว`;
+}
 
 function Page() {
     const { id } = useParams();
     const [product, setProduct] = useState([]);
+    const [bids, setBids] = useState([]);
+
+    const fetchBids = async (productId) => {
+        const { data } = await getBidsByProduct(productId);
+        if (data) setBids(data);
+    };
 
     useEffect(() => {
         if (!id) return;
@@ -22,6 +38,7 @@ function Page() {
             setProduct(data);
         };
         onGetProductById();
+        fetchBids(id);
     }, [id]);
 
     const formatProductImage = product?.images_url?.map((item) => ({
@@ -101,68 +118,63 @@ function Page() {
                 </div>
                 <div className="lg:col-span-4">
                     <div className="sticky top-12 space-y-6">
-                        <CardProductBid product={product} />
+                        <CardProductBid product={product} onBidSuccess={() => fetchBids(id)} />
                         <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm space-y-4">
                             <div className="flex justify-between items-center">
                                 <h3 className="font-bold flex items-center gap-2">
                                     <span className="w-2 h-2 bg-emerald-500 rounded-full"></span> ประวัติการประมูล
                                 </h3>
-                                <span className="text-xs text-slate-400">อัปเดตล่าสุด: เมื่อครู่</span>
+                                <span className="text-xs text-slate-400">{bids.length} รายการ</span>
                             </div>
                             <div className="space-y-3">
-                                <div className="flex items-center justify-between py-2 border-b border-slate-100">
-                                    <div className="flex items-center gap-3">
-                                        <div className="size-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold">
-                                            JD
+                                {bids.slice(0, 5).map((bid, i) => {
+                                    const initials = bid.user_id.slice(0, 2).toUpperCase();
+                                    const maskedId = `u***${bid.user_id.slice(-4)}`;
+                                    const isLeader = i === 0;
+                                    return (
+                                        <div
+                                            key={bid.id}
+                                            className="flex items-center justify-between py-2 border-b border-slate-100"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="size-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] font-bold">
+                                                    {initials}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-bold">{maskedId}</p>
+                                                    <p className="text-[10px] text-slate-400 uppercase">
+                                                        {formatTimeAgo(bid.bid_time)}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p
+                                                    className={`text-sm font-extrabold ${isLeader ? "text-emerald-600" : "text-slate-400"}`}
+                                                >
+                                                    ฿{Number(bid.bid_price).toLocaleString("th-TH")}
+                                                </p>
+                                                <p
+                                                    className={`text-[10px] font-medium ${isLeader ? "text-emerald-600" : "text-slate-400"}`}
+                                                >
+                                                    {isLeader ? "ผู้นำประมูล" : "ถูกประมูลแซง"}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-sm font-bold">j***n.eth</p>
-                                            <p className="text-[10px] text-slate-400 uppercase">2 นาทีที่แล้ว</p>
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-sm font-extrabold text-emerald-600">฿498,750</p>
-                                        <p className="text-[10px] text-emerald-600 font-medium">ผู้นำประมูล</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center justify-between py-2 border-b border-slate-100">
-                                    <div className="flex items-center gap-3">
-                                        <div className="size-8 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-[10px] font-bold">
-                                            AM
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-bold">a***x_m</p>
-                                            <p className="text-[10px] text-slate-400 uppercase">14 นาทีที่แล้ว</p>
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-sm font-bold text-slate-400">฿481,250</p>
-                                        <p className="text-[10px] text-slate-400">ถูกประมูลแซง</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center justify-between py-2 border-b border-slate-100">
-                                    <div className="flex items-center gap-3">
-                                        <div className="size-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-[10px] font-bold">
-                                            W9
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-bold">w***992</p>
-                                            <p className="text-[10px] text-slate-400 uppercase">22 นาทีที่แล้ว</p>
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-sm font-bold text-slate-400">฿463,750</p>
-                                        <p className="text-[10px] text-slate-400">ถูกประมูลแซง</p>
-                                    </div>
-                                </div>
+                                    );
+                                })}
+                                {bids.length === 0 && (
+                                    <p className="text-center text-slate-400 text-sm py-4">ยังไม่มีการประมูล</p>
+                                )}
                             </div>
-                            <div className="flex justify-center">
-                                <UseButton
-                                    label="ดูประวัติทั้งหมด 24 รายการ"
-                                    type="text"
-                                    className="text-xs! font-bold! text-slate-400!"
-                                />
-                            </div>
+                            {bids.length > 5 && (
+                                <div className="flex justify-center">
+                                    <UseButton
+                                        label={`ดูประวัติทั้งหมด ${bids.length} รายการ`}
+                                        type="text"
+                                        className="text-xs! font-bold! text-slate-400!"
+                                    />
+                                </div>
+                            )}
                         </div>
                         <div className="bg-orange-50 rounded-2xl p-6 border border-l-4 border-orange-600">
                             <div className="flex items-start gap-3">
