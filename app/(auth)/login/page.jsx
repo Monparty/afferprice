@@ -10,16 +10,16 @@ import InputText from "../../components/inputs/InputText";
 import UseButton from "../../components/inputs/UseButton";
 import UseInputPassword from "../../components/inputs/UseInputPassword";
 import { notifyError } from "@/app/providers/NotificationProvider";
+import LoginWithGoogleBtn from "../components/LoginWithGoogleBtn";
 
 function Page() {
     const {
         handleSubmit,
         control,
-        watch,
         formState: { isValid },
     } = useForm({
-        // resolver: yupResolver(schema),
-        mode: "onBlur",
+        resolver: yupResolver(schema),
+        mode: "onChange",
     });
     const router = useRouter();
 
@@ -42,10 +42,13 @@ function Page() {
             >
                 <InputText control={control} name="email" label="อีเมล" size="large" />
                 <UseInputPassword control={control} name="password" label="รหัสผ่าน" size="large" />
-                {/* <UseButton label="เข้าสู่ระบบ" size="large" wFull htmlType="submit" disabled={!isValid} /> */}
-                {/* ใช้ test */}
-                <UseButton label="เข้าสู่ระบบ" size="large" wFull htmlType="submit" />
-                <div className="border-b border-gray-200 w-full"></div>
+                <UseButton label="เข้าสู่ระบบ" size="large" wFull htmlType="submit" disabled={!isValid} />
+                <div className="flex items-center gap-3 text-gray-400 text-xs">
+                    <div className="flex-1 border-b border-gray-200"></div>
+                    หรือ
+                    <div className="flex-1 border-b border-gray-200"></div>
+                </div>
+                <LoginWithGoogleBtn />
                 <UseButton
                     label="ยังไม่มีบัญชี สมัครสมาชิก"
                     size="large"

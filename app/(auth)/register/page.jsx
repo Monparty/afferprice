@@ -1,6 +1,5 @@
 "use client";
 import { useForm, useWatch } from "react-hook-form";
-import { GoogleOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -15,6 +14,7 @@ import UseInputPassword from "../../components/inputs/UseInputPassword";
 import { useRouter } from "next/navigation";
 import { register, loginWithGoogle } from "../../services/auth.service";
 import { notifyError, notifySuccess } from "../../providers/NotificationProvider";
+import LoginWithGoogleBtn from "../components/LoginWithGoogleBtn";
 
 function Page() {
     const {
@@ -45,10 +45,6 @@ function Page() {
         if (error) return notifyError(error);
         notifySuccess("สมัครสมาชิกสำเร็จ");
         router.push("/");
-    };
-
-    const handleGoogleLogin = () => {
-        loginWithGoogle(`${window.location.origin}/auth/callback`);
     };
 
     return (
@@ -119,17 +115,12 @@ function Page() {
                     />
                 )}
                 <div className="space-y-4">
-                    <div className="border-b border-gray-200 w-full"></div>
-                    {!showOtherField && (
-                        <UseButton
-                            label="ลงทะเบียนด้วย Google"
-                            icon={GoogleOutlined}
-                            type="default"
-                            size="large"
-                            wFull
-                            onClick={handleGoogleLogin}
-                        />
-                    )}
+                    <div className="flex items-center gap-3 text-gray-400 text-xs">
+                        <div className="flex-1 border-b border-gray-200"></div>
+                        หรือ
+                        <div className="flex-1 border-b border-gray-200"></div>
+                    </div>
+                    {!showOtherField && <LoginWithGoogleBtn />}
                 </div>
                 <UseButton
                     label="มีบัญชีอยู่แล้ว ล็อกอิน"

@@ -28,6 +28,8 @@ import { searchProducts } from "@/app/services/products.service";
 import { notifyError } from "@/app/providers/NotificationProvider";
 import { useTheme } from "@/app/providers/ThemeProvider";
 import UseAutoComplete from "../inputs/UseAutoComplete";
+import { useDispatch } from "react-redux";
+import { clearUser } from "@/app/features/user/userSlice";
 
 function AppHeader() {
     const { control } = useForm();
@@ -36,6 +38,7 @@ function AppHeader() {
     const [profile, setProfile] = useState(null);
     const router = useRouter();
     const { isDark, toggleTheme } = useTheme();
+    const dispatch = useDispatch();
 
     const fetchProductOptions = async (text) => {
         const { data } = await searchProducts(text);
@@ -72,6 +75,7 @@ function AppHeader() {
 
     const handleLogout = async () => {
         await logout();
+        dispatch(clearUser());
         router.push("/");
     };
 
@@ -123,6 +127,16 @@ function AppHeader() {
         setMobileMenuOpen(false);
     }, [pathname]);
 
+    const DarkModeToggle = () => (
+        <button
+            onClick={toggleTheme}
+            className="size-9 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-zinc-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+            title={isDark ? "สลับโหมดสว่าง" : "สลับโหมดมืด"}
+        >
+            {isDark ? <SunOutlined style={{ fontSize: 18 }} /> : <MoonOutlined style={{ fontSize: 18 }} />}
+        </button>
+    );
+
     return (
         <header className="h-15">
             {/* Main bar */}
@@ -169,23 +183,15 @@ function AppHeader() {
                 <div className="flex items-center gap-2 ms-auto">
                     {/* User actions */}
                     {!user ? (
-                        <Link href="/login" className="hidden sm:block">
-                            <UseButton label="เข้าสู่ระบบ" />
-                        </Link>
+                        <div className="flex gap-4 items-center">
+                            <DarkModeToggle />
+                            <Link href="/login" className="hidden sm:block">
+                                <UseButton label="เข้าสู่ระบบ" />
+                            </Link>
+                        </div>
                     ) : (
                         <div className="flex gap-4 items-center">
-                            {/* Dark mode toggle */}
-                            <button
-                                onClick={toggleTheme}
-                                className="size-9 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-zinc-700 text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
-                                title={isDark ? "สลับโหมดสว่าง" : "สลับโหมดมืด"}
-                            >
-                                {isDark ? (
-                                    <SunOutlined style={{ fontSize: 18 }} />
-                                ) : (
-                                    <MoonOutlined style={{ fontSize: 18 }} />
-                                )}
-                            </button>
+                            <DarkModeToggle />
                             <UseBadge dot>
                                 <UseButton onClick={() => setOpenDrawer(true)} icon={BellFilled} />
                             </UseBadge>

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import InputNumber from "../inputs/InputNumber";
 import UseButton from "../inputs/UseButton";
@@ -15,6 +15,7 @@ import {
 } from "@ant-design/icons";
 import { insertBid } from "@/app/services/bids.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
+import { fetchUser } from "@/app/features/user/userSlice";
 
 function padTwo(n) {
     return String(n).padStart(2, "0");
@@ -22,7 +23,12 @@ function padTwo(n) {
 
 function CardProductBid({ product }) {
     const { control, handleSubmit, setValue, watch } = useForm({ defaultValues: { bidPrice: null } });
-    const user = useSelector((state) => state.user.data);
+    const dispatch = useDispatch();
+    const { data: userData, loading: userLoading, error } = useSelector((state) => state.user);
+
+    useEffect(() => {
+        dispatch(fetchUser());
+    }, [dispatch]);
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
@@ -55,7 +61,9 @@ function CardProductBid({ product }) {
     };
 
     const onSubmit = async ({ bidPrice }) => {
-        if (!user) {
+        console.log("userData", userData);
+        return;
+        if (!userData) {
             router.push("/login");
             return;
         }
@@ -72,6 +80,9 @@ function CardProductBid({ product }) {
 
     const startPrice = product?.start_price;
     const formatPrice = (price) => (price ? `฿${Number(price).toLocaleString("th-TH")}` : "—");
+    const quickSteps = [0.1, 0.2, 0.3].map((pct) => Math.round((startPrice || 0) * pct));
+    const bidPrice = watch("bidPrice");
+    const isBelowMin = !bidPrice || Number(bidPrice) < (startPrice || 0);
 
     return (
         <div className="bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
@@ -112,27 +123,16 @@ function CardProductBid({ product }) {
                 </div>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                     <div className="grid grid-cols-3 gap-2">
-                        <UseButton
-                            type="default"
-                            label="+฿3,500"
-                            className="font-bold! bg-gray-100!"
-                            wFull
-                            onClick={() => onQuickBid(3500)}
-                        />
-                        <UseButton
-                            type="default"
-                            label="+฿17,500"
-                            className="font-bold! bg-gray-100!"
-                            wFull
-                            onClick={() => onQuickBid(17500)}
-                        />
-                        <UseButton
-                            type="default"
-                            label="+฿35,000"
-                            className="font-bold! bg-gray-100!"
-                            wFull
-                            onClick={() => onQuickBid(35000)}
-                        />
+                        {quickSteps.map((step, i) => (
+                            <UseButton
+                                key={i}
+                                type="default"
+                                label={`+${formatPrice(step)}`}
+                                className="font-bold! bg-gray-100!"
+                                wFull
+                                onClick={() => onQuickBid(step)}
+                            />
+                        ))}
                     </div>
                     <InputNumber
                         control={control}
@@ -140,7 +140,6 @@ function CardProductBid({ product }) {
                         className="h-14 text-lg! font-bold"
                         icon={DollarOutlined}
                         format
-                        min={startPrice || 1}
                     />
                     <UseButton
                         label="วางประมูลทันที"
@@ -151,7 +150,7 @@ function CardProductBid({ product }) {
                         className="h-12! text-lg! font-bold!"
                         htmlType="submit"
                         loading={loading}
-                        disabled={ended}
+                        disabled={ended || isBelowMin}
                     />
                     <div className="flex flex-col gap-2 text-sm text-slate-400 text-center">
                         <span className="flex items-center justify-center gap-2">

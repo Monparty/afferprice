@@ -31,11 +31,12 @@ function Page() {
                             <li>เพิ่ม รายละเอียดหน้าแรก</li>
                             <li>add product เพิ่ม section ประเภทต่างๆ</li>
                             <li>ปรับ SEO</li>
-                            <li>เพิ่ม ข้อกำหนดการใช้งาน และ นโยบายความเป็นส่วนตัว /terms, /privacy</li>
+                            <li>ดูเรื่องความปลอดภัยข้อเว็บและ db</li>
                             <li>ถาม flow ในหน้า product [id]</li>
                             <li>แก้เงื่อนไขการแสดงผล content หน้าแรก</li>
                             <li>add favorite</li>
                             <li>add session timeout</li>
+                            <li>ทำ db ทดสอบ กับ bd จริง</li>
                         </ul>
                     </div>
                 </div>
