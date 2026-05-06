@@ -2,7 +2,6 @@
 import { useForm, useWatch } from "react-hook-form";
 import { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { schema } from "./schema";
 import { genderList, birthDayList, birthMonthList, birthYearList } from "../../utils/dataSelect";
@@ -12,7 +11,7 @@ import UseButton from "../../components/inputs/UseButton";
 import UseSelect from "../../components/inputs/UseSelect";
 import UseInputPassword from "../../components/inputs/UseInputPassword";
 import { useRouter } from "next/navigation";
-import { register, loginWithGoogle } from "../../services/auth.service";
+import { register } from "../../services/auth.service";
 import { notifyError, notifySuccess } from "../../providers/NotificationProvider";
 import LoginWithGoogleBtn from "../components/LoginWithGoogleBtn";
 
@@ -139,13 +138,23 @@ function Page() {
                 />
                 <p className="text-xs text-slate-400 leading-relaxed">
                     การลงทะเบียนถือว่าคุณยอมรับ{" "}
-                    <Link href="/terms" className="underline hover:text-slate-600">
+                    <a
+                        href="/documents/Afferprice_Full_Terms_and_Conditions.pdf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline hover:text-slate-600"
+                    >
                         ข้อกำหนดการใช้งาน
-                    </Link>{" "}
+                    </a>{" "}
                     และ{" "}
-                    <Link href="/privacy" className="underline hover:text-slate-600">
+                    <a
+                        href="/documents/Afferprice_Privacy_Policy.pdf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline hover:text-slate-600"
+                    >
                         นโยบายความเป็นส่วนตัว
-                    </Link>
+                    </a>
                 </p>
             </form>
         </main>
