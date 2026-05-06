@@ -3,6 +3,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { GoogleOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { schema } from "./schema";
 import { genderList, birthDayList, birthMonthList, birthYearList } from "../../utils/dataSelect";
@@ -145,6 +146,16 @@ function Page() {
                     className="text-slate-500! text-sm!"
                     onClick={() => router.push("/")}
                 />
+                <p className="text-xs text-slate-400 leading-relaxed">
+                    การลงทะเบียนถือว่าคุณยอมรับ{" "}
+                    <Link href="/terms" className="underline hover:text-slate-600">
+                        ข้อกำหนดการใช้งาน
+                    </Link>{" "}
+                    และ{" "}
+                    <Link href="/privacy" className="underline hover:text-slate-600">
+                        นโยบายความเป็นส่วนตัว
+                    </Link>
+                </p>
             </form>
         </main>
     );

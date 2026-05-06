@@ -15,7 +15,7 @@ function CardProduct({ id, image, time, category, name, price, bid, favorite }) 
                     width={40}
                     height={40}
                     alt={name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-90 object-cover"
                     unoptimized
                 />
                 <div className="absolute top-3 right-3">

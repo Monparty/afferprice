@@ -34,6 +34,8 @@ function Page() {
                             <li>เพิ่ม ข้อกำหนดการใช้งาน และ นโยบายความเป็นส่วนตัว /terms, /privacy</li>
                             <li>ถาม flow ในหน้า product [id]</li>
                             <li>แก้เงื่อนไขการแสดงผล content หน้าแรก</li>
+                            <li>add favorite</li>
+                            <li>add session timeout</li>
                         </ul>
                     </div>
                 </div>

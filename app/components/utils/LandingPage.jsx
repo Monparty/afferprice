@@ -80,25 +80,35 @@ function LandingPage() {
         });
     }, []);
 
-    const byBids = (a, b) => (b.bids?.length ?? 0) - (a.bids?.length ?? 0);
+    const now = new Date();
+    const activeProducts = products.filter((p) => new Date(p.auction_end_time) > now);
+
+    const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
 
     const filterCat = (keywords) =>
-        products
-            .filter((p) => keywords.some((kw) => p.categories?.name?.includes(kw)))
+        shuffle(
+            activeProducts.filter((p) => keywords.some((kw) => p.categories?.name?.includes(kw)))
+        )
             .slice(0, 4)
             .map(toCardProps);
 
-    const hotItems = [...products].sort(byBids).slice(0, 4).map(toCardProps);
+    const hotItems = shuffle(activeProducts).slice(0, 4).map(toCardProps);
     const electronicItems = filterCat(["อิเล็กทรอนิกส์", "กล้อง", "คอมพิวเตอร์", "สมาร์ทวอทช์"]);
     const artItems = filterCat(["ศิลปะ"]);
     const jewelryItems = filterCat(["เครื่องประดับ", "นาฬิกา"]);
     const amuletItems = filterCat(["พระเครื่อง"]);
-    const popularItems = [...products].sort(byBids).slice(0, 8).map(toCardProps);
+    const popularItems = [...activeProducts]
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .slice(0, 8)
+        .map(toCardProps);
 
-    // จับคู่ทีละ 2 เป็น slide
+    // UseCarousel: activeProducts ordered by auction_end_time asc (ending soonest first)
+    const endingSoon = [...activeProducts].sort(
+        (a, b) => new Date(a.auction_end_time) - new Date(b.auction_end_time)
+    );
     const carouselSlides = [];
-    for (let i = 0; i < Math.min(products.length, 6); i += 2) {
-        carouselSlides.push(products.slice(i, i + 2));
+    for (let i = 0; i < Math.min(endingSoon.length, 6); i += 2) {
+        carouselSlides.push(endingSoon.slice(i, i + 2));
     }
 
     const collapseItems = [
@@ -228,7 +238,7 @@ function LandingPage() {
                                                 title={p.title}
                                                 price={p.start_price}
                                                 bid={p.bids?.length ?? 0}
-                                                state={new Date(p.auction_end_time) - new Date() < 3600000}
+                                                state={new Date(p.auction_end_time) - now < 3600000}
                                             />
                                         </div>
                                     ))}
