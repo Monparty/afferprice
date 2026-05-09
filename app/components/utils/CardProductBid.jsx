@@ -33,7 +33,7 @@ function CardProductBid({ product, onBidSuccess }) {
 
     const router = useRouter();
     const [loading, setLoading] = useState(false);
-    const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
+    const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
     const [ended, setEnded] = useState(false);
     const [currentPrice, setCurrentPrice] = useState(product?.start_price);
 
@@ -52,7 +52,8 @@ function CardProductBid({ product, onBidSuccess }) {
             }
             const total = Math.floor(diff / 1000);
             setTimeLeft({
-                hours: Math.floor(total / 3600),
+                days: Math.floor(total / 86400),
+                hours: Math.floor((total % 86400) / 3600),
                 minutes: Math.floor((total % 3600) / 60),
                 seconds: total % 60,
             });
@@ -103,7 +104,7 @@ function CardProductBid({ product, onBidSuccess }) {
                         </span>
                     </div>
                 </div>
-                <div className="flex justify-between text-center gap-2">
+                <div className="flex justify-between text-center gap-2 mb-4">
                     <div className="flex-1 bg-white/10 rounded-lg py-2">
                         <span className="block text-2xl font-bold text-orange-600">{padTwo(timeLeft.hours)}</span>
                         <span className="text-[10px] text-slate-400 uppercase">ชั่วโมง</span>
@@ -117,6 +118,9 @@ function CardProductBid({ product, onBidSuccess }) {
                         <span className="text-[10px] text-slate-400 uppercase">วินาที</span>
                     </div>
                 </div>
+                {timeLeft.days > 0 && (
+                    <div className="text-center text-sm text-slate-400">จะหมดเวลาในอีก {timeLeft.days} วัน</div>
+                )}
             </div>
             <div className="p-6 space-y-6">
                 <div>

@@ -2,10 +2,11 @@ import Image from "next/image";
 import UseButton from "../inputs/UseButton";
 import { FieldTimeOutlined, HeartFilled, HeartOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
+import { useFavorite } from "@/app/hooks/useFavorite";
 
-function CardProduct({ id, image, time, category, name, price, bid, favorite }) {
-    // ใช้ที่ "/"
+function CardProduct({ id, image, time, category, name, price, bid }) {
     const router = useRouter();
+    const { isFavorited, toggle, loading } = useFavorite(id);
 
     return (
         <div className="bg-white dark:bg-zinc-800 rounded-xl overflow-hidden border border-slate-200 dark:border-zinc-700 flex flex-col group transition-all hover:shadow-xl hover:-translate-y-1">
@@ -19,9 +20,13 @@ function CardProduct({ id, image, time, category, name, price, bid, favorite }) 
                     sizes="(max-width: 768px) 100vw, 50vw"
                 />
                 <div className="absolute top-3 right-3">
-                    <button className="size-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-slate-600 hover:text-red-600 transition-colors cursor-pointer">
-                        {favorite ? (
-                            <HeartFilled style={{ fontSize: "20px" }} />
+                    <button
+                        onClick={toggle}
+                        disabled={loading}
+                        className="size-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center text-slate-600 hover:text-red-600 transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                        {isFavorited ? (
+                            <HeartFilled style={{ fontSize: "20px", color: "#ef4444" }} />
                         ) : (
                             <HeartOutlined style={{ fontSize: "20px" }} />
                         )}

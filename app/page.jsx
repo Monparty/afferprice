@@ -27,16 +27,18 @@ function Page() {
                         <ul className="ps-4 list-decimal">
                             <li>ทำ flow สร้างสินค้า ตรวจสอบ แจ้งเตือน ประมูล ชำระเงิน จัดส่ง</li>
                             <li>เพิ่ม Omise payment (เพิ่ม linepay, wallet)</li>
-                            <li>เพิ่ม login (OTP)</li>
+                            <li>add favorite</li>
+                            <li>add session timeout</li>
+                            <li>ทำ db ทดสอบ กับ bd จริง</li>
                             <li>เพิ่ม รายละเอียดหน้าแรก</li>
                             <li>add product เพิ่ม section ประเภทต่างๆ</li>
                             <li>ปรับ SEO</li>
                             <li>ดูเรื่องความปลอดภัยข้อเว็บและ db</li>
                             <li>ถาม flow ในหน้า product [id]</li>
                             <li>แก้เงื่อนไขการแสดงผล content หน้าแรก</li>
-                            <li>add favorite</li>
-                            <li>add session timeout</li>
-                            <li>ทำ db ทดสอบ กับ bd จริง</li>
+                            <li>เพิ่ม login (OTP)</li>
+                            <li>ของที่หมดเวลาประมูลแล้วจะทำอะไรกับมันต่อ</li>
+                            <li>ตรวจสอบ เรื่องความปลอดภัย</li>
                         </ul>
                     </div>
                 </div>

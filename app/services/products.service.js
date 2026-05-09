@@ -40,6 +40,7 @@ export async function getActiveProductsWithDetails() {
         .from("products")
         .select("*, categories(name), bids(id)")
         .eq("state", "active")
+        .gt("auction_end_time", new Date().toISOString())
         .order("auction_end_time", { ascending: true });
 }
 
@@ -48,6 +49,7 @@ export async function getActiveAuctionProducts() {
         .from("products")
         .select("*, bids(id, user_id)")
         .eq("state", "active")
+        .gt("auction_end_time", new Date().toISOString())
         .order("auction_end_time", { ascending: true });
 }
 
@@ -64,7 +66,8 @@ export async function getFilteredProducts({ sortBy, categoryIds, priceMin, price
     let query = supabase
         .from("products")
         .select("*, categories(name), bids(id)")
-        .eq("state", "active");
+        .eq("state", "active")
+        .gt("auction_end_time", new Date().toISOString());
 
     if (categoryIds?.length) query = query.in("category_id", categoryIds);
     if (priceMin != null) query = query.gte("start_price", priceMin);
