@@ -15,7 +15,7 @@ export async function getSellerProducts() {
 
 export async function getProductsByState(state) {
     const { data: { user } } = await supabase.auth.getUser();
-    return supabase.from("products").select("*").eq("state", state).eq("seller_id", user.id);
+    return supabase.from("products").select("*, auction_results(id)").eq("state", state).eq("seller_id", user.id);
 }
 
 export async function updateProductPrice(id, price) {

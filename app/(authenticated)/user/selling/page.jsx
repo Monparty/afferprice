@@ -68,6 +68,7 @@ function Page() {
                                 title: product?.title,
                                 duration_days: product?.duration_days,
                                 images_url: product?.images_url,
+                                hasAuctionResult: product?.auction_results?.length > 0,
                             }}
                         />
                     );

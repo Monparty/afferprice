@@ -10,11 +10,17 @@ import {
     SafetyOutlined,
 } from "@ant-design/icons";
 import UseTag from "../../../../components/utils/UseTag";
+import UseModal from "../../../../components/utils/UseModal";
+import UserAddressForm from "../../components/UserAddressForm";
+import CardUserAddress from "../../components/CardUserAddress";
 import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getAuctionResultByProduct } from "@/app/services/payment.service";
+import { getMyAddresses } from "@/app/services/address.service";
 import { notifyError } from "@/app/providers/NotificationProvider";
+
+// --------------- ต้องเป็รสินค้าที่มีข้อมูลอยู่ใน auction_results ถึงจะแสดงข้อมูลในหน้านี้ -------------------------
 
 const SHIPPING_OPTIONS = [
     { value: "express", label: "Express Delivery (ด่วนพิเศษ)", desc: "ได้รับสินค้าภายใน 1-2 วันทำการ", fee: 80 },
@@ -38,6 +44,17 @@ function Page() {
     const { id } = useParams();
     const [result, setResult] = useState(null);
     const [shipping, setShipping] = useState("express");
+    const [addresses, setAddresses] = useState([]);
+    const [selectedAddressId, setSelectedAddressId] = useState(null);
+    const [modalOpen, setModalOpen] = useState(false);
+
+    const fetchAddresses = async () => {
+        const { data, error } = await getMyAddresses();
+        if (error) return notifyError(error);
+        setAddresses(data ?? []);
+        const def = data?.find((a) => a.is_default) ?? data?.[0];
+        if (def && !selectedAddressId) setSelectedAddressId(def.id);
+    };
 
     useEffect(() => {
         if (!id) return;
@@ -45,6 +62,7 @@ function Page() {
             if (error) return notifyError(error);
             setResult(data);
         });
+        fetchAddresses();
     }, [id]);
 
     const product = result?.products;
@@ -101,24 +119,49 @@ function Page() {
                             </span>
                             <h2 className="text-xl font-bold">ที่อยู่จัดส่ง</h2>
                         </div>
-                        <UseButton label="เพิ่มที่อยู่ใหม่" type="default" icon={PlusOutlined} />
+                        <UseButton
+                            label="เพิ่มที่อยู่ใหม่"
+                            type="default"
+                            icon={PlusOutlined}
+                            onClick={() => setModalOpen(true)}
+                        />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="relative p-4 border-2 border-primary rounded-xl bg-primary/5 cursor-pointer">
-                            <div className="absolute top-4 right-4">
-                                <span className="material-symbols-outlined text-primary">check_circle</span>
-                            </div>
-                            <h4 className="font-bold mb-1">สมชาย สายประมูล (ที่บ้าน)</h4>
-                            <p className="text-sm text-gray-600 leading-relaxed">
-                                123/45 ถนนสุขุมวิท แขวงคลองเตยเหนือ
-                                <br />
-                                เขตวัฒนา กรุงเทพมหานคร 10110
-                                <br />
-                                โทร: 081-234-5678
-                            </p>
-                        </div>
+                    <div className="grid gap-4">
+                        {addresses.length === 0 && (
+                            <p className="text-sm text-gray-400">ยังไม่มีที่อยู่ กรุณาเพิ่มที่อยู่ก่อนชำระเงิน</p>
+                        )}
+                        {addresses.map((addr) => {
+                            const isSelected = selectedAddressId === addr.id;
+                            return (
+                                <div
+                                    key={addr.id}
+                                    onClick={() => setSelectedAddressId(addr.id)}
+                                    className={`rounded-xl cursor-pointer relative ${isSelected ? "border-2 border-orange-400 shadow-md" : "border-2 border-slate-50"}`}
+                                >
+                                    <CardUserAddress address={addr} readonly />
+                                    {isSelected && (
+                                        <CheckCircleFilled className="text-xl text-orange-500! absolute top-2 right-2" />
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                 </section>
+                <UseModal
+                    title="ที่อยู่ใหม่"
+                    open={modalOpen}
+                    onCancel={() => setModalOpen(false)}
+                    isShowCancel={false}
+                >
+                    <UserAddressForm
+                        editData={null}
+                        onSuccess={() => {
+                            fetchAddresses();
+                            setModalOpen(false);
+                        }}
+                        onClose={() => setModalOpen(false)}
+                    />
+                </UseModal>
 
                 <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
                     <div className="flex items-center gap-2 mb-6">
@@ -218,7 +261,7 @@ function Page() {
                         <UseButton
                             label="ยืนยันการชำระเงิน"
                             className="h-12! text-lg! font-bold!"
-                            onClick={() => router.push(`/payment/${id}`)}
+                            onClick={() => router.push(`/user/payment/${id}`)}
                             wFull
                             disabled={!result}
                         />

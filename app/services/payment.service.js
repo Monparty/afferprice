@@ -8,6 +8,14 @@ export async function getAuctionResultByProduct(productId) {
         .maybeSingle();
 }
 
+export async function getAuctionResultById(id) {
+    return supabase
+        .from("auction_results")
+        .select("id, final_price, payment_status, products(title, images_url)")
+        .eq("id", id)
+        .maybeSingle();
+}
+
 export async function getPaymentByAuctionResult(auctionResultId) {
     return supabase
         .from("payments")

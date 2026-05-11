@@ -6,6 +6,7 @@ export async function getProducts() {
 }
 
 export async function deleteProduct(id) {
+    await supabaseAdmin.from("favorites").delete().eq("product_id", id);
     return supabaseAdmin.from("products").delete().eq("id", id);
 }
 

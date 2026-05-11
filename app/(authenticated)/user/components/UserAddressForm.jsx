@@ -43,7 +43,9 @@ function UserAddressForm({ editData, onSuccess, onClose }) {
     }, [editData, reset]);
 
     const onSubmit = async (values) => {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+            data: { user },
+        } = await supabase.auth.getUser();
         const payload = {
             ...(values.id ? { id: values.id } : {}),
             user_id: user.id,
@@ -58,6 +60,7 @@ function UserAddressForm({ editData, onSuccess, onClose }) {
         const { error } = await upsertAddress(payload);
         if (error) return notifyError(error);
         notifySuccess("บันทึกที่อยู่สำเร็จ");
+        reset({});
         onSuccess?.();
         onClose?.();
     };
@@ -76,7 +79,14 @@ function UserAddressForm({ editData, onSuccess, onClose }) {
             <UseTextArea control={control} name="address" label="ที่อยู่" />
             <UseCheckbox control={control} name="isDefault" label="เลือกเป็นที่อยู่ตั้งต้น" className="w-fit" />
             <div className="flex justify-end gap-2">
-                <UseButton type="default" label="ปิด" onClick={onClose} />
+                <UseButton
+                    type="default"
+                    label="ปิด"
+                    onClick={() => {
+                        onClose();
+                        reset({});
+                    }}
+                />
                 <UseButton label="บันทึก" htmlType="submit" />
             </div>
         </form>

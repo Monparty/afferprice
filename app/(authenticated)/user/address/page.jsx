@@ -72,11 +72,7 @@ function Page() {
                 onCancel={handleCloseModal}
                 isShowCancel={false}
             >
-                <UserAddressForm
-                    editData={editData}
-                    onSuccess={fetchAddresses}
-                    onClose={handleCloseModal}
-                />
+                <UserAddressForm editData={editData} onSuccess={fetchAddresses} onClose={handleCloseModal} />
             </UseModal>
         </>
     );

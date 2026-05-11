@@ -35,7 +35,7 @@ function CardSellingProduct({ value }) {
                                         ดูสินค้า
                                     </Link>
                                 )}
-                                {["หมดเวลาประมูล"].includes(value.stateName) && (
+                                {["หมดเวลาประมูล"].includes(value.stateName) && value.hasAuctionResult && (
                                     <Link
                                         href={`/user/checkout/${value.id}`}
                                         className="text-black! hover:bg-gray-100! p-1 rounded-sm text-sm"
