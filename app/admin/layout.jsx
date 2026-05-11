@@ -30,7 +30,7 @@ export default function RootLayout({ children }) {
             icon: <ShoppingCartOutlined className="text-lg!" />,
         },
         {
-            url: ROUTES.ADMIN,
+            url: ROUTES.ADMIN_BID,
             label: "ตรวจสอบการ bid",
             icon: <InboxOutlined className="text-lg!" />,
         },

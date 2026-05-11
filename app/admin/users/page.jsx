@@ -89,7 +89,7 @@ function Page() {
             title: "วันที่สร้าง",
             dataIndex: "createdAt",
             key: "createdAt",
-            sorter: (a, b) => a.createdAt.localeCompare(b.createdAt),
+            sorter: (a, b) => a.createdAt?.localeCompare(b.createdAt),
             defaultSortOrder: "descend",
         },
         {

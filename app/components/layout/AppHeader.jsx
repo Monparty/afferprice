@@ -66,9 +66,12 @@ function AppHeader() {
         { url: "/", label: "หน้าแรก" },
         { url: "/categories", label: "หมวดหมู่" },
         { url: "/auction", label: "การประมูล" },
+        { url: "/user/favorites", label: "สิ่งที่ถูกใจ" },
+        { url: "/user/add-product", label: "สร้างรายการ" },
     ];
 
-    const mapPath = menus.find((item) => item.url.split("/")[1] === pathname.split("/")[1])?.label || "";
+    const mapPath =
+        menus.find((item) => (item.url === "/" ? pathname === "/" : pathname.startsWith(item.url)))?.label || "";
 
     const [openDrawer, setOpenDrawer] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
