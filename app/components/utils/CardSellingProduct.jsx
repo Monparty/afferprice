@@ -19,18 +19,28 @@ function CardSellingProduct({ value }) {
                         placement="bottomRight"
                         content={
                             <div className="grid gap-1 w-20">
-                                <Link
-                                    href={`/user/add-product/${value.id}/edit`}
-                                    className="text-black! hover:bg-gray-100! p-1 rounded-sm text-sm"
-                                >
-                                    แก้ไข
-                                </Link>
-                                {value.stateName === "กำลังประมูล" && (
+                                {["บันทึกร่าง", "รออนุมัติ", "ไม่อนุมัติ"].includes(value.stateName) && (
+                                    <Link
+                                        href={`/user/add-product/${value.id}/edit`}
+                                        className="text-black! hover:bg-gray-100! p-1 rounded-sm text-sm"
+                                    >
+                                        แก้ไข
+                                    </Link>
+                                )}
+                                {["กำลังประมูล"].includes(value.stateName) && (
                                     <Link
                                         href={`/product/${value.id}`}
                                         className="text-black! hover:bg-gray-100! p-1 rounded-sm text-sm"
                                     >
                                         ดูสินค้า
+                                    </Link>
+                                )}
+                                {["หมดเวลาประมูล"].includes(value.stateName) && (
+                                    <Link
+                                        href={`/user/checkout/${value.id}`}
+                                        className="text-black! hover:bg-gray-100! p-1 rounded-sm text-sm"
+                                    >
+                                        ตรวจสอบ
                                     </Link>
                                 )}
                             </div>

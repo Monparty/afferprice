@@ -42,11 +42,20 @@ function CardProductBid({ product, onBidSuccess }) {
     }, [product?.start_price]);
 
     useEffect(() => {
+        if (!ended || !product?.id) return;
+        fetch("/api/auction/end", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ productId: product.id }),
+        });
+    }, [ended, product?.id]);
+
+    useEffect(() => {
         if (!product?.auction_end_time) return;
         const tick = () => {
             const diff = new Date(product.auction_end_time) - new Date();
             if (diff <= 0) {
-                setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
+                setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
                 setEnded(true);
                 return;
             }
@@ -104,7 +113,7 @@ function CardProductBid({ product, onBidSuccess }) {
                         </span>
                     </div>
                 </div>
-                <div className="flex justify-between text-center gap-2 mb-4">
+                <div className="flex justify-between text-center gap-2">
                     <div className="flex-1 bg-white/10 rounded-lg py-2">
                         <span className="block text-2xl font-bold text-orange-600">{padTwo(timeLeft.hours)}</span>
                         <span className="text-[10px] text-slate-400 uppercase">ชั่วโมง</span>
@@ -119,7 +128,7 @@ function CardProductBid({ product, onBidSuccess }) {
                     </div>
                 </div>
                 {timeLeft.days > 0 && (
-                    <div className="text-center text-sm text-slate-400">จะหมดเวลาในอีก {timeLeft.days} วัน</div>
+                    <div className="text-center text-sm text-slate-400 pt-4">จะหมดเวลาในอีก {timeLeft.days} วัน</div>
                 )}
             </div>
             <div className="p-6 space-y-6">

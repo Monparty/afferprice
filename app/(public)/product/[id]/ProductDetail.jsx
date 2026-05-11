@@ -22,7 +22,7 @@ function formatTimeAgo(time) {
 
 export default function ProductDetail() {
     const { id } = useParams();
-    const [product, setProduct] = useState([]);
+    const [product, setProduct] = useState(null);
     const [bids, setBids] = useState([]);
 
     const fetchBids = async (productId) => {
@@ -70,8 +70,8 @@ export default function ProductDetail() {
                     <UseImageGroup imageGroup={formatProductImage} />
                     <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm space-y-6">
                         <div>
-                            <h1 className="text-3xl font-extrabold mb-4 text-primary">{product.title}</h1>
-                            <p className="text-slate-600 leading-relaxed">{product.description}</p>
+                            <h1 className="text-3xl font-extrabold mb-4 text-primary">{product?.title}</h1>
+                            <p className="text-slate-600 leading-relaxed">{product?.description}</p>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-6 border-y border-slate-100">
                             <div className="space-y-1">

@@ -1,7 +1,7 @@
 import Image from "next/image";
-import UseButton from "../../components/inputs/UseButton";
-import UseSteps from "../../components/utils/UseSteps";
-import UseTag from "../../components/utils/UseTag";
+import UseButton from "../../../components/inputs/UseButton";
+import UseSteps from "../../../components/utils/UseSteps";
+import UseTag from "../../../components/utils/UseTag";
 import {
     CarOutlined,
     CopyOutlined,

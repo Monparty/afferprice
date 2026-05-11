@@ -12,7 +12,9 @@
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\sense\\\\Desktop\\\\projects\\\\afferprice\" -Recurse -Filter \"*schema*\" -ErrorAction SilentlyContinue)",
       "Bash(Get-ChildItem -Path . -Force)",
-      "Bash(Select-Object Name, PSIsContainer)"
+      "Bash(Select-Object Name, PSIsContainer)",
+      "PowerShell(head -30)",
+      "Bash(xargs grep -l \"auction_results\\\\|auction.*end\\\\|endAuction\")"
     ]
   }
 }

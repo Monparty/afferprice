@@ -1,4 +1,4 @@
-import UseButton from "../../components/inputs/UseButton";
+import UseButton from "../../../components/inputs/UseButton";
 import { ArrowLeftOutlined, CheckCircleFilled, DownloadOutlined, FileDoneOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import Link from "next/link";

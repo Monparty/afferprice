@@ -74,8 +74,8 @@ Schema defined in `db/00_schema.sql`. Key tables:
 | `profiles` | Extends `auth.users`; `role` = `user` \| `admin` |
 | `products` | Core auction listings; status lifecycle below |
 | `product_images` | Ordered images per product |
-| `bids` | Bids with `is_winning` flag — **flag ไม่ได้ถูก set อัตโนมัติ** ยังไม่มี trigger/cron; ใช้ `getHighestBid()` แทนการเชื่อ flag นี้ |
-| `auction_results` | Winner + final price per auction |
+| `bids` | Bids with `is_winning` flag — **set อัตโนมัติโดย `/api/auction/end`** เมื่อประมูลสิ้นสุด; ใช้ `getHighestBid()` ถ้าต้องการราคาสูงสุดแบบ real-time |
+| `auction_results` | Winner + final price per auction — สร้างโดย `/api/auction/end` เมื่อ `state` เปลี่ยนเป็น `ended` |
 | `payments` | Methods: `bank`, `credit_card`, `promptpay`, `wallet` |
 | `shipments` | Tracking info |
 | `notifications` | Types: `bid`, `win`, `lose`, `payment`, `shipping` |
@@ -84,6 +84,31 @@ Schema defined in `db/00_schema.sql`. Key tables:
 **Product status lifecycle**: `draft` → `pending_review` → `active` → `ended` / `sold` / `cancelled`; can also move to `rejected` from `pending_review`. Helper: `app/utils/mapProductState.js`.
 
 **`products.start_price` หลัง bid**: ทำหน้าที่เป็น "ราคาปัจจุบัน / floor ของ bid ถัดไป" — `updateProductPrice()` ใน `products.service.js` จะ update ค่านี้ทุกครั้งที่ bid สำเร็จ ไม่มีคอลัมน์ `current_price` แยกต่างหาก
+
+### Auction End Flow
+
+- **Trigger**: client-side — เมื่อ timer ใน `CardProductBid` นับถอยหลังถึง 0 → `POST /api/auction/end`
+- **API route**: `app/api/auction/end/route.js` (ใช้ `supabaseAdmin`)
+  1. ตรวจ `auction_end_time < now()` และ `state = active` (กัน early call)
+  2. Idempotency — ถ้า `auction_results` มี record อยู่แล้วให้ return ออก
+  3. หา highest bid → INSERT `auction_results` + `UPDATE bids SET is_winning = true`
+  4. INSERT notifications (`win` ให้ winner, `lose` ให้ bidder อื่น)
+  5. UPDATE `products.state = 'ended'`
+- **State lifecycle**: `active` → `ended` (ประมูลสิ้นสุด) → `sold` (หลังชำระเงิน)
+- **`auction_end_time`** ถูก set โดย admin ตอน approve เท่านั้น (ไม่ set ตอน draft save)
+
+### Favorites
+
+- **Service**: `app/services/favorites.service.js` — `getFavorites`, `addFavorite`, `removeFavorite`, `checkIsFavorite`
+- **Hook**: `app/hooks/useFavorite.js` — `useFavorite(productId)` คืน `{ isFavorited, toggle, loading }` ใช้ได้จากทุก component โดยไม่ต้องพึ่ง Redux
+- **หน้า favorites**: `/user/favorites` — โหลดจาก DB จริง
+
+### Checkout Flow
+
+- **URL**: `/checkout/[id]` — `id` คือ **`product.id`** (ไม่ใช่ `auction_result.id`)
+- **Service**: `getAuctionResultByProduct(productId)` ใน `payment.service.js` — query ด้วย `product_id`
+- **ยอดรวม**: `final_price` + ค่าธรรมเนียม 5% + ค่าจัดส่ง (เลือกได้)
+- **ปุ่มชำระ** → route ไป `/user/payment/[auctionResultId]`
 
 ### Bid Flow (`app/components/utils/CardProductBid.jsx`)
 

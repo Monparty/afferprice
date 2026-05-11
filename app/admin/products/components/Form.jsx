@@ -195,8 +195,8 @@ function Form({ id, mode, onSubmit }) {
                                 className="bg-blue-500! text-white!"
                                 size="large"
                                 type="default"
-                                onClick={() => {
-                                    submitForm(getValues(), "pending_review");
+                                onClick={async () => {
+                                    await submitForm(getValues(), "pending_review");
                                     onGetProductById();
                                 }}
                             />
@@ -222,8 +222,8 @@ function Form({ id, mode, onSubmit }) {
                                 className="bg-green-500! text-white!"
                                 size="large"
                                 type="default"
-                                onClick={() => {
-                                    submitForm(getValues(), "active");
+                                onClick={async () => {
+                                    await submitForm(getValues(), "active");
                                     onGetProductById();
                                 }}
                             />
@@ -239,8 +239,8 @@ function Form({ id, mode, onSubmit }) {
             <UseModal
                 open={modalRejected}
                 onCancel={() => setModalRejected(false)}
-                onOk={() => {
-                    submitForm(getValues(), "rejected");
+                onOk={async () => {
+                    await submitForm(getValues(), "rejected");
                     setModalRejected(false);
                     onGetProductById();
                 }}

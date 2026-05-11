@@ -8,7 +8,7 @@ function Page() {
 
     return (
         <div className="w-full max-w-360 mx-auto py-6 px-4 md:px-10">
-            <div className="hidden">
+            <div className="//hidden">
                 <button
                     onClick={() => setShowDev(!showDev)}
                     className="h-fit w-fit bg-blue-400 p-4 fixed z-100 m-4 right-0 rounded-lg  text-white flex opacity-50 cursor-pointer"
@@ -17,7 +17,6 @@ function Page() {
                 </button>
                 <div className={`${showDev ? "block" : "hidden"}`}>
                     <div className="h-fit w-fit bg-blue-400 p-4 fixed z-100 m-4 right-0 top-36 rounded-lg font-bold text-white flex gap-4">
-                        <Link href="/product">product</Link>
                         <Link href="/checkout">checkout</Link>
                         <Link href="/payment">payment</Link>
                         <Link href="/order">order</Link>
@@ -39,6 +38,8 @@ function Page() {
                             <li>เพิ่ม login (OTP)</li>
                             <li>ของที่หมดเวลาประมูลแล้วจะทำอะไรกับมันต่อ</li>
                             <li>ตรวจสอบ เรื่องความปลอดภัย</li>
+                            <li>แก้เมนูที่ navbar</li>
+                            <li>เจ้าของสินค้าประมูลสินค้าตัวเองไม่ได้ใช่ไหม</li>
                         </ul>
                     </div>
                 </div>

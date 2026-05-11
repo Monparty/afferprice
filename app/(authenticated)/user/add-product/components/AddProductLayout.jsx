@@ -8,7 +8,6 @@ import { getProductById, upsertProduct } from "@/app/services/products.service";
 import { uploadPendingFiles, removeDeletedFiles } from "@/app/utils/storageHelper";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUser } from "@/app/features/user/userSlice";
-import dayjs from "dayjs";
 import Form from "./Form";
 import AddProductSteps from "./AddProductSteps";
 import UseSkeleton from "@/app/components/utils/UseSkeleton";
@@ -75,7 +74,6 @@ function AddProductLayout({ productId }) {
             const value = getValues();
             const uploadedImages = await uploadPendingFiles(value?.images_url || []);
             const uploadedVideos = await uploadPendingFiles(value?.video_url || []);
-            const formatEndTime = dayjs().add(value.durationDays, "day").toISOString();
 
             const payload = {
                 id: value?.productId ?? productId ?? undefined,
@@ -85,7 +83,6 @@ function AddProductLayout({ productId }) {
                 description: value.description,
                 condition: value.condition || "new",
                 start_price: value.startPrice,
-                auction_end_time: formatEndTime,
                 state: "draft",
                 images_url: uploadedImages,
                 video_url: uploadedVideos,
