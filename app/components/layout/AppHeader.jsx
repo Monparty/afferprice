@@ -25,6 +25,8 @@ import UsePopover from "../utils/UsePopover";
 import { logout, subscribeAuth } from "../../../app/services/auth.service";
 import { getProfileById } from "@/app/services/profile.service";
 import { searchProducts } from "@/app/services/products.service";
+import { getUnreadCount } from "@/app/services/notifications.service";
+import { getSellerProducts } from "@/app/services/products.service";
 import { notifyError } from "@/app/providers/NotificationProvider";
 import { useTheme } from "@/app/providers/ThemeProvider";
 import UseAutoComplete from "../inputs/UseAutoComplete";
@@ -73,7 +75,14 @@ function AppHeader() {
     const mapPath =
         menus.find((item) => (item.url === "/" ? pathname === "/" : pathname.startsWith(item.url)))?.label || "";
 
+    const [unreadCount, setUnreadCount] = useState(0);
     const [openDrawer, setOpenDrawer] = useState(false);
+
+    const fetchUnreadCount = async () => {
+        const [{ count: notifCount }, { data: products }] = await Promise.all([getUnreadCount(), getSellerProducts()]);
+        const rejectedCount = (products ?? []).filter((p) => p.state === "rejected").length;
+        setUnreadCount((notifCount ?? 0) + rejectedCount);
+    };
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const handleLogout = async () => {
@@ -95,6 +104,7 @@ function AppHeader() {
             setProfile(data);
         };
         fetchProfile();
+        fetchUnreadCount();
     }, [user]);
 
     // hide header on scroll down
@@ -195,7 +205,7 @@ function AppHeader() {
                     ) : (
                         <div className="flex gap-4 items-center">
                             <DarkModeToggle />
-                            <UseBadge dot>
+                            <UseBadge count={unreadCount}>
                                 <UseButton onClick={() => setOpenDrawer(true)} icon={BellFilled} />
                             </UseBadge>
                             <UsePopover
@@ -286,7 +296,7 @@ function AppHeader() {
                 </div>
             )}
 
-            <UseDrawer onClose={() => setOpenDrawer(false)} open={openDrawer} />
+            <UseDrawer onClose={() => setOpenDrawer(false)} open={openDrawer} onRead={fetchUnreadCount} />
         </header>
     );
 }

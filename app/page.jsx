@@ -8,7 +8,7 @@ function Page() {
 
     return (
         <div className="w-full max-w-360 mx-auto py-6 px-4 md:px-10">
-            <div className="//hidden">
+            <div className="hidden">
                 <button
                     onClick={() => setShowDev(!showDev)}
                     className="h-fit w-fit bg-blue-400 p-4 fixed z-100 m-4 right-0 rounded-lg  text-white flex opacity-50 cursor-pointer"
@@ -26,20 +26,15 @@ function Page() {
                         <ul className="ps-4 list-decimal">
                             <li>ทำ flow สร้างสินค้า ตรวจสอบ แจ้งเตือน ประมูล ชำระเงิน จัดส่ง</li>
                             <li>เพิ่ม Omise payment (เพิ่ม linepay, wallet)</li>
-                            <li>add favorite</li>
                             <li>add session timeout</li>
                             <li>ทำ db ทดสอบ กับ bd จริง</li>
-                            <li>เพิ่ม รายละเอียดหน้าแรก</li>
                             <li>add product เพิ่ม section ประเภทต่างๆ</li>
-                            <li>ปรับ SEO</li>
                             <li>ดูเรื่องความปลอดภัยข้อเว็บและ db</li>
-                            <li>ถาม flow ในหน้า product [id]</li>
                             <li>แก้เงื่อนไขการแสดงผล content หน้าแรก</li>
                             <li>เพิ่ม login (OTP)</li>
                             <li>ของที่หมดเวลาประมูลแล้วจะทำอะไรกับมันต่อ</li>
-                            <li>ตรวจสอบ เรื่องความปลอดภัย</li>
-                            <li>แก้เมนูที่ navbar</li>
                             <li>เจ้าของสินค้าประมูลสินค้าตัวเองไม่ได้ใช่ไหม</li>
+                            <li>ปรับ responsive และ darkmode ทุกจุด</li>
                         </ul>
                     </div>
                 </div>

@@ -3,7 +3,7 @@ import UseButton from "../inputs/UseButton";
 import { ArrowRightOutlined } from "@ant-design/icons";
 import CardDrawer from "./CardDrawer";
 
-function UseDrawer({ onClose, open, loading = false }) {
+function UseDrawer({ onClose, open, loading = false, onRead }) {
     return (
         <Drawer
             title={
@@ -38,7 +38,7 @@ function UseDrawer({ onClose, open, loading = false }) {
                     <UseButton shape="round" label="คำเตือน" type={null} />
                 </div>
                 <div className="flex-1 overflow-y-auto py-4 flex flex-col gap-3">
-                    <CardDrawer onClose={onClose} />
+                    <CardDrawer open={open} onClose={onClose} onRead={onRead} />
                 </div>
             </div>
         </Drawer>

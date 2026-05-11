@@ -102,13 +102,21 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - **Service**: `app/services/favorites.service.js` — `getFavorites`, `addFavorite`, `removeFavorite`, `checkIsFavorite`
 - **Hook**: `app/hooks/useFavorite.js` — `useFavorite(productId)` คืน `{ isFavorited, toggle, loading }` ใช้ได้จากทุก component โดยไม่ต้องพึ่ง Redux
 - **หน้า favorites**: `/user/favorites` — โหลดจาก DB จริง
+- **Delete product**: `deleteProduct()` ใน `admin/products.service.js` ลบ `favorites` ก่อนเสมอเพื่อป้องกัน FK constraint
 
 ### Checkout Flow
 
-- **URL**: `/checkout/[id]` — `id` คือ **`product.id`** (ไม่ใช่ `auction_result.id`)
+- **URL**: `/user/checkout/[id]` — `id` คือ **`product.id`** (ไม่ใช่ `auction_result.id`)
 - **Service**: `getAuctionResultByProduct(productId)` ใน `payment.service.js` — query ด้วย `product_id`
+- **ที่อยู่จัดส่ง**: โหลดจาก `user_addresses` — ใช้ `CardUserAddress` prop `readonly` เพื่อซ่อนปุ่ม edit/delete/set-default; เพิ่มที่อยู่ใหม่ผ่าน modal `UserAddressForm` ใน checkout ได้เลย
 - **ยอดรวม**: `final_price` + ค่าธรรมเนียม 5% + ค่าจัดส่ง (เลือกได้)
 - **ปุ่มชำระ** → route ไป `/user/payment/[auctionResultId]`
+
+### Payment Page (`/user/payment/[auctionResultId]`)
+
+- fetch ข้อมูลด้วย `getAuctionResultById(id)` ใน `payment.service.js`
+- คำนวณยอด: `final_price + 5%` (ไม่รวมค่าจัดส่ง — ไม่ได้ persist จาก checkout)
+- QR code: เรียก `POST /api/payment/promptpay` on mount พร้อม `{ userId, amount, auctionResultId }`
 
 ### Bid Flow (`app/components/utils/CardProductBid.jsx`)
 
@@ -117,16 +125,30 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - หลัง submit: `insertBid` → `updateProductPrice` → `setCurrentPrice` → `onBidSuccess?.()`
 - `getBidsByProduct(productId)` ใน `bids.service.js` — ดึง bid history เรียงตาม `bid_time DESC`
 
+### Selling Page (`/user/selling`)
+
+- `getProductsByState(state)` join `auction_results(id)` — ใช้ `hasAuctionResult` prop ใน `CardSellingProduct`
+- link "ตรวจสอบ" (→ checkout) แสดงเฉพาะเมื่อ state = `ended` **และ** มี row ใน `auction_results`
+
 ### Payment (Omise)
 
 - **Keys**: `OMISE_SECRET_KEY` (server-only), `NEXT_PUBLIC_OMISE_PUBLIC_KEY` (client)
 - **DO NOT use `omise` npm package** — ESM interop broken in Next.js App Router. Use `fetch` โดยตรงผ่าน helper `omiseFetch` ใน `app/api/payment/promptpay/route.js`
 - **PromptPay flow**: POST `/api/payment/promptpay` → สร้าง source + charge → คืน `qrCodeUrl`
-- **Webhook**: POST `/api/payment/webhook` — รับ `charge.complete` event จาก Omise → อัป `payments.payment_status`
+- **Webhook**: POST `/api/payment/webhook` — รับ `charge.complete` event จาก Omise → อัป `payments.payment_status` + UPDATE `products.state = 'sold'` ผ่าน `auction_results.product_id` (เฉพาะ payment ที่มี `auction_result_id`)
+- **⚠️ payments row ต้องสร้างก่อน QR แสดง** — webhook หา record ด้วย `transaction_ref` (charge.id); ถ้าไม่มี row จะ update ไม่ได้
 - **Component**: `app/components/payment/PromptPayQR.jsx` — รับ `userId`, `amount`, `auctionResultId?`
 - **Payment page**: `/user/payment/[auctionResultId]`
 - **Listing fee payment**: `PaymentBtn.jsx` ใน add-product flow — ค่าธรรมเนียม `LISTING_FEE` บาท (ไม่มี auctionResultId)
 - **Local dev webhook**: ต้องใช้ ngrok — `ngrok http 3000` แล้วตั้ง endpoint ใน Omise Dashboard
+
+### Notification Bell (AppHeader)
+
+- **Service**: `app/services/notifications.service.js` — `getMyNotifications`, `getUnreadCount`, `markAllNotificationsRead`
+- **Badge count**: unread notifications + จำนวน rejected products (ดึงจาก `getSellerProducts`)
+- **Drawer**: `UseDrawer` → `CardDrawer` — เปิดครั้งแรก fetch + mark all read + reset badge
+- **Persistent alerts** (ไม่ mark as read): products ที่ state = `rejected` — ดึงจาก `products` table โดยตรง หายเองเมื่อ user แก้ไขแล้ว state เปลี่ยน; กดปุ่ม "แก้ไขสินค้า" → `/user/add-product/[id]/edit`
+- `profiles` ไม่มี column `email` — email อยู่ใน `auth.users`; ใช้ view `users_full` เพื่อ query รวม
 
 ## Key Conventions
 

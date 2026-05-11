@@ -1,169 +1,127 @@
 "use client";
 import { useEffect, useState } from "react";
-import UseButton from "../inputs/UseButton";
 import {
+    BellOutlined,
     CheckCircleOutlined,
     CloseCircleOutlined,
-    EyeOutlined,
-    FieldTimeOutlined,
-    FrownOutlined,
     SmileOutlined,
+    FrownOutlined,
+    CreditCardOutlined,
 } from "@ant-design/icons";
+import { getMyNotifications, markAllNotificationsRead } from "@/app/services/notifications.service";
 import { getSellerProducts } from "@/app/services/products.service";
-import { notifyError } from "@/app/providers/NotificationProvider";
 import { useRouter } from "next/navigation";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import "dayjs/locale/th";
+import UseButton from "../inputs/UseButton";
 
-function CardDrawer({ onClose }) {
-    const [products, setProducts] = useState([]);
+dayjs.extend(relativeTime);
+dayjs.locale("th");
+
+const TYPE_CONFIG = {
+    win: { icon: SmileOutlined, bg: "bg-green-50", text: "text-green-500", border: "border-green-100" },
+    lose: { icon: FrownOutlined, bg: "bg-red-50", text: "text-red-500", border: "border-red-100" },
+    bid: { icon: BellOutlined, bg: "bg-blue-50", text: "text-blue-500", border: "border-blue-100" },
+    payment: { icon: CreditCardOutlined, bg: "bg-green-50", text: "text-green-500", border: "border-green-100" },
+};
+
+const DEFAULT_CONFIG = { icon: BellOutlined, bg: "bg-slate-50", text: "text-slate-400", border: "border-slate-100" };
+
+function CardDrawer({ open, onClose, onRead }) {
+    const [notifications, setNotifications] = useState([]);
+    const [rejectedProducts, setRejectedProducts] = useState([]);
+    const [loading, setLoading] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
-        const onGetProducts = async () => {
-            const { data, error } = await getSellerProducts();
-            if (error) return notifyError(error);
-            setProducts(data);
-        };
-        onGetProducts();
-    }, []);
+        if (!open) return;
+        setLoading(true);
+        Promise.all([getMyNotifications(), getSellerProducts()]).then(([{ data: notifs }, { data: products }]) => {
+            setNotifications(notifs ?? []);
+            setRejectedProducts((products ?? []).filter((p) => p.state === "rejected"));
+            setLoading(false);
+        });
+        markAllNotificationsRead().then(() => onRead?.());
+    }, [open]);
+
+    if (loading) {
+        return (
+            <div className="flex flex-col gap-3">
+                {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-20 rounded-xl bg-slate-100 animate-pulse" />
+                ))}
+            </div>
+        );
+    }
+
+    if (notifications.length === 0 && rejectedProducts.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center py-16 text-slate-400 gap-2">
+                <BellOutlined style={{ fontSize: 32 }} />
+                <p className="text-sm">ยังไม่มีการแจ้งเตือน</p>
+            </div>
+        );
+    }
 
     return (
         <>
-            <div className="p-4 rounded-xl bg-white border border-red-100 hover:border-red-200 hover:shadow-md transition-all group">
-                <div className="flex gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-red-50 flex items-center justify-center text-red-500 shrink-0">
-                        <FrownOutlined style={{ fontSize: "20px" }} />
-                    </div>
-                    <div className="flex-1">
-                        <div className="flex justify-between items-start mb-1">
-                            <h3 className="text-slate-900 font-bold text-sm">คุณถูกประมูลแซงแล้ว!</h3>
-                            <span className="text-[10px] text-slate-400 font-medium">1 นาทีที่แล้ว</span>
+            {rejectedProducts.map((product) => (
+                <div
+                    key={product.id}
+                    className="p-4 rounded-xl bg-red-50 border border-red-200 hover:shadow-md transition-all"
+                >
+                    <div className="flex gap-4">
+                        <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center text-red-500 shrink-0">
+                            <CloseCircleOutlined style={{ fontSize: "18px" }} />
                         </div>
-                        <p className="text-slate-600 text-xs leading-relaxed mb-4">
-                            มีผู้เสนอราคาสูงกว่าคุณในรายการ{" "}
-                            <span className="text-slate-900 font-medium">Vintage Rolex Oyster Perpetual</span>
-                            <br />
-                            ราคาปัจจุบัน: <span className="text-slate-900 font-bold">฿45,500</span>
-                        </p>
-                        <UseButton label="ประมูลใหม่ทันทีเป็น ฿47,000" />
+                        <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-start mb-0.5 gap-2">
+                                <h3 className="text-slate-900 font-bold text-sm">สินค้าไม่ผ่านการอนุมัติ</h3>
+                                <span className="text-[10px] bg-red-100 text-red-500 font-bold px-1.5 py-0.5 rounded shrink-0">
+                                    ต้องแก้ไข
+                                </span>
+                            </div>
+                            <p className="text-slate-600 text-xs leading-relaxed mb-3 truncate">{product.title}</p>
+                            <UseButton
+                                label="แก้ไขสินค้า"
+                                onClick={() => {
+                                    router.push(`/user/add-product/${product.id}/edit`);
+                                    onClose?.();
+                                }}
+                                className="bg-red-500! hover:bg-red-400!"
+                            />
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div className="p-4 rounded-xl bg-white border border-amber-100 hover:border-amber-200 hover:shadow-md transition-all">
-                <div className="flex gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500 shrink-0">
-                        <FieldTimeOutlined style={{ fontSize: "20px" }} />
-                    </div>
-                    <div className="flex-1">
-                        <div className="flex justify-between items-start mb-1">
-                            <h3 className="text-slate-900 font-bold text-sm">การประมูลกำลังจะสิ้นสุด!</h3>
-                            <span className="text-[10px] text-slate-400 font-medium">3 นาทีที่แล้ว</span>
-                        </div>
-                        <p className="text-slate-600 text-xs leading-relaxed mb-3">
-                            รายการ <span className="text-slate-900 font-medium">First Edition Charizard Card</span>{" "}
-                            กำลังจะจบลงในอีก <span className="text-amber-600 font-bold">2น. 45ว.</span>
-                        </p>
-                        <div className="w-full h-1.5 bg-slate-100 rounded-full mb-4 overflow-hidden">
-                            <div className="h-full bg-amber-500 w-[15%]"></div>
-                        </div>
-                        <UseButton label="ดูสินค้า" type="default" />
-                    </div>
-                </div>
-            </div>
-            <div className="p-4 rounded-xl bg-white border border-green-100 hover:border-green-200 hover:shadow-md transition-all">
-                <div className="flex gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-green-50 flex items-center justify-center text-green-500 shrink-0">
-                        <SmileOutlined style={{ fontSize: "20px" }} />
-                    </div>
-                    <div className="flex-1">
-                        <div className="flex justify-between items-start mb-1">
-                            <h3 className="text-slate-900 font-bold text-sm">ยินดีด้วย! คุณชนะการประมูล</h3>
-                            <span className="text-[10px] text-slate-400 font-medium">2 ชม. ที่แล้ว</span>
-                        </div>
-                        <p className="text-slate-600 text-xs leading-relaxed">
-                            คุณชนะการประมูลสำหรับรายการ{" "}
-                            <span className="text-slate-900 font-medium">Professional Leica M10 Body</span>
-                        </p>
-                        <p className="text-[11px] text-green-600 mt-2 font-bold">ราคาที่ชนะ: ฿185,000</p>
-                    </div>
-                </div>
-            </div>
-            {(products || [])
-                .filter((product) => product.state === "active")
-                .map((product) => (
-                    <div className="p-4 rounded-xl bg-white border border-green-100 hover:border-blue-200 hover:shadow-md transition-all">
+            ))}
+            {notifications.map((n) => {
+                const cfg = TYPE_CONFIG[n.type] ?? DEFAULT_CONFIG;
+                const Icon = cfg.icon;
+                return (
+                    <div
+                        key={n.id}
+                        className={`p-4 rounded-xl bg-white border ${cfg.border} hover:shadow-md transition-all ${!n.is_read ? "ring-1 ring-primary/20" : ""}`}
+                    >
                         <div className="flex gap-4">
-                            <div className="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500 shrink-0">
-                                <CheckCircleOutlined style={{ fontSize: "20px" }} />
+                            <div
+                                className={`w-10 h-10 rounded-lg ${cfg.bg} flex items-center justify-center ${cfg.text} shrink-0`}
+                            >
+                                <Icon style={{ fontSize: "18px" }} />
                             </div>
-                            <div className="flex-1">
-                                <div className="flex justify-between items-start mb-1">
-                                    <h3 className="text-slate-900 font-bold text-sm">สินค้าของคุณได้รับการอนุมัติ</h3>
-                                    <span className="text-[10px] text-slate-400 font-medium">2 ชม. ที่แล้ว</span>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex justify-between items-start mb-0.5 gap-2">
+                                    <h3 className="text-slate-900 font-bold text-sm leading-tight">{n.title}</h3>
+                                    <span className="text-[10px] text-slate-400 font-medium shrink-0">
+                                        {dayjs(n.created_at).fromNow()}
+                                    </span>
                                 </div>
-                                <p className="text-slate-600 text-xs leading-relaxed mb-4">
-                                    ดูการประมูลสินค้าของคุณได้เลยตอนนี้{" "}
-                                    <span className="text-slate-900 font-medium">{product.title}</span>
-                                </p>
-                                <UseButton
-                                    label="ดูสินค้า"
-                                    type="default"
-                                    onClick={() => {
-                                        router.push(`/product/${product.id}`);
-                                        onClose();
-                                    }}
-                                />
+                                <p className="text-slate-600 text-xs leading-relaxed">{n.message}</p>
                             </div>
                         </div>
                     </div>
-                ))}
-
-            {(products || [])
-                .filter((product) => product.state === "rejected")
-                .map((product) => (
-                    <div className="p-4 rounded-xl bg-red-50 border border-red-100 hover:border-red-200 hover:shadow-md transition-all group">
-                        <div className="flex gap-4">
-                            <div className="w-12 h-12 rounded-lg bg-red-100 flex items-center justify-center text-red-500 shrink-0">
-                                <CloseCircleOutlined style={{ fontSize: "20px" }} />
-                            </div>
-                            <div className="flex-1">
-                                <div className="flex justify-between items-start mb-1">
-                                    <h3 className="text-slate-900 font-bold text-sm">สินค้าของคุณไม่ผ่านการอนุมัติ</h3>
-                                    <span className="text-[10px] text-slate-400 font-medium">1 นาทีที่แล้ว</span>
-                                </div>
-                                <p className="text-slate-600 text-xs leading-relaxed mb-4">
-                                    กรุณาตรวจสอบสินค้าของคุณใหม่อีกครั้ง{" "}
-                                    <span className="text-slate-900 font-medium">{product?.title}</span>
-                                </p>
-                                <UseButton
-                                    label="ตรวจสอบสินค้า"
-                                    type="default"
-                                    onClick={() => {
-                                        router.push(`/user/add-product/${product.id}/edit`);
-                                        onClose();
-                                    }}
-                                    className="bg-red-400! text-white!"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            <div className="p-4 rounded-xl bg-slate-50/50 border border-slate-100 opacity-80">
-                <div className="flex gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 shrink-0">
-                        <EyeOutlined style={{ fontSize: "20px" }} />
-                    </div>
-                    <div className="flex-1">
-                        <div className="flex justify-between items-start mb-1">
-                            <h3 className="text-slate-700 font-semibold text-sm">ความสนใจใหม่</h3>
-                            <span className="text-[10px] text-slate-400 font-medium">5 ชม. ที่แล้ว</span>
-                        </div>
-                        <p className="text-slate-500 text-xs leading-relaxed">
-                            มีคนเพิ่ม <span className="text-slate-700">Antique Writing Desk</span>{" "}
-                            ของคุณลงในรายการที่เฝ้าดูเพิ่มขึ้น 12 คน
-                        </p>
-                    </div>
-                </div>
-            </div>
+                );
+            })}
         </>
     );
 }
