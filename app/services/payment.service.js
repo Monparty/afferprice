@@ -3,7 +3,7 @@ import { supabase } from "@/app/lib/supabase/client";
 export async function getAuctionResultByProduct(productId) {
     return supabase
         .from("auction_results")
-        .select("id, final_price, payment_status, products(title, images_url)")
+        .select("id, final_price, payment_status, products(title, images_url, seller_id)")
         .eq("product_id", productId)
         .maybeSingle();
 }

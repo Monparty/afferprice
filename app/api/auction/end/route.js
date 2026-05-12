@@ -63,8 +63,9 @@ export async function POST(request) {
         await supabaseAdmin.from("notifications").insert(notifications);
     }
 
-    // 7. อัป product state → ended
-    await supabaseAdmin.from("products").update({ state: "ended" }).eq("id", productId);
+    // 7. อัป product state
+    const newState = winningBid ? "sold" : "cancelled";
+    await supabaseAdmin.from("products").update({ state: newState }).eq("id", productId);
 
     return NextResponse.json({ ended: true, winnerId: winningBid?.user_id ?? null });
 }

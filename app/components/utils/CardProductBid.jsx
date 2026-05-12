@@ -113,7 +113,7 @@ function CardProductBid({ product, onBidSuccess }) {
                         </span>
                     </div>
                 </div>
-                <div className="flex justify-between text-center gap-2">
+                <div className="flex justify-between text-center gap-4">
                     <div className="flex-1 bg-white/10 rounded-lg py-2">
                         <span className="block text-2xl font-bold text-orange-600">{padTwo(timeLeft.hours)}</span>
                         <span className="text-[10px] text-slate-400 uppercase">ชั่วโมง</span>
@@ -128,7 +128,10 @@ function CardProductBid({ product, onBidSuccess }) {
                     </div>
                 </div>
                 {timeLeft.days > 0 && (
-                    <div className="text-center text-sm text-slate-400 pt-4">จะหมดเวลาในอีก {timeLeft.days} วัน</div>
+                    <div className="flex justify-center">
+
+                        <div className="text-center text-lg mt-4 text-orange-600 bg-white/10 py-1 px-6 w-fit rounded-lg">จะหมดเวลาในอีก {timeLeft.days} วัน</div>
+                    </div>
                 )}
             </div>
             <div className="p-6 space-y-6">

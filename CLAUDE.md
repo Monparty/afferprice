@@ -75,13 +75,15 @@ Schema defined in `db/00_schema.sql`. Key tables:
 | `products` | Core auction listings; status lifecycle below |
 | `product_images` | Ordered images per product |
 | `bids` | Bids with `is_winning` flag — **set อัตโนมัติโดย `/api/auction/end`** เมื่อประมูลสิ้นสุด; ใช้ `getHighestBid()` ถ้าต้องการราคาสูงสุดแบบ real-time |
-| `auction_results` | Winner + final price per auction — สร้างโดย `/api/auction/end` เมื่อ `state` เปลี่ยนเป็น `ended` |
+| `auction_results` | Winner + final price per auction — สร้างโดย `/api/auction/end`; `payment_status`: `pending` → `paid` (webhook อัปเมื่อจ่ายสำเร็จ) |
 | `payments` | Methods: `bank`, `credit_card`, `promptpay`, `wallet` |
 | `shipments` | Tracking info |
 | `notifications` | Types: `bid`, `win`, `lose`, `payment`, `shipping` |
 | `categories` | Hierarchical via `parent_id` |
 
-**Product status lifecycle**: `draft` → `pending_review` → `active` → `ended` / `sold` / `cancelled`; can also move to `rejected` from `pending_review`. Helper: `app/utils/mapProductState.js`.
+**Product status lifecycle**: `draft` → `pending_review` → `active` → `sold` (มีผู้ชนะ) / `cancelled` (ไม่มี bid); หลังจ่ายเงิน seller ระบุจัดส่ง → `order`; `rejected` มาจาก `pending_review`. Helper: `app/utils/mapProductState.js`.
+
+**ไม่มี `ended` state ใน flow แล้ว** — ประมูลสิ้นสุดแล้วข้ามไป `sold` หรือ `cancelled` ทันที (migration: `supabase/migrations/20260513000000_add_order_state.sql`)
 
 **`products.start_price` หลัง bid**: ทำหน้าที่เป็น "ราคาปัจจุบัน / floor ของ bid ถัดไป" — `updateProductPrice()` ใน `products.service.js` จะ update ค่านี้ทุกครั้งที่ bid สำเร็จ ไม่มีคอลัมน์ `current_price` แยกต่างหาก
 
@@ -93,8 +95,9 @@ Schema defined in `db/00_schema.sql`. Key tables:
   2. Idempotency — ถ้า `auction_results` มี record อยู่แล้วให้ return ออก
   3. หา highest bid → INSERT `auction_results` + `UPDATE bids SET is_winning = true`
   4. INSERT notifications (`win` ให้ winner, `lose` ให้ bidder อื่น)
-  5. UPDATE `products.state = 'ended'`
-- **State lifecycle**: `active` → `ended` (ประมูลสิ้นสุด) → `sold` (หลังชำระเงิน)
+  5. UPDATE `products.state`:
+     - มีผู้ชนะ → `'sold'`
+     - ไม่มี bid → `'cancelled'`
 - **`auction_end_time`** ถูก set โดย admin ตอน approve เท่านั้น (ไม่ set ตอน draft save)
 
 ### Favorites
@@ -127,15 +130,29 @@ Schema defined in `db/00_schema.sql`. Key tables:
 
 ### Selling Page (`/user/selling`)
 
-- `getProductsByState(state)` join `auction_results(id)` — ใช้ `hasAuctionResult` prop ใน `CardSellingProduct`
-- link "ตรวจสอบ" (→ checkout) แสดงเฉพาะเมื่อ state = `ended` **และ** มี row ใน `auction_results`
+- `getProductsByState(state)` join `auction_results(id, payment_status, winner_id)`
+- Tab พิเศษ `won` (สินค้าที่ฉันชนะ) → ใช้ `getWonProductsByUser()` query จาก `auction_results` ด้วย `winner_id`
+- **`CardSellingProduct`** รับ `isBuyer`, `paymentStatus` props:
+  - seller + `sold` + payment `pending` → แสดงข้อความ "รอชำระเงิน"
+  - seller + `sold` + payment `paid` → ลิงก์ "ระบุข้อมูลการจัดส่ง" → `/user/checkout/[productId]`
+  - buyer (`isBuyer=true`) + payment `pending` → ปุ่ม "ตรวจสอบ" → `/user/checkout/[productId]`
+  - buyer + payment `paid` → ข้อความ "รอจัดส่งสินค้า"
+
+### Shipment Flow
+
+- **Trigger**: seller กดลิงก์ "ระบุข้อมูลการจัดส่ง" → `/user/checkout/[productId]`
+- **Checkout page** ตรวจ role: ถ้า `product.seller_id === currentUser.id` **และ** `payment_status = 'paid'` → แสดง shipment form แทน checkout flow
+- **Form fields**: shipping_company, tracking_number
+- **Service**: `app/services/shipment.service.js` — `createShipment({ auctionResultId, shippingCompany, trackingNumber })`
+- **หลัง submit**: INSERT `shipments` → UPDATE `products.state = 'order'` → redirect `/user/selling`
+- **`shipments.address_id`** เป็น nullable (migration แก้แล้ว)
 
 ### Payment (Omise)
 
 - **Keys**: `OMISE_SECRET_KEY` (server-only), `NEXT_PUBLIC_OMISE_PUBLIC_KEY` (client)
 - **DO NOT use `omise` npm package** — ESM interop broken in Next.js App Router. Use `fetch` โดยตรงผ่าน helper `omiseFetch` ใน `app/api/payment/promptpay/route.js`
 - **PromptPay flow**: POST `/api/payment/promptpay` → สร้าง source + charge → คืน `qrCodeUrl`
-- **Webhook**: POST `/api/payment/webhook` — รับ `charge.complete` event จาก Omise → อัป `payments.payment_status` + UPDATE `products.state = 'sold'` ผ่าน `auction_results.product_id` (เฉพาะ payment ที่มี `auction_result_id`)
+- **Webhook**: POST `/api/payment/webhook` — รับ `charge.complete` event จาก Omise → อัป `payments.payment_status = 'success'` + UPDATE `auction_results.payment_status = 'paid'` (เฉพาะ payment ที่มี `auction_result_id`)
 - **⚠️ payments row ต้องสร้างก่อน QR แสดง** — webhook หา record ด้วย `transaction_ref` (charge.id); ถ้าไม่มี row จะ update ไม่ได้
 - **Component**: `app/components/payment/PromptPayQR.jsx` — รับ `userId`, `amount`, `auctionResultId?`
 - **Payment page**: `/user/payment/[auctionResultId]`

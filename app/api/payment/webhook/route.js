@@ -27,18 +27,10 @@ export async function POST(req) {
         .single();
 
     if (isSuccess && payment?.auction_result_id) {
-        const { data: auctionResult } = await supabaseAdmin
+        await supabaseAdmin
             .from("auction_results")
-            .select("product_id")
-            .eq("id", payment.auction_result_id)
-            .single();
-
-        if (auctionResult?.product_id) {
-            await supabaseAdmin
-                .from("products")
-                .update({ state: "sold" })
-                .eq("id", auctionResult.product_id);
-        }
+            .update({ payment_status: "paid" })
+            .eq("id", payment.auction_result_id);
     }
 
     return NextResponse.json({ received: true });

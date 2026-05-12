@@ -8,6 +8,7 @@ import {
     PlusOutlined,
     QrcodeOutlined,
     SafetyOutlined,
+    CarOutlined,
 } from "@ant-design/icons";
 import UseTag from "../../../../components/utils/UseTag";
 import UseModal from "../../../../components/utils/UseModal";
@@ -17,8 +18,10 @@ import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getAuctionResultByProduct } from "@/app/services/payment.service";
+import { createShipment } from "@/app/services/shipment.service";
 import { getMyAddresses } from "@/app/services/address.service";
-import { notifyError } from "@/app/providers/NotificationProvider";
+import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
+import { supabase } from "@/app/lib/supabase/client";
 
 // --------------- ต้องเป็รสินค้าที่มีข้อมูลอยู่ใน auction_results ถึงจะแสดงข้อมูลในหน้านี้ -------------------------
 
@@ -47,6 +50,10 @@ function Page() {
     const [addresses, setAddresses] = useState([]);
     const [selectedAddressId, setSelectedAddressId] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
+    const [currentUserId, setCurrentUserId] = useState(null);
+    const [shippingCompany, setShippingCompany] = useState("");
+    const [trackingNumber, setTrackingNumber] = useState("");
+    const [submitting, setSubmitting] = useState(false);
 
     const fetchAddresses = async () => {
         const { data, error } = await getMyAddresses();
@@ -57,6 +64,10 @@ function Page() {
     };
 
     useEffect(() => {
+        supabase.auth.getUser().then(({ data }) => setCurrentUserId(data?.user?.id ?? null));
+    }, []);
+
+    useEffect(() => {
         if (!id) return;
         getAuctionResultByProduct(id).then(({ data, error }) => {
             if (error) return notifyError(error);
@@ -65,12 +76,91 @@ function Page() {
         fetchAddresses();
     }, [id]);
 
+    const isSeller = currentUserId && result?.products?.seller_id === currentUserId;
+    const isPaid = result?.payment_status === "paid";
+    const showShipmentForm = isSeller && isPaid;
+
+    const handleShipmentSubmit = async () => {
+        if (!shippingCompany || !trackingNumber) return notifyError("กรุณากรอกข้อมูลให้ครบ");
+        setSubmitting(true);
+        const { error: shipErr } = await createShipment({
+            auctionResultId: result.id,
+            shippingCompany,
+            trackingNumber,
+        });
+        if (shipErr) { setSubmitting(false); return notifyError(shipErr); }
+        const { error: stateErr } = await supabase
+            .from("products")
+            .update({ state: "order" })
+            .eq("id", id);
+        if (stateErr) { setSubmitting(false); return notifyError(stateErr); }
+        notifySuccess("บันทึกข้อมูลการจัดส่งสำเร็จ");
+        router.push("/user/selling");
+    };
+
     const product = result?.products;
     const finalPrice = Number(result?.final_price ?? 0);
     const auctionFee = Math.round(finalPrice * AUCTION_FEE_RATE);
     const shippingFee = SHIPPING_OPTIONS.find((o) => o.value === shipping)?.fee ?? 0;
     const total = finalPrice + auctionFee + shippingFee;
     const productImage = product?.images_url?.[0]?.url;
+
+    if (showShipmentForm) {
+        const product = result?.products;
+        const productImage = product?.images_url?.[0]?.url;
+        return (
+            <main className="max-w-lg mx-auto flex flex-col gap-6">
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                    <div className="flex items-center gap-4 mb-6">
+                        <Image
+                            src={productImage || "https://picsum.photos/80/80"}
+                            unoptimized
+                            alt={product?.title || "product"}
+                            className="w-20 h-20 object-cover rounded-lg"
+                            width={80}
+                            height={80}
+                        />
+                        <div>
+                            <h2 className="font-bold text-lg">{product?.title}</h2>
+                            <UseTag label="ชำระเงินแล้ว" color="green" />
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 mb-6">
+                        <CarOutlined className="text-xl text-orange-500!" />
+                        <h3 className="text-xl font-bold">ระบุข้อมูลการจัดส่ง</h3>
+                    </div>
+                    <div className="grid gap-4">
+                        <div className="flex flex-col gap-1">
+                            <label className="text-sm font-semibold text-slate-700">บริษัทขนส่ง</label>
+                            <input
+                                value={shippingCompany}
+                                onChange={(e) => setShippingCompany(e.target.value)}
+                                placeholder="เช่น Kerry Express, Flash Express, ไปรษณีย์ไทย"
+                                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-sm font-semibold text-slate-700">หมายเลขพัสดุ</label>
+                            <input
+                                value={trackingNumber}
+                                onChange={(e) => setTrackingNumber(e.target.value)}
+                                placeholder="เช่น TH1234567890K"
+                                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                            />
+                        </div>
+                        <UseButton
+                            label="ยืนยันการจัดส่ง"
+                            className="h-11! font-bold!"
+                            wFull
+                            onClick={handleShipmentSubmit}
+                            loading={submitting}
+                            disabled={submitting}
+                        />
+                    </div>
+                </div>
+            </main>
+        );
+    }
 
     return (
         <main className="flex flex-col lg:flex-row gap-6">

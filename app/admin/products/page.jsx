@@ -29,10 +29,12 @@ function Page() {
         const { data, error } = await getProducts();
         if (error) return notifyError(error);
         const formatData = data.map((item) => {
+            const { first_name, last_name } = item.profiles || {};
             return {
                 ...item,
                 createdAt: formatDateTime(item.created_at),
                 imageUrl: item.images_url[0]?.url || null,
+                ownerName: [first_name, last_name].filter(Boolean).join(" ") || "-",
             };
         });
         setDataSource(formatData);
@@ -89,6 +91,12 @@ function Page() {
                 return <UseTag label={record.state} variant="filled" color={color} className="capitalize" />;
                 // return <UseTag label={name} variant="filled" color={color} className="capitalize" />;
             },
+        },
+        {
+            title: "ผู้สร้าง",
+            dataIndex: "ownerName",
+            key: "ownerName",
+            ...columnSearch("ownerName", control, setValue),
         },
         {
             title: "วันที่สร้าง",

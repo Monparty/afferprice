@@ -4,7 +4,12 @@ import CardSellingProduct from "@/app/components/utils/CardSellingProduct";
 import UseEmpty from "@/app/components/utils/UseEmpty";
 import UseTag from "@/app/components/utils/UseTag";
 import { notifyError } from "@/app/providers/NotificationProvider";
-import { getProductCountByState, getProductsByState } from "@/app/services/products.service";
+import {
+    getProductCountByState,
+    getProductsByState,
+    getWonProductsByUser,
+    getWonProductCountByUser,
+} from "@/app/services/products.service";
 import { AppstoreOutlined, BarsOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -23,60 +28,73 @@ function Page() {
         { key: "pending_review", label: "รออนุมัติ" },
         { key: "rejected", label: "ไม่อนุมัติ" },
         { key: "active", label: "กำลังประมูล" },
-        { key: "ended", label: "หมดเวลาประมูล" },
         { key: "sold", label: "มีผู้ชนะ" },
+        { key: "won", label: "สินค้าที่ฉันชนะ" },
+        { key: "order", label: "การจัดส่ง" },
         { key: "cancelled", label: "ยกเลิก" },
     ];
-    const stateKey = stateConfig.map((item) => item.key);
+    const sellerStateKeys = stateConfig.filter((s) => s.key !== "won").map((s) => s.key);
 
     useEffect(() => {
-        const onGetProductsByState = async () => {
-            const { data, error } = await getProductsByState(activeTab);
-            if (error) return notifyError(error);
-            setProducts(data);
+        const onGetProducts = async () => {
+            setProducts([]);
+            if (activeTab === "won") {
+                const { data, error } = await getWonProductsByUser();
+                if (error) return notifyError(error);
+                setProducts(data ?? []);
+            } else {
+                const { data, error } = await getProductsByState(activeTab);
+                if (error) return notifyError(error);
+                setProducts(data ?? []);
+            }
         };
-        onGetProductsByState();
+        onGetProducts();
     }, [activeTab]);
 
     useEffect(() => {
-        if (!stateKey) return;
-        const onGetProductCountByState = async () => {
+        const onGetCounts = async () => {
             const counts = {};
-            for (const s of stateKey) {
+            for (const s of sellerStateKeys) {
                 const { count } = await getProductCountByState(s);
                 counts[s] = count;
             }
+            const { count: wonCount } = await getWonProductCountByUser();
+            counts["won"] = wonCount;
             setCountState(counts);
             setLoading(false);
         };
-        onGetProductCountByState();
+        onGetCounts();
     }, []);
 
-    const renderProducts = () =>
-        products && products.length > 0 ? (
+    const renderProducts = () => {
+        if (!products || products.length === 0) return <UseEmpty />;
+        return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {products.map((product) => {
-                    const { name, color } = mapProductState(product.state);
+                {products.map((item) => {
+                    const isWonTab = activeTab === "won";
+                    const productData = isWonTab ? item.products : item;
+                    const auctionResult = isWonTab ? item : item.auction_results?.[0];
+                    const { name, color } = mapProductState(productData?.state);
                     return (
                         <CardSellingProduct
-                            key={product.id}
+                            key={productData?.id}
                             value={{
-                                id: product?.id,
-                                stateName: name,
-                                stateColor: color,
-                                start_price: product?.start_price,
-                                title: product?.title,
-                                duration_days: product?.duration_days,
-                                images_url: product?.images_url,
-                                hasAuctionResult: product?.auction_results?.length > 0,
+                                id: productData?.id,
+                                stateName: isWonTab ? "สินค้าที่ฉันชนะ" : name,
+                                stateColor: isWonTab ? "orange" : color,
+                                start_price: productData?.start_price,
+                                title: productData?.title,
+                                duration_days: productData?.duration_days,
+                                images_url: productData?.images_url,
+                                paymentStatus: auctionResult?.payment_status,
+                                isBuyer: isWonTab,
                             }}
                         />
                     );
                 })}
             </div>
-        ) : (
-            <UseEmpty />
         );
+    };
 
     const tabItems = stateConfig.map((tab) => ({
         key: tab.key,

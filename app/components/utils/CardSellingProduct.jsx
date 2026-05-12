@@ -6,8 +6,32 @@ import imageNotFound from "../../../public/images/imageNotFound.png";
 import UsePopover from "./UsePopover";
 import Link from "next/link";
 
+function getPopoverAction(value) {
+    const { stateName, isBuyer, paymentStatus, id } = value;
+    const isPaid = paymentStatus === "paid";
+    const linkCls = "text-black! hover:bg-gray-100! p-1 rounded-sm text-sm";
+    const textCls = "text-slate-500 text-sm p-1";
+
+    if (["บันทึกร่าง", "รออนุมัติ", "ไม่อนุมัติ"].includes(stateName)) {
+        return <Link href={`/user/add-product/${id}/edit`} className={linkCls}>แก้ไข</Link>;
+    }
+    if (stateName === "กำลังประมูล") {
+        return <Link href={`/product/${id}`} className={linkCls}>ดูสินค้า</Link>;
+    }
+    if (isBuyer) {
+        if (isPaid) return <span className={textCls}>รอจัดส่งสินค้า</span>;
+        return <Link href={`/user/checkout/${id}`} className={linkCls}>ตรวจสอบ</Link>;
+    }
+    if (stateName === "มีผู้ชนะ") {
+        if (isPaid) return <Link href={`/user/checkout/${id}`} className={linkCls}>ระบุข้อมูลการจัดส่ง</Link>;
+        return <span className={textCls}>รอชำระเงิน</span>;
+    }
+    return null;
+}
+
 function CardSellingProduct({ value }) {
-    // ใช้ที่ "/user/selling"
+    const action = getPopoverAction(value);
+
     return (
         <div className="group flex flex-col bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg hover:border-primary/20 transition-all">
             <div className="relative aspect-video overflow-hidden">
@@ -17,34 +41,7 @@ function CardSellingProduct({ value }) {
                 <div className="absolute top-3 right-3 z-10">
                     <UsePopover
                         placement="bottomRight"
-                        content={
-                            <div className="grid gap-1 w-20">
-                                {["บันทึกร่าง", "รออนุมัติ", "ไม่อนุมัติ"].includes(value.stateName) && (
-                                    <Link
-                                        href={`/user/add-product/${value.id}/edit`}
-                                        className="text-black! hover:bg-gray-100! p-1 rounded-sm text-sm"
-                                    >
-                                        แก้ไข
-                                    </Link>
-                                )}
-                                {["กำลังประมูล"].includes(value.stateName) && (
-                                    <Link
-                                        href={`/product/${value.id}`}
-                                        className="text-black! hover:bg-gray-100! p-1 rounded-sm text-sm"
-                                    >
-                                        ดูสินค้า
-                                    </Link>
-                                )}
-                                {["หมดเวลาประมูล"].includes(value.stateName) && value.hasAuctionResult && (
-                                    <Link
-                                        href={`/user/checkout/${value.id}`}
-                                        className="text-black! hover:bg-gray-100! p-1 rounded-sm text-sm"
-                                    >
-                                        ตรวจสอบ
-                                    </Link>
-                                )}
-                            </div>
-                        }
+                        content={<div className="grid gap-1 w-30">{action}</div>}
                     >
                         <UseButton shape="circle" type="default" icon={MoreOutlined} />
                     </UsePopover>

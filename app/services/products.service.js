@@ -15,7 +15,27 @@ export async function getSellerProducts() {
 
 export async function getProductsByState(state) {
     const { data: { user } } = await supabase.auth.getUser();
-    return supabase.from("products").select("*, auction_results(id)").eq("state", state).eq("seller_id", user.id);
+    return supabase
+        .from("products")
+        .select("*, auction_results(id, payment_status, winner_id)")
+        .eq("state", state)
+        .eq("seller_id", user.id);
+}
+
+export async function getWonProductsByUser() {
+    const { data: { user } } = await supabase.auth.getUser();
+    return supabase
+        .from("auction_results")
+        .select("id, payment_status, winner_id, products(*)")
+        .eq("winner_id", user.id);
+}
+
+export async function getWonProductCountByUser() {
+    const { data: { user } } = await supabase.auth.getUser();
+    return supabase
+        .from("auction_results")
+        .select("*", { count: "exact", head: true })
+        .eq("winner_id", user.id);
 }
 
 export async function updateProductPrice(id, price) {
