@@ -37,7 +37,6 @@ function Page() {
 
     useEffect(() => {
         const onGetProducts = async () => {
-            setProducts([]);
             if (activeTab === "won") {
                 const { data, error } = await getWonProductsByUser();
                 if (error) return notifyError(error);

@@ -159,7 +159,7 @@ CREATE TABLE IF NOT EXISTS "public"."products" (
     "start_price" numeric(10,2) NOT NULL,
     "buy_now_price" numeric(10,2),
     "auction_start_time" timestamp with time zone,
-    "auction_end_time" timestamp with time zone NOT NULL,
+    "auction_end_time" timestamp with time zone,
     "created_at" timestamp with time zone DEFAULT "now"(),
     "updated_at" timestamp with time zone DEFAULT "now"(),
     "auction_period" timestamp with time zone,
@@ -171,7 +171,7 @@ CREATE TABLE IF NOT EXISTS "public"."products" (
     "status" "text",
     "rejected_remark" "text",
     CONSTRAINT "products_condition_check" CHECK (("condition" = ANY (ARRAY['new'::"text", 'like_new'::"text", 'good'::"text"]))),
-    CONSTRAINT "products_state_check" CHECK (("state" = ANY (ARRAY['draft'::"text", 'pending_review'::"text", 'rejected'::"text", 'active'::"text", 'ended'::"text", 'sold'::"text", 'cancelled'::"text"])))
+    CONSTRAINT "products_state_check" CHECK (("state" = ANY (ARRAY['draft'::"text", 'pending_review'::"text", 'rejected'::"text", 'active'::"text", 'ended'::"text", 'sold'::"text", 'order'::"text", 'cancelled'::"text"])))
 );
 
 
@@ -218,7 +218,7 @@ ALTER TABLE "public"."reviews" OWNER TO "postgres";
 CREATE TABLE IF NOT EXISTS "public"."shipments" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "auction_result_id" "uuid" NOT NULL,
-    "address_id" "uuid" NOT NULL,
+    "address_id" "uuid",
     "shipping_company" "text",
     "tracking_number" "text",
     "shipping_status" "text" DEFAULT 'preparing'::"text",
@@ -417,7 +417,7 @@ ALTER TABLE ONLY "public"."shipments"
 
 
 
-CREATE POLICY "admin read all profiles" ON "public"."profiles" FOR SELECT USING ((("auth"."jwt"() -> 'app_metadata'::"text" ->> 'role'::"text") = 'admin'::"text"));
+CREATE POLICY "admin read all profiles" ON "public"."profiles" FOR SELECT USING (((("auth"."jwt"() -> 'app_metadata'::"text") ->> 'role'::"text") = 'admin'::"text"));
 
 
 
@@ -495,6 +495,13 @@ CREATE POLICY "seller insert own products" ON "public"."products" FOR INSERT TO 
 
 
 
+CREATE POLICY "seller insert shipment" ON "public"."shipments" FOR INSERT WITH CHECK (("auction_result_id" IN ( SELECT "ar"."id"
+   FROM ("public"."auction_results" "ar"
+     JOIN "public"."products" "p" ON (("p"."id" = "ar"."product_id")))
+  WHERE ("p"."seller_id" = "auth"."uid"()))));
+
+
+
 CREATE POLICY "seller manage own images" ON "public"."product_attachment" USING (("product_id" IN ( SELECT "products"."id"
    FROM "public"."products"
   WHERE ("products"."seller_id" = "auth"."uid"()))));
@@ -512,7 +519,11 @@ CREATE POLICY "seller update own products" ON "public"."products" FOR UPDATE TO 
 ALTER TABLE "public"."shipments" ENABLE ROW LEVEL SECURITY;
 
 
-CREATE POLICY "update own profile" ON "public"."profiles" FOR UPDATE USING (("auth"."uid"() = "id")) WITH CHECK (("auth"."uid"() = "id") AND ("role" = ( SELECT "p"."role" FROM "public"."profiles" "p" WHERE ("p"."id" = "auth"."uid"()))) AND ("status" = ( SELECT "p"."status" FROM "public"."profiles" "p" WHERE ("p"."id" = "auth"."uid"()))));
+CREATE POLICY "update own profile" ON "public"."profiles" FOR UPDATE USING (("auth"."uid"() = "id")) WITH CHECK ((("auth"."uid"() = "id") AND ("role" = ( SELECT "p"."role"
+   FROM "public"."profiles" "p"
+  WHERE ("p"."id" = "auth"."uid"()))) AND ("status" = ( SELECT "p"."status"
+   FROM "public"."profiles" "p"
+  WHERE ("p"."id" = "auth"."uid"())))));
 
 
 

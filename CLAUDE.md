@@ -85,6 +85,8 @@ Schema defined in `db/00_schema.sql`. Key tables:
 
 **ไม่มี `ended` state ใน flow แล้ว** — ประมูลสิ้นสุดแล้วข้ามไป `sold` หรือ `cancelled` ทันที (migration: `supabase/migrations/20260513000000_add_order_state.sql`)
 
+**RLS บน `products`**: seller อ่านสินค้าตัวเองได้ทุก state ผ่าน policy `"seller read own products"` (migration: `supabase/migrations/20260513000001_seller_read_own_products.sql`)
+
 **`products.start_price` หลัง bid**: ทำหน้าที่เป็น "ราคาปัจจุบัน / floor ของ bid ถัดไป" — `updateProductPrice()` ใน `products.service.js` จะ update ค่านี้ทุกครั้งที่ bid สำเร็จ ไม่มีคอลัมน์ `current_price` แยกต่างหาก
 
 ### Auction End Flow
@@ -127,6 +129,12 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - `currentPrice` state sync กับ `product.start_price` ผ่าน useEffect (เพราะ product โหลด async)
 - หลัง submit: `insertBid` → `updateProductPrice` → `setCurrentPrice` → `onBidSuccess?.()`
 - `getBidsByProduct(productId)` ใน `bids.service.js` — ดึง bid history เรียงตาม `bid_time DESC`
+
+### Admin Product Edit (`/admin/products/[id]/edit`)
+
+- **Form** (`app/admin/products/components/Form.jsx`) โหลด product ด้วย `getProductById` แล้ว `reset()` ค่าลงฟอร์ม
+- **⚠️ `seller_id` ต้องส่งใน payload เสมอ** — Supabase `upsert` ทำ full replace; ถ้าไม่ส่ง `seller_id` จะ error NOT NULL. Page component fetch `seller_id` จาก product ตอน mount แล้วเก็บใน state
+- **approve** → `state = 'active'` + set `auction_end_time` จาก `durationDays`; **reject** → `state = 'rejected'` + `rejected_remark`
 
 ### Selling Page (`/user/selling`)
 

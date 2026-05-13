@@ -33,13 +33,14 @@ function Page() {
                             <li>แก้เงื่อนไขการแสดงผล content หน้าแรก</li>
                             <li>เพิ่ม login (OTP)</li>
                             <li>ของที่หมดเวลาประมูลแล้วจะทำอะไรกับมันต่อ</li>
-                            <li>เจ้าของสินค้าประมูลสินค้าตัวเองไม่ได้ใช่ไหม</li>
+                            <li>เจ้าของสินค้าห้ามประมูลสินค้าตัวเอง</li>
                             <li>ปรับ responsive และ darkmode ทุกจุด</li>
                             <li>
                                 แก้ supabase alert เป็นภาษาไทย
                                 (https://chatgpt.com/c/6a01fe88-8f14-83ec-ba55-c229e9d44e96)
                             </li>
                             <li>เพิ่ม llms.txt แบบ ย่อและแบบเต็ม</li>
+                            <li>เปลี่ยนสี css select text</li>
                         </ul>
                     </div>
                 </div>

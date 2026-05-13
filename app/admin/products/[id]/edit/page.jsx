@@ -4,20 +4,26 @@ import { useParams } from "next/navigation";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import dayjs from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import UseSkeleton from "@/app/components/utils/UseSkeleton";
 import { fetchUser } from "@/app/features/user/userSlice";
-import { upsertProduct } from "@/app/services/admin/products.service";
+import { upsertProduct, getProductById } from "@/app/services/admin/products.service";
 import { uploadPendingFiles } from "@/app/utils/storageHelper";
 
 function Page() {
     const { id } = useParams();
     const dispatch = useDispatch();
-    const { data, loading, error } = useSelector((state) => state.user);
+    const { loading, error } = useSelector((state) => state.user);
+    const [sellerId, setSellerId] = useState(null);
 
     useEffect(() => {
         dispatch(fetchUser());
     }, [dispatch]);
+
+    useEffect(() => {
+        if (!id) return;
+        getProductById(id).then(({ data }) => setSellerId(data?.seller_id));
+    }, [id]);
 
     const handleUpdate = async (value, state) => {
         try {
@@ -27,7 +33,7 @@ function Page() {
 
             const payload = {
                 id: id,
-                seller_id: data?.id,
+                seller_id: sellerId,
                 category_id: value.categoryId,
                 title: value.title,
                 description: value.description,
