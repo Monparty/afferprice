@@ -11,10 +11,13 @@ import {
 import UseButton from "../inputs/UseButton";
 import UseAvatarGroup from "./UseAvatarGroup";
 import { useRouter } from "next/navigation";
+import { useRealtimePrice } from "@/app/hooks/useRealtimePrice";
 
 function CardProductLive({ id, state = 1, src, productName, price = 2000, favorite = false, items = [], desc, time }) {
+    // ใช้ที่ /auction
     const router = useRouter();
-    const priceBid = price + 500;
+    const livePrice = useRealtimePrice(id, price);
+    const priceBid = livePrice + 500;
     const countItems = items.length;
     const dataConfig = {
         1: {
@@ -100,7 +103,7 @@ function CardProductLive({ id, state = 1, src, productName, price = 2000, favori
                         <div>
                             <p className={`${text} text-xs mb-1 font-bold`}>{title}</p>
                             <p className={`${state === 3 ? "text-red-600" : "text-slate-900"} text-2xl font-bold`}>
-                                ฿{price?.toLocaleString()}
+                                ฿{livePrice?.toLocaleString()}
                             </p>
                         </div>
                         <div className="text-right">

@@ -1,10 +1,12 @@
 import { useRouter } from "next/navigation";
 import UseButton from "../inputs/UseButton";
 import UseTag from "./UseTag";
+import { useRealtimePrice } from "@/app/hooks/useRealtimePrice";
 
 function CardZoomImage({ id, backgroundImage, title, price, bid, state = false }) {
     // ใช้ที่ "/"
     const router = useRouter();
+    const livePrice = useRealtimePrice(id, price);
     
     return (
         <div className="flex-none w-87.5 md:w-full h-87.5 relative rounded-xl overflow-hidden group">
@@ -21,7 +23,7 @@ function CardZoomImage({ id, backgroundImage, title, price, bid, state = false }
                     <h3 className="text-white text-2xl font-bold mt-2">{title}</h3>
                     <div className="flex items-center gap-3 text-white/90">
                         <p className="text-lg font-medium">
-                            ราคาปัจจุบัน: <span className="text-white font-bold">{price?.toLocaleString()} บาท</span>
+                            ราคาปัจจุบัน: <span className="text-white font-bold">{livePrice?.toLocaleString()} บาท</span>
                         </p>
                         <span className="text-xs px-2 py-0.5 rounded-full bg-white/20">{bid} การประมูล</span>
                     </div>

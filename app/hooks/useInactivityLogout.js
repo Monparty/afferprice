@@ -29,10 +29,11 @@ export function useInactivityLogout() {
             }
         };
 
-        // ลบ key ทุกครั้งที่ออกจากระบบ (logout ปกติ หรือ session หมดอายุจาก Supabase)
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
             if (event === "SIGNED_OUT") {
                 localStorage.removeItem(STORAGE_KEY);
+                dispatch(clearUser());
+                router.push("/login");
             }
         });
 

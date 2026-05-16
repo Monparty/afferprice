@@ -137,12 +137,20 @@ Schema defined in `db/00_schema.sql`. Key tables:
 ### Realtime Bid (Supabase Broadcast)
 
 - **ไม่ใช้ Postgres Replication** — ใช้ Supabase Broadcast แทน (ฟรี, ไม่ต้อง config Dashboard)
-- **Channel name**: `bid-{product.id}` — ใช้ร่วมกันระหว่าง `CardProductBid` และ `ProductDetail`
+- **Channel name**: `bid-{product.id}` — ใช้ร่วมกันระหว่าง `CardProductBid`, `ProductDetail` และ listing cards ทุกหน้า
 - **Flow**:
   1. `CardProductBid` subscribe channel on mount → รับ `new_bid` event → `setCurrentPrice(payload.price)`
   2. หลัง bid สำเร็จ → `channelRef.current?.send({ type: "broadcast", event: "new_bid", payload: { price } })`
   3. `ProductDetail` subscribe channel เดียวกัน → รับ event → `fetchBids(id)` (refresh bid list)
 - **ผล**: ทุก tab ที่เปิดหน้าเดียวกันเห็นราคาและรายชื่อผู้ประมูลอัปเดตทันทีโดยไม่ต้อง reload
+
+### useRealtimePrice Hook
+
+- **File**: `app/hooks/useRealtimePrice.js`
+- **Usage**: `const livePrice = useRealtimePrice(productId, initialPrice)`
+- Subscribe `bid-{productId}` broadcast channel → รับ `new_bid` event → update `livePrice` state อัตโนมัติ
+- **ใช้ใน**: `CardProduct`, `CardProductLive`, `CardZoomImage`, `CardHighlight` — ทุก listing card ที่แสดงราคา
+- **Client**: ใช้ `supabase` singleton จาก `app/lib/supabase/client.js` (ไม่ต้อง import `createClient` จาก `@supabase/supabase-js` โดยตรง)
 
 ### Admin Product Edit (`/admin/products/[id]/edit`)
 

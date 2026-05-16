@@ -3,10 +3,12 @@ import UseButton from "../inputs/UseButton";
 import { FieldTimeOutlined, HeartFilled, HeartOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { useFavorite } from "@/app/hooks/useFavorite";
+import { useRealtimePrice } from "@/app/hooks/useRealtimePrice";
 
 function CardProduct({ id, image, time, category, name, price, bid }) {
     const router = useRouter();
     const { isFavorited, toggle, loading } = useFavorite(id);
+    const livePrice = useRealtimePrice(id, price);
 
     return (
         <div className="bg-white dark:bg-zinc-800 rounded-xl overflow-hidden border border-slate-200 dark:border-zinc-700 flex flex-col group transition-all hover:shadow-xl hover:-translate-y-1">
@@ -44,7 +46,7 @@ function CardProduct({ id, image, time, category, name, price, bid }) {
                     </p>
                     <h3 className="text-base font-bold text-slate-900 dark:text-white line-clamp-1">{name}</h3>
                     <div className="mt-2 flex items-baseline gap-2">
-                        <span className="text-lg font-bold text-primary">{price?.toLocaleString()} บาท</span>
+                        <span className="text-lg font-bold text-primary">{livePrice?.toLocaleString()} บาท</span>
                         <span className="text-xs text-slate-400 dark:text-slate-500">{bid} ประมูล</span>
                     </div>
                 </div>

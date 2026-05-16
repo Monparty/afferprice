@@ -4,9 +4,12 @@ import Image from "next/image";
 import UseButton from "../inputs/UseButton";
 import UseTag from "./UseTag";
 import { useRouter } from "next/navigation";
+import { useRealtimePrice } from "@/app/hooks/useRealtimePrice";
 
 function CardHighlight({ id, image, time, category, name, price, bidCount }) {
+    // ใช้ที่ /categories
     const router = useRouter();
+    const livePrice = useRealtimePrice(id, price);
 
     return (
         <div className="group bg-white dark::bg-blue-500/20 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
@@ -45,7 +48,7 @@ function CardHighlight({ id, image, time, category, name, price, bidCount }) {
                 <div className="flex justify-between items-end">
                     <div>
                         <p className="text-xl font-bold text-black dark::text-slate-100">
-                            ฿{price?.toLocaleString() || 0}
+                            ฿{livePrice?.toLocaleString() || 0}
                         </p>
                     </div>
                     <div className="text-right">
