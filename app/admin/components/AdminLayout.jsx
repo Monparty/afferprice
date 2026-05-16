@@ -2,7 +2,20 @@
 import Image from "next/image";
 import Link from "next/link";
 import afferpriceLogo from "../../../public/images/afferpriceLogo.png";
-import { BellOutlined, LogoutOutlined, QuestionCircleOutlined, UserOutlined } from "@ant-design/icons";
+import {
+    BarChartOutlined,
+    BellOutlined,
+    CreditCardOutlined,
+    ExceptionOutlined,
+    HistoryOutlined,
+    InboxOutlined,
+    LogoutOutlined,
+    QuestionCircleOutlined,
+    SettingOutlined,
+    ShopOutlined,
+    ShoppingCartOutlined,
+    UserOutlined,
+} from "@ant-design/icons";
 import UseAvatar from "@/app/components/utils/UseAvatar";
 import UsePopover from "@/app/components/utils/UsePopover";
 import UseButton from "@/app/components/inputs/UseButton";
@@ -10,7 +23,19 @@ import { usePathname, useRouter } from "next/navigation";
 import { ROUTES } from "../constants/routes";
 import { logout } from "@/app/services/auth.service";
 
-function AdminLayout({ children, menus }) {
+const menus = [
+    { url: ROUTES.ADMIN, label: "แดชบอร์ด", icon: <BarChartOutlined className="text-lg!" /> },
+    { url: ROUTES.ADMIN_PRODUCT, label: "จัดการสินค้าประมูล", icon: <ShoppingCartOutlined className="text-lg!" /> },
+    { url: ROUTES.ADMIN_BID, label: "ตรวจสอบการ bid", icon: <InboxOutlined className="text-lg!" /> },
+    { url: ROUTES.ADMIN, label: "หลังจากประมูลจบ", icon: <HistoryOutlined className="text-lg!" /> },
+    { url: ROUTES.ADMIN_USERS, label: "จัดการผู้ใช้งาน", icon: <UserOutlined className="text-lg!" /> },
+    { url: ROUTES.ADMIN_CATEGORIES, label: "จัดการหมวดหมู่สินค้า", icon: <ShopOutlined className="text-lg!" /> },
+    { url: ROUTES.ADMIN, label: "การชำระเงิน", icon: <CreditCardOutlined className="text-lg!" /> },
+    { url: ROUTES.ADMIN, label: "ระบบแจ้งปัญหา", icon: <ExceptionOutlined className="text-lg!" /> },
+    { url: ROUTES.ADMIN, label: "การตั้งค่า", icon: <SettingOutlined className="text-lg!" /> },
+];
+
+function AdminLayout({ children }) {
     const router = useRouter();
     const pathname = usePathname();
     const headerName = menus.find((item) => item.url.split("/")[2] === pathname.split("/")[2])?.label || "";
