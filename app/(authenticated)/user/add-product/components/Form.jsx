@@ -19,9 +19,18 @@ import { handleLocalPreview } from "@/app/utils/storageHelper";
 import { useWatch } from "react-hook-form";
 import PromptPayQR from "@/app/components/payment/PromptPayQR";
 import UseButton from "@/app/components/inputs/UseButton";
+import UseCheckbox from "@/app/components/inputs/UseCheckbox";
 
 function Form({ activeStep, control, categoryList, setValue }) {
     const watchState = useWatch({ control, name: "state" });
+    const watchCategoryId = useWatch({ control, name: "categoryId" });
+    const evaluationGroups = categoryList.find((c) => c.id === watchCategoryId)?.evaluation || [];
+    const watchEvaluation = useWatch({ control, name: "evaluation" }) || {};
+    const totalScore = evaluationGroups.reduce((sum, group, hIdx) => {
+        const row = watchEvaluation[hIdx] || {};
+        const selected = group.subEvaluations.find((_, sIdx) => row[sIdx] === true);
+        return sum + (selected?.score || 0);
+    }, 0);
     return (
         <form className="flex flex-col gap-6">
             {watchState === "rejected" && (
@@ -143,6 +152,46 @@ function Form({ activeStep, control, categoryList, setValue }) {
                                     size="large"
                                 />
                             </div>
+                            {evaluationGroups.length > 0 && (
+                                // ทำให้ save ได้ และเมื่อกลับมาแก้ไขต้อง ติ๊กอันเดิม
+                                <div className="flex flex-col gap-3 mb-6">
+                                    {evaluationGroups.map((group, headingIdx) => (
+                                        <div
+                                            key={headingIdx}
+                                            className="rounded-lg border border-slate-100 bg-slate-50 p-3"
+                                        >
+                                            <p className="font-semibold text-slate-700 mb-2">{group.heading}</p>
+                                            <div className="flex flex-col gap-2 pl-3 w-fit">
+                                                {group.subEvaluations.map((sub, subIdx) => (
+                                                    <UseCheckbox
+                                                        key={subIdx}
+                                                        control={control}
+                                                        name={`evaluation.${headingIdx}.${subIdx}`}
+                                                        label={sub.label}
+                                                        onChange={(checked) => {
+                                                            if (checked) {
+                                                                group.subEvaluations.forEach((_, idx) => {
+                                                                    if (idx !== subIdx)
+                                                                        setValue(
+                                                                            `evaluation.${headingIdx}.${idx}`,
+                                                                            false,
+                                                                        );
+                                                                });
+                                                            }
+                                                        }}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <div className="flex items-center justify-end px-1">
+                                        <span className="text-xs text-slate-400">คะแนนรวม</span>
+                                        <span className="text-sm font-semibold text-orange-500 ml-2">
+                                            {totalScore} คะแนน
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
                             <UseTextArea
                                 control={control}
                                 name="description"

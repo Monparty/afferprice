@@ -13,7 +13,7 @@ function InputNumber({
     icon: Icon,
     variant = undefined,
     size = "middle",
-    min = 1,
+    min = 0,
     max = undefined,
     step = false,
     format = false,
