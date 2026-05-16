@@ -1,3 +1,4 @@
+"use client";
 import Image from "next/image";
 import UseButton from "../../../components/inputs/UseButton";
 import UseSteps from "../../../components/utils/UseSteps";
