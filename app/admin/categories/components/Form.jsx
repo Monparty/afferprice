@@ -9,11 +9,14 @@ import { useEffect } from "react";
 import { notifyError } from "@/app/providers/NotificationProvider";
 import { getCategorieById } from "@/app/services/admin/categories.service";
 import UseTooltip from "@/app/components/utils/UseTooltip";
+import EvaluationForm from "./EvaluationForm";
 
 function Form({ id, mode, onSubmit }) {
     const router = useRouter();
     const isWatch = Boolean(mode === "watch");
-    const { control, handleSubmit, reset } = useForm();
+    const { control, handleSubmit, reset } = useForm({
+        defaultValues: { evaluation: [] },
+    });
     const modeIcons = {
         watch: EyeFilled,
         create: PlusOutlined,
@@ -54,6 +57,7 @@ function Form({ id, mode, onSubmit }) {
                 <InputText {...inputProps} name="description" label="คำอธิบาย" />
                 <UseSwitch {...inputProps} name="status" label="สถานะการใช้งาน" />
             </div>
+            <EvaluationForm control={control} inputProps={inputProps} isWatch={isWatch} />
             {!isWatch && (
                 <div className="flex gap-2 items-center justify-end">
                     <UseTooltip title="กลับ">

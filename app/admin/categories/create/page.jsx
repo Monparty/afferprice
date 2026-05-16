@@ -11,6 +11,7 @@ function Page() {
         const payload = {
             name: value.name,
             description: value.description,
+            evaluation: value.evaluation,
             status: value.status ? "active" : "inactive",
         };
         const { error } = await upsertCategorie(payload);
