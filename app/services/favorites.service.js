@@ -12,7 +12,7 @@ export async function getFavorites() {
     if (!user) return { data: [], error: null };
     const { data, error } = await supabase
         .from("favorites")
-        .select("product_id, products(*, categories(name), bids(id))")
+        .select("product_id, products(*, categories(name), bids(id, bid_price))")
         .eq("user_id", user.id);
     return { data: data?.map((f) => f.products).filter(Boolean) ?? [], error };
 }

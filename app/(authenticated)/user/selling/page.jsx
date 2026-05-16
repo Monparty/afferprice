@@ -74,6 +74,11 @@ function Page() {
                     const productData = isWonTab ? item.products : item;
                     const auctionResult = isWonTab ? item : item.auction_results?.[0];
                     const { name, color } = mapProductState(productData?.state);
+                    const currentPrice = isWonTab
+                        ? auctionResult?.final_price
+                        : productData?.bids?.length
+                        ? Math.max(...productData.bids.map((b) => b.bid_price))
+                        : productData?.start_price;
                     return (
                         <CardSellingProduct
                             key={productData?.id}
@@ -81,7 +86,7 @@ function Page() {
                                 id: productData?.id,
                                 stateName: isWonTab ? "สินค้าที่ฉันชนะ" : name,
                                 stateColor: isWonTab ? "orange" : color,
-                                start_price: productData?.start_price,
+                                start_price: currentPrice,
                                 title: productData?.title,
                                 duration_days: productData?.duration_days,
                                 images_url: productData?.images_url,

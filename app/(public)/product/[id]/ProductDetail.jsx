@@ -9,6 +9,7 @@ import { useParams } from "next/navigation";
 import { notifyError } from "@/app/providers/NotificationProvider";
 import { getProductById } from "@/app/services/products.service";
 import { getBidsByProduct } from "@/app/services/bids.service";
+import { supabase } from "@/app/lib/supabase/client";
 import { useEffect, useState } from "react";
 
 function formatTimeAgo(time) {
@@ -39,6 +40,12 @@ export default function ProductDetail() {
         };
         onGetProductById();
         fetchBids(id);
+
+        const ch = supabase
+            .channel(`bid-${id}`)
+            .on("broadcast", { event: "new_bid" }, () => { fetchBids(id); })
+            .subscribe();
+        return () => { supabase.removeChannel(ch); };
     }, [id]);
 
     const formatProductImage = product?.images_url?.map((item) => ({

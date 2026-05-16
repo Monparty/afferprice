@@ -17,7 +17,7 @@ export async function getProductsByState(state) {
     const { data: { user } } = await supabase.auth.getUser();
     return supabase
         .from("products")
-        .select("*, auction_results(id, payment_status, winner_id)")
+        .select("*, bids(id, bid_price), auction_results(id, payment_status, winner_id)")
         .eq("state", state)
         .eq("seller_id", user.id);
 }
@@ -26,7 +26,7 @@ export async function getWonProductsByUser() {
     const { data: { user } } = await supabase.auth.getUser();
     return supabase
         .from("auction_results")
-        .select("id, payment_status, winner_id, products(*)")
+        .select("id, payment_status, winner_id, final_price, products(*)")
         .eq("winner_id", user.id);
 }
 
@@ -58,7 +58,7 @@ export async function getProductById(id) {
 export async function getActiveProductsWithDetails() {
     return supabase
         .from("products")
-        .select("*, categories(name), bids(id)")
+        .select("*, categories(name), bids(id, bid_price)")
         .eq("state", "active")
         .gt("auction_end_time", new Date().toISOString())
         .order("auction_end_time", { ascending: true });
@@ -67,7 +67,7 @@ export async function getActiveProductsWithDetails() {
 export async function getActiveAuctionProducts() {
     return supabase
         .from("products")
-        .select("*, bids(id, user_id)")
+        .select("*, bids(id, bid_price, user_id)")
         .eq("state", "active")
         .gt("auction_end_time", new Date().toISOString())
         .order("auction_end_time", { ascending: true });
@@ -85,7 +85,7 @@ export async function searchProducts(query) {
 export async function getFilteredProducts({ sortBy, categoryIds, priceMin, priceMax, condition } = {}) {
     let query = supabase
         .from("products")
-        .select("*, categories(name), bids(id)")
+        .select("*, categories(name), bids(id, bid_price)")
         .eq("state", "active")
         .gt("auction_end_time", new Date().toISOString());
 

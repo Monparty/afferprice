@@ -72,7 +72,7 @@ export default function CategoriesPage() {
                                     time={formatTimeRemaining(p.auction_end_time)}
                                     category={p.categories?.name}
                                     name={p.title}
-                                    price={p.start_price}
+                                    price={p.bids?.length ? Math.max(...p.bids.map((b) => b.bid_price)) : p.start_price}
                                     bidCount={p.bids?.length}
                                 />
                             ))}

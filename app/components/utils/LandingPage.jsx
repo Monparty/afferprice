@@ -38,7 +38,7 @@ function toCardProps(p) {
         time: formatTimeRemaining(p.auction_end_time),
         category: p.categories?.name,
         name: p.title,
-        price: p.start_price,
+        price: p.bids?.length ? Math.max(...p.bids.map((b) => b.bid_price)) : p.start_price,
         bid: p.bids?.length ?? 0,
     };
 }
@@ -230,7 +230,7 @@ function LandingPage() {
                                                 id={p.id}
                                                 backgroundImage={p.images_url?.[0]?.url}
                                                 title={p.title}
-                                                price={p.start_price}
+                                                price={p.bids?.length ? Math.max(...p.bids.map((b) => b.bid_price)) : p.start_price}
                                                 bid={p.bids?.length ?? 0}
                                                 state={new Date(p.auction_end_time) - now < 3600000}
                                             />

@@ -54,6 +54,9 @@ Redux Toolkit with a single slice: `app/features/user/userSlice.js`.
 
 Notifications use Ant Design's notification API, exposed through `NotificationProvider.jsx` (`notifyError()` / `notifySuccess()` helpers).
 
+- **`notifyError(error)`** — แปล `error.message` จาก Supabase เป็นภาษาไทยอัตโนมัติผ่าน `translateSupabaseError()` ใน `app/utils/supabaseErrorMap.js` ก่อนแสดง; ถ้าไม่มีใน map จะ fallback แสดงข้อความเดิม
+- **เพิ่ม error message ใหม่**: แก้เฉพาะ `errorMap` ใน `app/utils/supabaseErrorMap.js` — ไม่ต้องแตะ call sites
+
 ### Forms & Validation
 
 React Hook Form + Yup + `@hookform/resolvers`. Custom wrapper components (`UseButton`, `UseSelect`, `UseUpload`, etc.) live in `app/components/`.
@@ -127,8 +130,19 @@ Schema defined in `db/00_schema.sql`. Key tables:
 
 - รับ `product` และ `onBidSuccess` prop (callback หลัง bid สำเร็จ — ใช้ refresh bid list)
 - `currentPrice` state sync กับ `product.start_price` ผ่าน useEffect (เพราะ product โหลด async)
-- หลัง submit: `insertBid` → `updateProductPrice` → `setCurrentPrice` → `onBidSuccess?.()`
+- หลัง submit: `insertBid` → `updateProductPrice` → `setCurrentPrice` → broadcast → `onBidSuccess?.()`
 - `getBidsByProduct(productId)` ใน `bids.service.js` — ดึง bid history เรียงตาม `bid_time DESC`
+- **Validation**: `bidPrice` ต้องมากกว่า `currentPrice` เท่านั้น (ไม่อนุญาตเท่ากัน) — `isBelowMin` ใช้ `<=`
+
+### Realtime Bid (Supabase Broadcast)
+
+- **ไม่ใช้ Postgres Replication** — ใช้ Supabase Broadcast แทน (ฟรี, ไม่ต้อง config Dashboard)
+- **Channel name**: `bid-{product.id}` — ใช้ร่วมกันระหว่าง `CardProductBid` และ `ProductDetail`
+- **Flow**:
+  1. `CardProductBid` subscribe channel on mount → รับ `new_bid` event → `setCurrentPrice(payload.price)`
+  2. หลัง bid สำเร็จ → `channelRef.current?.send({ type: "broadcast", event: "new_bid", payload: { price } })`
+  3. `ProductDetail` subscribe channel เดียวกัน → รับ event → `fetchBids(id)` (refresh bid list)
+- **ผล**: ทุก tab ที่เปิดหน้าเดียวกันเห็นราคาและรายชื่อผู้ประมูลอัปเดตทันทีโดยไม่ต้อง reload
 
 ### Admin Product Edit (`/admin/products/[id]/edit`)
 
@@ -166,6 +180,13 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - **Payment page**: `/user/payment/[auctionResultId]`
 - **Listing fee payment**: `PaymentBtn.jsx` ใน add-product flow — ค่าธรรมเนียม `LISTING_FEE` บาท (ไม่มี auctionResultId)
 - **Local dev webhook**: ต้องใช้ ngrok — `ngrok http 3000` แล้วตั้ง endpoint ใน Omise Dashboard
+
+### Inactivity Logout
+
+- **Hook**: `app/hooks/useInactivityLogout.js` — track กิจกรรม (`mousemove`, `keydown`, `click`, `touchstart`, `scroll`) บันทึกลง `localStorage` key `lastActivity`
+- ตรวจทุก 60 วินาที — ถ้าไม่มี activity > 2ชม. → `logout()` + `clearUser` + redirect `/login`
+- ลบ `lastActivity` เมื่อ: timeout ครบ หรือ `SIGNED_OUT` event จาก Supabase (ครอบคลุม logout ปกติ + session หมดอายุ)
+- **Mount point**: `<InactivityGuard />` ใน `app/providers/Providers.jsx` (ภายใน Redux Provider เพื่อเข้าถึง `dispatch`)
 
 ### Notification Bell (AppHeader)
 

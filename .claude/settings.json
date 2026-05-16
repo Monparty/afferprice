@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npx skills *)",
-      "Bash(node -e \"require\\('dayjs'\\); console.log\\('dayjs ok'\\)\")"
+      "Bash(node -e \"require\\('dayjs'\\); console.log\\('dayjs ok'\\)\")",
+      "Bash(Get-Content \"C:\\\\Users\\\\sense\\\\.claude\\\\projects\\\\c--Users-sense-Desktop-projects-afferprice\\\\e3218873-ec7a-4c5c-913b-fb3dfbc494c8\\\\tool-results\\\\toolu_01WDUfgipCaW3wqBmHm1Uqpc.txt\" -ReadCount 0)"
     ]
   }
 }

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
@@ -13,7 +13,8 @@ import {
     NotificationFilled,
     RiseOutlined,
 } from "@ant-design/icons";
-import { insertBid } from "@/app/services/bids.service";
+import { insertBid, getHighestBid } from "@/app/services/bids.service";
+import { supabase } from "@/app/lib/supabase/client";
 import { updateProductPrice } from "@/app/services/products.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import { fetchUser } from "@/app/features/user/userSlice";
@@ -36,10 +37,28 @@ function CardProductBid({ product, onBidSuccess }) {
     const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
     const [ended, setEnded] = useState(false);
     const [currentPrice, setCurrentPrice] = useState(product?.start_price);
+    const channelRef = useRef(null);
 
     useEffect(() => {
         if (product?.start_price) setCurrentPrice(product.start_price);
     }, [product?.start_price]);
+
+    useEffect(() => {
+        if (!product?.id) return;
+        getHighestBid(product.id).then(({ data }) => {
+            if (data?.bid_price) setCurrentPrice(data.bid_price);
+        });
+        const ch = supabase
+            .channel(`bid-${product.id}`)
+            .on("broadcast", { event: "new_bid" }, ({ payload }) => {
+                setCurrentPrice(payload.price);
+            })
+            .subscribe();
+        channelRef.current = ch;
+        return () => {
+            supabase.removeChannel(ch);
+        };
+    }, [product?.id]);
 
     useEffect(() => {
         if (!ended || !product?.id) return;
@@ -92,6 +111,7 @@ function CardProductBid({ product, onBidSuccess }) {
         if (error) return notifyError(error);
         await updateProductPrice(product.id, bidPrice);
         setCurrentPrice(bidPrice);
+        channelRef.current?.send({ type: "broadcast", event: "new_bid", payload: { price: bidPrice } });
         onBidSuccess?.();
         notifySuccess("วางประมูลสำเร็จ");
     };
@@ -99,7 +119,7 @@ function CardProductBid({ product, onBidSuccess }) {
     const formatPrice = (price) => (price ? `฿${Number(price).toLocaleString("th-TH")}` : "—");
     const quickSteps = [0.1, 0.2, 0.3].map((pct) => Math.round((currentPrice || 0) * pct));
     const bidPrice = watch("bidPrice");
-    const isBelowMin = !bidPrice || Number(bidPrice) < (currentPrice || 0);
+    const isBelowMin = !bidPrice || Number(bidPrice) <= (currentPrice || 0);
 
     return (
         <div className="bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
@@ -129,8 +149,9 @@ function CardProductBid({ product, onBidSuccess }) {
                 </div>
                 {timeLeft.days > 0 && (
                     <div className="flex justify-center">
-
-                        <div className="text-center text-lg mt-4 text-orange-600 bg-white/10 py-1 px-6 w-fit rounded-lg">จะหมดเวลาในอีก {timeLeft.days} วัน</div>
+                        <div className="text-center text-lg mt-4 text-orange-600 bg-white/10 py-1 px-6 w-fit rounded-lg">
+                            จะหมดเวลาในอีก {timeLeft.days} วัน
+                        </div>
                     </div>
                 )}
             </div>
@@ -163,6 +184,7 @@ function CardProductBid({ product, onBidSuccess }) {
                         className="h-14 text-lg! font-bold"
                         icon={DollarOutlined}
                         format
+                        placeholder="ระบุราคา..."
                     />
                     <UseButton
                         label="วางประมูลทันที"

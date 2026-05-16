@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import AppHeader from "../components/layout/AppHeader";
 import AppFooter from "../components/layout/AppFooter";
 import { usePathname } from "next/navigation";
+import { translateSupabaseError } from "../utils/supabaseErrorMap";
 
 let notificationApi = null;
 
@@ -11,10 +12,9 @@ export const notifyError = (error) => {
     if (!notificationApi) return;
     notificationApi.error({
         title: "เกิดข้อผิดพลาด",
-        description: error.message,
+        description: translateSupabaseError(error?.message),
         placement: "topRight",
     });
-    return;
 };
 
 export const notifySuccess = (description) => {

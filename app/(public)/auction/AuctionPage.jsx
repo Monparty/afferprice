@@ -74,7 +74,7 @@ export default function AuctionPage() {
                                 state={getAuctionState(p.auction_end_time)}
                                 src={p.images_url?.[0]?.url || "https://picsum.photos/200/300"}
                                 productName={p.title}
-                                price={p.start_price}
+                                price={p.bids?.length ? Math.max(...p.bids.map((b) => b.bid_price)) : p.start_price}
                                 items={Array(Math.min(p.bids?.length || 0, 5)).fill({ firstName: "?" })}
                                 desc={`${p.bids?.length || 0} บิดทั้งหมด`}
                                 time={formatTimeRemaining(p.auction_end_time)}
