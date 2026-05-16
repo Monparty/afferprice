@@ -26,21 +26,14 @@ function Page() {
                         <ul className="ps-4 list-decimal">
                             <li>ทำ flow สร้างสินค้า ตรวจสอบ แจ้งเตือน ประมูล [ชำระเงิน จัดส่ง]</li>
                             <li>เพิ่ม Omise payment (เพิ่ม linepay, wallet)</li>
-                            <li>add session timeout</li>
                             <li>ทำ db ทดสอบ กับ bd จริง</li>
-                            <li>add product เพิ่ม section ประเภทต่างๆ</li>
                             <li>ดูเรื่องความปลอดภัยข้อเว็บและ db</li>
                             <li>แก้เงื่อนไขการแสดงผล content หน้าแรก</li>
                             <li>เพิ่ม login (OTP)</li>
                             <li>ของที่หมดเวลาประมูลแล้วจะทำอะไรกับมันต่อ</li>
-                            <li>เจ้าของสินค้าห้ามประมูลสินค้าตัวเอง</li>
                             <li>ปรับ responsive และ darkmode ทุกจุด</li>
-                            <li>
-                                แก้ supabase alert เป็นภาษาไทย
-                                (https://chatgpt.com/c/6a01fe88-8f14-83ec-ba55-c229e9d44e96)
-                            </li>
-                            <li>เพิ่ม llms.txt แบบ ย่อและแบบเต็ม</li>
-                            <li>เปลี่ยนสี css select text</li>
+                            <li>บันทึกแบบประเมินตามหมวดหมู</li>
+                            <li>KYC ก่อนประมูล</li>
                         </ul>
                     </div>
                 </div>
