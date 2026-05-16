@@ -120,6 +120,8 @@ function CardProductBid({ product, onBidSuccess }) {
     const quickSteps = [0.1, 0.2, 0.3].map((pct) => Math.round((currentPrice || 0) * pct));
     const bidPrice = watch("bidPrice");
     const isBelowMin = !bidPrice || Number(bidPrice) <= (currentPrice || 0);
+    // เงื่อนไขผู้ขายห้ามประมูลสินค้าตัวเอง
+    const isSeller = userData?.id === product?.seller_id;
 
     return (
         <div className="bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
@@ -195,7 +197,7 @@ function CardProductBid({ product, onBidSuccess }) {
                         className="h-12! text-lg! font-bold!"
                         htmlType="submit"
                         loading={loading}
-                        disabled={ended || isBelowMin}
+                        disabled={ended || isBelowMin || isSeller}
                     />
                     <div className="flex flex-col gap-2 text-sm text-slate-400 text-center">
                         <span className="flex items-center justify-center gap-2">

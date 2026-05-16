@@ -16,9 +16,21 @@ body {
     background: var(--background);
     color: var(--foreground);
     font-family: Arial, Helvetica, sans-serif;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
 }
 
 .ant-upload-btn {
     padding: 0 !important;
+}
+
+::selection {
+    color: white;
+    background: oklch(75% 0.183 55.934);
+}
+
+::-moz-selection {
+    color: white;
+    background: oklch(75% 0.183 55.934);
 }
