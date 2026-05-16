@@ -1,0 +1,96 @@
+# AfterPrice
+
+> Thai-language online auction and marketplace platform. Users can list products for auction, place bids in real-time, and complete checkout with PromptPay (QR code) payments via Omise.
+
+## Stack
+
+- **Framework**: Next.js 16.2.4 (App Router), React 19, JavaScript/JSX (`strict: false`)
+- **Database & Auth**: Supabase (PostgreSQL + Row Level Security + Broadcast Realtime)
+- **State**: Redux Toolkit — single `userSlice` with `fetchUser` / `clearUser`
+- **UI**: Ant Design 6.3.5 (Thai locale `th_TH`, volcano palette) + Tailwind CSS 4
+- **Forms**: React Hook Form + Yup + `@hookform/resolvers`
+- **Payments**: Omise — PromptPay QR code flow (use `fetch` directly, NOT `omise` npm package)
+- **Other**: HolyLoader, dayjs, uuid
+
+## Project Structure
+
+```
+app/
+  (public)/           # Unauthenticated: listings, product detail, categories, auction
+  (auth)/             # Login, register
+  (authenticated)/    # Checkout, payment, orders, user dashboard, selling, add-product
+  admin/              # Admin dashboard — role-gated via proxy.js middleware
+  api/                # Route handlers: auth/register, payment/promptpay, payment/webhook, auction/end
+  components/         # Shared UI: inputs/, utils/, layout/, payment/
+  features/user/      # Redux userSlice
+  hooks/              # useFavorite, useInactivityLogout, useColumnSearch
+  lib/supabase/       # client.js (ANON_KEY) | admin.js (SERVICE_ROLE_KEY, server-only)
+  providers/          # Providers.jsx (Redux + Notifications + InactivityGuard), ThemeProvider
+  services/           # Domain services — all Supabase queries go here
+    admin/            # Admin-only services
+  utils/              # mapProductState, supabaseErrorMap, dateUtils, storageHelper
+db/
+  00_schema.sql       # Full schema
+supabase/
+  migrations/         # SQL migrations
+proxy.js              # Next.js middleware: guards /admin/* (role check), redirects auth users from /login
+```
+
+## Key Database Tables
+
+| Table | Notes |
+|---|---|
+| `profiles` | Extends `auth.users`; `role`: `user` | `admin` |
+| `products` | Auction listings; status lifecycle below |
+| `product_images` | Ordered images per product |
+| `bids` | `is_winning` set automatically by `/api/auction/end` |
+| `auction_results` | Winner + final price; `payment_status`: `pending` → `paid` |
+| `payments` | Methods: `bank`, `credit_card`, `promptpay`, `wallet` |
+| `shipments` | Tracking info; `address_id` nullable |
+| `notifications` | Types: `bid`, `win`, `lose`, `payment`, `shipping` |
+| `categories` | Hierarchical via `parent_id` |
+| `favorites` | User-saved products |
+| `user_addresses` | Shipping addresses |
+
+## Product Status Lifecycle
+
+`draft` → `pending_review` → `active` → `sold` (has winner) / `cancelled` (no bids)
+After payment, seller ships → `order`; `rejected` from `pending_review`.
+No `ended` state — auction end jumps directly to `sold` or `cancelled`.
+
+## Auction End Flow
+
+- **Trigger**: client timer in `CardProductBid` hits 0 → `POST /api/auction/end`
+- **Logic**: idempotency check → find highest bid → INSERT `auction_results` + set `bids.is_winning` → INSERT notifications → UPDATE `products.state`
+- `auction_end_time` set only by admin on approve
+
+## Realtime Bidding
+
+- Uses **Supabase Broadcast** (not Postgres Replication)
+- Channel: `bid-{product.id}` shared between `CardProductBid` and `ProductDetail`
+- `CardProductBid` sends `new_bid` event after successful bid → all open tabs update price live
+
+## Service Layer Conventions
+
+- All Supabase queries go through `app/services/`
+- Browser client: `app/lib/supabase/client.js`
+- Server/admin client: `app/lib/supabase/admin.js` — **never import in client components**
+- `notifyError(error)` auto-translates Supabase errors to Thai via `app/utils/supabaseErrorMap.js`
+- `products.start_price` acts as current price floor after each bid — updated by `updateProductPrice()`
+
+## Important Rules
+
+- Do NOT use `omise` npm package — use `fetch` via `omiseFetch` helper in `app/api/payment/promptpay/route.js`
+- Always include `seller_id` in product upsert payloads (NOT NULL constraint)
+- `profiles` has no `email` column — use `users_full` view to join with `auth.users`
+- `@/` alias maps to project root
+- Max-width container: `360px` base
+
+## Commands
+
+```bash
+npm run dev      # Start dev server (port 3000)
+npm run build    # Production build
+npm run lint     # ESLint
+npm start        # Run production build
+```
