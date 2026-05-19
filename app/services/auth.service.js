@@ -15,6 +15,8 @@ export const getCurrentUser = () => supabase.auth.getUser();
 
 export const updateUser = (email) => supabase.auth.updateUser({ email });
 
+export const updatePassword = (password) => supabase.auth.updateUser({ password });
+
 export const register = async ({ email, password, firstName, lastName, phone, gender }) => {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return { error };

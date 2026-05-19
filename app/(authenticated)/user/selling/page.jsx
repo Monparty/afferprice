@@ -31,7 +31,7 @@ function Page() {
         { key: "sold", label: "มีผู้ชนะ" },
         { key: "won", label: "สินค้าที่ฉันชนะ" },
         { key: "order", label: "การจัดส่ง" },
-        { key: "cancelled", label: "ยกเลิก" },
+        { key: "cancelled", label: "ไม่สำเร็จ" },
     ];
     const sellerStateKeys = stateConfig.filter((s) => s.key !== "won").map((s) => s.key);
 

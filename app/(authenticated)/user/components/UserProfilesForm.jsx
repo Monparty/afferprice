@@ -6,22 +6,19 @@ import { genderList, birthDayList, birthMonthList, birthYearList } from "../../.
 import { useForm } from "react-hook-form";
 import { useEffect, useRef } from "react";
 import { getProfileById, updateProfileById } from "@/app/services/profile.service";
-import { getCurrentUser } from "@/app/services/auth.service";
+import { getCurrentUser, updatePassword } from "@/app/services/auth.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import UseUpload from "@/app/components/inputs/UseUpload";
 import UseButton from "@/app/components/inputs/UseButton";
 import { handleLocalPreview, removeDeletedFiles, uploadPendingFiles } from "@/app/utils/storageHelper";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { schema } from "./schema";
 
 function UserProfilesForm({ setIsOpenModalProfile }) {
-    const {
-        handleSubmit,
-        control,
-        reset,
-        watch,
-        setValue,
-        getValues,
-        formState: { errors },
-    } = useForm();
+    const { handleSubmit, control, reset, setValue, getValues } = useForm({
+        resolver: yupResolver(schema),
+        mode: "onBlur",
+    });
     const id = getValues("id");
     const originalFilesRef = useRef({ profile: [], idCard: [] });
 
@@ -35,21 +32,44 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
             const { data: profile, error: profileError } = await getProfileById(userId);
             if (profileError) return notifyError(profileError);
 
+            const safeProfile = profile ?? {};
+            const [birthYear, birthMonth, birthDay] = safeProfile.birth_date?.split("-") ?? [];
+
             const formatData = {
-                ...profile,
+                id: userId,
+                ...safeProfile,
                 email: userEmail,
-                firstName: profile.first_name,
-                lastName: profile.last_name,
-                birthDay: profile.birth_date.split("-")[2],
-                birthMonth: profile.birth_date.split("-")[1],
-                birthYear: profile.birth_date.split("-")[0],
-                profile_image: profile.profile_image && [{ uid: profile.profile_image.split("/").pop(), url: profile.profile_image, status: "done" }],
-                id_card_image: profile.id_card_image && [{ uid: profile.id_card_image.split("/").pop(), url: profile.id_card_image, status: "done" }],
+                firstName: safeProfile.first_name ?? "",
+                lastName: safeProfile.last_name ?? "",
+                phone: safeProfile.phone ?? "",
+                gender: safeProfile.gender ?? undefined,
+                birthDay,
+                birthMonth,
+                birthYear,
+                profile_image: safeProfile.profile_image
+                    ? [
+                          {
+                              uid: safeProfile.profile_image.split("/").pop(),
+                              url: safeProfile.profile_image,
+                              status: "done",
+                          },
+                      ]
+                    : [],
+                id_card_image: safeProfile.id_card_image
+                    ? [
+                          {
+                              uid: safeProfile.id_card_image.split("/").pop(),
+                              url: safeProfile.id_card_image,
+                              status: "done",
+                          },
+                      ]
+                    : [],
             };
             originalFilesRef.current = {
-                profile: formatData.profile_image || [],
-                idCard: formatData.id_card_image || [],
+                profile: formatData.profile_image,
+                idCard: formatData.id_card_image,
             };
+
             reset(formatData);
         };
         fetchUserAndProfile();
@@ -59,18 +79,25 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
         try {
             const uploadedProfile = await uploadPendingFiles(value?.profile_image || []);
             const uploadedIdCard = await uploadPendingFiles(value?.id_card_image || []);
-            const birthDate = `${value.birthYear}-${value.birthMonth}-${value.birthDay}`;
+            const birthDate =
+                value.birthYear && value.birthMonth && value.birthDay
+                    ? `${value.birthYear}-${value.birthMonth}-${value.birthDay}`
+                    : null;
             const payload = {
                 first_name: value.firstName,
                 last_name: value.lastName,
-                profile_image: uploadedProfile[0]?.url,
-                id_card_image: uploadedIdCard[0]?.url,
+                profile_image: uploadedProfile[0]?.url ?? null,
+                id_card_image: uploadedIdCard[0]?.url ?? null,
                 gender: value.gender,
                 phone: value.phone,
                 birth_date: birthDate,
             };
             const { error } = await updateProfileById(value.id, payload);
             if (error) return notifyError(error);
+            if (value.password) {
+                const { error: passwordError } = await updatePassword(value.password);
+                if (passwordError) return notifyError(passwordError);
+            }
             await removeDeletedFiles(originalFilesRef.current.profile, value?.profile_image || []);
             await removeDeletedFiles(originalFilesRef.current.idCard, value?.id_card_image || []);
             notifySuccess("บันทึกข้อมูลสำเร็จ");
