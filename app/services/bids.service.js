@@ -38,7 +38,7 @@ export async function getMyFavoritesCount() {
 export async function getHighestBid(productId) {
     return supabase
         .from("bids")
-        .select("bid_price")
+        .select("bid_price, user_id")
         .eq("product_id", productId)
         .order("bid_price", { ascending: false })
         .limit(1)

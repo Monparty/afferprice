@@ -130,9 +130,14 @@ Schema defined in `db/00_schema.sql`. Key tables:
 
 - รับ `product` และ `onBidSuccess` prop (callback หลัง bid สำเร็จ — ใช้ refresh bid list)
 - `currentPrice` state sync กับ `product.start_price` ผ่าน useEffect (เพราะ product โหลด async)
-- หลัง submit: `insertBid` → `updateProductPrice` → `setCurrentPrice` → broadcast → `onBidSuccess?.()`
+- หลัง submit: `insertBid` → `updateProductPrice` → `setCurrentPrice` → `setHighestBidderId` → broadcast → `onBidSuccess?.()`
 - `getBidsByProduct(productId)` ใน `bids.service.js` — ดึง bid history เรียงตาม `bid_time DESC`
 - **Validation**: `bidPrice` ต้องมากกว่า `currentPrice` เท่านั้น (ไม่อนุญาตเท่ากัน) — `isBelowMin` ใช้ `<=`
+- **ห้าม bid ติดกัน 2 ครั้ง**: ผู้ที่เป็น highest bidder อยู่ตอนนี้กดประมูลซ้ำไม่ได้ ต้องรอ user คนอื่นมา bid ก่อน
+  - state `highestBidderId` เก็บ user id ของผู้ bid สูงสุด — set จาก `getHighestBid()` ตอน mount + จาก broadcast payload `userId`
+  - `isHighestBidder = userData.id === highestBidderId` → disable ปุ่ม + เปลี่ยน label เป็น "รอผู้อื่นเสนอราคา"
+  - `getHighestBid()` ใน `bids.service.js` คืน `{ bid_price, user_id }` (เพิ่ม `user_id`)
+  - broadcast `new_bid` payload: `{ price, userId }` — sync `highestBidderId` ทุก tab
 
 ### Realtime Bid (Supabase Broadcast)
 

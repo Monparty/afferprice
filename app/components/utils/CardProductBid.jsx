@@ -37,6 +37,7 @@ function CardProductBid({ product, onBidSuccess }) {
     const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
     const [ended, setEnded] = useState(false);
     const [currentPrice, setCurrentPrice] = useState(product?.start_price);
+    const [highestBidderId, setHighestBidderId] = useState(null);
     const channelRef = useRef(null);
 
     useEffect(() => {
@@ -47,11 +48,13 @@ function CardProductBid({ product, onBidSuccess }) {
         if (!product?.id) return;
         getHighestBid(product.id).then(({ data }) => {
             if (data?.bid_price) setCurrentPrice(data.bid_price);
+            if (data?.user_id) setHighestBidderId(data.user_id);
         });
         const ch = supabase
             .channel(`bid-${product.id}`)
             .on("broadcast", { event: "new_bid" }, ({ payload }) => {
                 setCurrentPrice(payload.price);
+                if (payload.userId) setHighestBidderId(payload.userId);
             })
             .subscribe();
         channelRef.current = ch;
@@ -111,8 +114,14 @@ function CardProductBid({ product, onBidSuccess }) {
         if (error) return notifyError(error);
         await updateProductPrice(product.id, bidPrice);
         setCurrentPrice(bidPrice);
-        channelRef.current?.send({ type: "broadcast", event: "new_bid", payload: { price: bidPrice } });
+        setHighestBidderId(userData.id);
+        channelRef.current?.send({
+            type: "broadcast",
+            event: "new_bid",
+            payload: { price: bidPrice, userId: userData.id },
+        });
         onBidSuccess?.();
+        setValue("bidPrice", null);
         notifySuccess("วางประมูลสำเร็จ");
     };
 
@@ -122,6 +131,8 @@ function CardProductBid({ product, onBidSuccess }) {
     const isBelowMin = !bidPrice || Number(bidPrice) <= (currentPrice || 0);
     // เงื่อนไขผู้ขายห้ามประมูลสินค้าตัวเอง
     const isSeller = userData?.id === product?.seller_id;
+    // ผู้ที่ประมูลสูงสุดอยู่ตอนนี้ ต้องรอผู้อื่นมาประมูลก่อนถึงจะประมูลต่อได้
+    const isHighestBidder = !!userData?.id && userData.id === highestBidderId;
 
     return (
         <div className="bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
@@ -189,7 +200,7 @@ function CardProductBid({ product, onBidSuccess }) {
                         placeholder="ระบุราคา..."
                     />
                     <UseButton
-                        label="วางประมูลทันที"
+                        label={isHighestBidder ? "รอผู้อื่นเสนอราคา" : "วางประมูลทันที"}
                         wFull
                         size="large"
                         icon={NotificationFilled}
@@ -197,7 +208,7 @@ function CardProductBid({ product, onBidSuccess }) {
                         className="h-12! text-lg! font-bold!"
                         htmlType="submit"
                         loading={loading}
-                        disabled={ended || isBelowMin || isSeller}
+                        disabled={ended || isBelowMin || isSeller || isHighestBidder}
                     />
                     <div className="flex flex-col gap-2 text-sm text-slate-400 text-center">
                         <span className="flex items-center justify-center gap-2">
