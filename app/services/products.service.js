@@ -17,16 +17,58 @@ export async function getProductsByState(state) {
     const { data: { user } } = await supabase.auth.getUser();
     return supabase
         .from("products")
-        .select("*, bids(id, bid_price), auction_results(id, payment_status, winner_id)")
+        .select("*, bids(id, bid_price, user_id), auction_results(id, payment_status, winner_id)")
         .eq("state", state)
         .eq("seller_id", user.id);
+}
+
+export async function getActiveProductsBidByUser() {
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data: bidData, error: bidError } = await supabase
+        .from("bids")
+        .select("product_id")
+        .eq("user_id", user.id);
+    if (bidError) return { data: null, error: bidError };
+    const productIds = [...new Set((bidData ?? []).map((b) => b.product_id))];
+    if (!productIds.length) return { data: [], error: null };
+    return supabase
+        .from("products")
+        .select("*, bids(id, bid_price, user_id), auction_results(id, payment_status, winner_id)")
+        .in("id", productIds)
+        .eq("state", "active")
+        .neq("seller_id", user.id);
+}
+
+export async function getLostBidProductsByUser() {
+    const { data: { user } } = await supabase.auth.getUser();
+    const { data: bidData, error: bidError } = await supabase
+        .from("bids")
+        .select("product_id")
+        .eq("user_id", user.id);
+    if (bidError) return { data: null, error: bidError };
+    const productIds = [...new Set((bidData ?? []).map((b) => b.product_id))];
+    if (!productIds.length) return { data: [], error: null };
+    const { data: wonData, error: wonError } = await supabase
+        .from("auction_results")
+        .select("product_id")
+        .eq("winner_id", user.id);
+    if (wonError) return { data: null, error: wonError };
+    const wonIds = new Set((wonData ?? []).map((w) => w.product_id));
+    const lostCandidateIds = productIds.filter((pid) => !wonIds.has(pid));
+    if (!lostCandidateIds.length) return { data: [], error: null };
+    return supabase
+        .from("products")
+        .select("*, bids(id, bid_price, user_id)")
+        .in("id", lostCandidateIds)
+        .eq("state", "sold")
+        .neq("seller_id", user.id);
 }
 
 export async function getWonProductsByUser() {
     const { data: { user } } = await supabase.auth.getUser();
     return supabase
         .from("auction_results")
-        .select("id, payment_status, winner_id, final_price, products(*)")
+        .select("id, payment_status, winner_id, final_price, products(*, bids(id, user_id))")
         .eq("winner_id", user.id);
 }
 

@@ -11,6 +11,7 @@ import { getProductById } from "@/app/services/products.service";
 import { getBidsByProduct } from "@/app/services/bids.service";
 import { supabase } from "@/app/lib/supabase/client";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 function formatTimeAgo(time) {
     const mins = Math.floor((Date.now() - new Date(time)) / 60000);
@@ -25,6 +26,7 @@ export default function ProductDetail() {
     const { id } = useParams();
     const [product, setProduct] = useState(null);
     const [bids, setBids] = useState([]);
+    const currentUserId = useSelector((state) => state.user.data?.id);
 
     const fetchBids = async (productId) => {
         const { data } = await getBidsByProduct(productId);
@@ -43,9 +45,13 @@ export default function ProductDetail() {
 
         const ch = supabase
             .channel(`bid-${id}`)
-            .on("broadcast", { event: "new_bid" }, () => { fetchBids(id); })
+            .on("broadcast", { event: "new_bid" }, () => {
+                fetchBids(id);
+            })
             .subscribe();
-        return () => { supabase.removeChannel(ch); };
+        return () => {
+            supabase.removeChannel(ch);
+        };
     }, [id]);
 
     const formatProductImage = product?.images_url?.map((item) => ({
@@ -56,10 +62,7 @@ export default function ProductDetail() {
         src: item.url,
     }));
 
-    const UseBreadcrumbItems = [
-        { href: "", title: "product" },
-        { title: "Luxury Profes..." },
-    ];
+    const UseBreadcrumbItems = [{ href: "", title: "product" }, { title: "Luxury Profes..." }];
 
     return (
         <main>
@@ -130,20 +133,33 @@ export default function ProductDetail() {
                             </div>
                             <div className="space-y-3">
                                 {bids.slice(0, 5).map((bid, i) => {
-                                    const initials = bid.user_id.slice(0, 2).toUpperCase();
-                                    const maskedId = `u***${bid.user_id.slice(-4)}`;
+                                    const isMe = bid.user_id === currentUserId;
+                                    const initials = isMe ? "ME" : bid.user_id.slice(0, 2).toUpperCase();
+                                    const maskedId = isMe ? "คุณ" : `u***${bid.user_id.slice(-4)}`;
                                     const isLeader = i === 0;
                                     return (
                                         <div
                                             key={bid.id}
-                                            className="flex items-center justify-between py-2 border-b border-slate-100"
+                                            className={`flex items-center justify-between py-2 border-b border-slate-100 ${
+                                                isMe ? "bg-blue-50 -mx-2 px-2 rounded-md border-blue-100" : ""
+                                            }`}
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className="size-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center text-[10px] font-bold">
+                                                <div
+                                                    className={`size-8 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                                                        isMe ? "bg-blue-500 text-white" : "bg-slate-100 text-slate-600"
+                                                    }`}
+                                                >
                                                     {initials}
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-bold">{maskedId}</p>
+                                                    <div className="flex items-center gap-1">
+                                                        <p
+                                                            className={`text-sm font-bold ${isMe ? "text-blue-600" : ""}`}
+                                                        >
+                                                            {maskedId}
+                                                        </p>
+                                                    </div>
                                                     <p className="text-[10px] text-slate-400 uppercase">
                                                         {formatTimeAgo(bid.bid_time)}
                                                     </p>

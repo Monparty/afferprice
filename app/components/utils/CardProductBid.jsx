@@ -188,6 +188,7 @@ function CardProductBid({ product, onBidSuccess }) {
                                 className="font-bold! bg-gray-100!"
                                 wFull
                                 onClick={() => onQuickBid(step)}
+                                disabled={ended}
                             />
                         ))}
                     </div>
@@ -198,6 +199,7 @@ function CardProductBid({ product, onBidSuccess }) {
                         icon={DollarOutlined}
                         format
                         placeholder="ระบุราคา..."
+                        disabled={ended}
                     />
                     <UseButton
                         label={isHighestBidder ? "รอผู้อื่นเสนอราคา" : "วางประมูลทันที"}

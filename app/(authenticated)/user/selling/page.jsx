@@ -9,6 +9,8 @@ import {
     getProductsByState,
     getWonProductsByUser,
     getWonProductCountByUser,
+    getActiveProductsBidByUser,
+    getLostBidProductsByUser,
 } from "@/app/services/products.service";
 import { AppstoreOutlined, BarsOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
@@ -41,6 +43,24 @@ function Page() {
                 const { data, error } = await getWonProductsByUser();
                 if (error) return notifyError(error);
                 setProducts(data ?? []);
+            } else if (activeTab === "active") {
+                const [own, bid] = await Promise.all([getProductsByState("active"), getActiveProductsBidByUser()]);
+                if (own.error) return notifyError(own.error);
+                if (bid.error) return notifyError(bid.error);
+                const ownTagged = (own.data ?? []).map((p) => ({ ...p, _isBidder: false }));
+                const bidTagged = (bid.data ?? []).map((p) => ({ ...p, _isBidder: true }));
+                const map = new Map();
+                [...ownTagged, ...bidTagged].forEach((p) => map.set(p.id, p));
+                setProducts([...map.values()]);
+            } else if (activeTab === "cancelled") {
+                const [own, lost] = await Promise.all([getProductsByState("cancelled"), getLostBidProductsByUser()]);
+                if (own.error) return notifyError(own.error);
+                if (lost.error) return notifyError(lost.error);
+                const ownTagged = (own.data ?? []).map((p) => ({ ...p, _isLost: false }));
+                const lostTagged = (lost.data ?? []).map((p) => ({ ...p, _isLost: true }));
+                const map = new Map();
+                [...ownTagged, ...lostTagged].forEach((p) => map.set(p.id, p));
+                setProducts([...map.values()]);
             } else {
                 const { data, error } = await getProductsByState(activeTab);
                 if (error) return notifyError(error);
@@ -57,6 +77,10 @@ function Page() {
                 const { count } = await getProductCountByState(s);
                 counts[s] = count;
             }
+            const { data: bidActive } = await getActiveProductsBidByUser();
+            counts["active"] = (counts["active"] ?? 0) + (bidActive?.length ?? 0);
+            const { data: lostBid } = await getLostBidProductsByUser();
+            counts["cancelled"] = (counts["cancelled"] ?? 0) + (lostBid?.length ?? 0);
             const { count: wonCount } = await getWonProductCountByUser();
             counts["won"] = wonCount;
             setCountState(counts);
@@ -77,21 +101,27 @@ function Page() {
                     const currentPrice = isWonTab
                         ? auctionResult?.final_price
                         : productData?.bids?.length
-                        ? Math.max(...productData.bids.map((b) => b.bid_price))
-                        : productData?.start_price;
+                          ? Math.max(...productData.bids.map((b) => b.bid_price))
+                          : productData?.start_price;
+                    const biddersCount = new Set((productData?.bids ?? []).map((b) => b.user_id).filter(Boolean)).size;
+                    const isLost = productData?._isLost;
                     return (
                         <CardSellingProduct
                             key={productData?.id}
                             value={{
                                 id: productData?.id,
-                                stateName: isWonTab ? "สินค้าที่ฉันชนะ" : name,
-                                stateColor: isWonTab ? "orange" : color,
+                                stateName: isWonTab ? "สินค้าที่ฉันชนะ" : isLost ? "ประมูลไม่ชนะ" : name,
+                                stateColor: isWonTab ? "orange" : isLost ? "red" : color,
                                 start_price: currentPrice,
                                 title: productData?.title,
                                 duration_days: productData?.duration_days,
+                                auction_end_time: productData?.auction_end_time,
+                                bidders_count: biddersCount,
                                 images_url: productData?.images_url,
                                 paymentStatus: auctionResult?.payment_status,
                                 isBuyer: isWonTab,
+                                isBidder: productData?._isBidder,
+                                isLost,
                             }}
                         />
                     );

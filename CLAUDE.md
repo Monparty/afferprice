@@ -88,7 +88,11 @@ Schema defined in `db/00_schema.sql`. Key tables:
 
 **ไม่มี `ended` state ใน flow แล้ว** — ประมูลสิ้นสุดแล้วข้ามไป `sold` หรือ `cancelled` ทันที (migration: `supabase/migrations/20260513000000_add_order_state.sql`)
 
-**RLS บน `products`**: seller อ่านสินค้าตัวเองได้ทุก state ผ่าน policy `"seller read own products"` (migration: `supabase/migrations/20260513000001_seller_read_own_products.sql`)
+**RLS บน `products`**:
+- seller อ่านสินค้าตัวเองได้ทุก state ผ่าน policy `"seller read own products"` (migration: `supabase/migrations/20260513000001_seller_read_own_products.sql`)
+- bidder อ่านสินค้าที่ตัวเองเคย bid ได้ทุก state ผ่าน policy `"bidder read bid products"` (migration: `supabase/migrations/20260520000000_bidder_read_bid_products.sql`) — จำเป็นสำหรับ won tab (winner อ่าน product ที่ state='sold') และ cancelled tab (lost bidder อ่านได้)
+
+**RLS บน `auction_results`**: อ่านได้เฉพาะ winner หรือ seller (policy `"winner or seller read result"`) — lost bidder อ่านไม่ได้ → query lost ต้องไม่ join `auction_results`
 
 **`products.start_price` หลัง bid**: ทำหน้าที่เป็น "ราคาปัจจุบัน / floor ของ bid ถัดไป" — `updateProductPrice()` ใน `products.service.js` จะ update ค่านี้ทุกครั้งที่ bid สำเร็จ ไม่มีคอลัมน์ `current_price` แยกต่างหาก
 
@@ -138,6 +142,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
   - `isHighestBidder = userData.id === highestBidderId` → disable ปุ่ม + เปลี่ยน label เป็น "รอผู้อื่นเสนอราคา"
   - `getHighestBid()` ใน `bids.service.js` คืน `{ bid_price, user_id }` (เพิ่ม `user_id`)
   - broadcast `new_bid` payload: `{ price, userId }` — sync `highestBidderId` ทุก tab
+- **Bid history UI** (`ProductDetail.jsx`): highlight bid ของ user ปัจจุบัน — ดึง `currentUserId` จาก Redux (`state.user.data?.id`) แล้วเทียบกับ `bid.user_id` → avatar สีน้ำเงิน "ME", ชื่อ `"คุณ"`, แท็กสีน้ำเงิน, พื้นหลังแถวสีน้ำเงินอ่อน
 
 ### Realtime Bid (Supabase Broadcast)
 
@@ -165,13 +170,22 @@ Schema defined in `db/00_schema.sql`. Key tables:
 
 ### Selling Page (`/user/selling`)
 
-- `getProductsByState(state)` join `auction_results(id, payment_status, winner_id)`
-- Tab พิเศษ `won` (สินค้าที่ฉันชนะ) → ใช้ `getWonProductsByUser()` query จาก `auction_results` ด้วย `winner_id`
-- **`CardSellingProduct`** รับ `isBuyer`, `paymentStatus` props:
-  - seller + `sold` + payment `pending` → แสดงข้อความ "รอชำระเงิน"
-  - seller + `sold` + payment `paid` → ลิงก์ "ระบุข้อมูลการจัดส่ง" → `/user/checkout/[productId]`
-  - buyer (`isBuyer=true`) + payment `pending` → ปุ่ม "ตรวจสอบ" → `/user/checkout/[productId]`
-  - buyer + payment `paid` → ข้อความ "รอจัดส่งสินค้า"
+- `getProductsByState(state)` join `auction_results(id, payment_status, winner_id)` + `bids(id, bid_price, user_id)` (user_id ใช้คำนวณจำนวนผู้ประมูล distinct)
+- Tab พิเศษ:
+  - `won` (สินค้าที่ฉันชนะ) → `getWonProductsByUser()` query จาก `auction_results` ด้วย `winner_id`
+  - `active` merge สินค้าที่เป็นเจ้าของ + สินค้าที่ user เคย bid (ไม่ใช่เจ้าของ) ผ่าน `getActiveProductsBidByUser()` — tag `_isBidder: true` สำหรับ bid product → การ์ดแสดงป้าย "คุณได้ร่วมประมูล" สีน้ำเงิน
+  - `cancelled` merge สินค้าที่ยกเลิกของเจ้าของ + สินค้าที่ user bid แต่ไม่ชนะ ผ่าน `getLostBidProductsByUser()` — tag `_isLost: true` → การ์ดแสดงป้าย "ประมูลไม่ชนะ" สีแดง
+- **`getLostBidProductsByUser`** คำนวณ lost = `bid product ids` − `won product ids` (2 query แยก) แล้ว query products `state='sold'` `seller_id != user.id` — ไม่ join `auction_results` เพราะ RLS บล็อก
+- **`CardSellingProduct`** (`"use client"`) รับ props:
+  - `isBuyer`, `paymentStatus`:
+    - seller + `sold` + payment `pending` → ข้อความ "รอชำระเงิน"
+    - seller + `sold` + payment `paid` → ลิงก์ "ระบุข้อมูลการจัดส่ง" → `/user/checkout/[productId]`
+    - buyer (`isBuyer=true`) + payment `pending` → ปุ่ม "ตรวจสอบ" → `/user/checkout/[productId]`
+    - buyer + payment `paid` → ข้อความ "รอจัดส่งสินค้า"
+  - `isBidder` → ป้าย "คุณได้ร่วมประมูล"
+  - `isLost` → stateName "ประมูลไม่ชนะ" + popover "ดูสินค้า"
+  - `bidders_count` → จำนวนผู้ประมูลแบบ distinct (`new Set(bids.map(b => b.user_id))`)
+  - `auction_end_time` → countdown แบบ realtime (`setInterval` 1s) — `> 1 วัน`: `X วัน HH ชม.`; มิฉะนั้น `HH:MM:SS`; หมดเวลา: `หมดเวลา`
 
 ### Shipment Flow
 
