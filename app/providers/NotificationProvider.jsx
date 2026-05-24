@@ -5,6 +5,7 @@ import AppHeader from "../components/layout/AppHeader";
 import AppFooter from "../components/layout/AppFooter";
 import { usePathname } from "next/navigation";
 import { translateSupabaseError } from "../utils/supabaseErrorMap";
+import BtnAddProduct from "../components/utils/BtnAddProduct";
 
 let notificationApi = null;
 
@@ -42,6 +43,7 @@ export const NotificationProvider = ({ children }) => {
             {!isHidden && <AppHeader />}
             {contextHolder}
             {children}
+            {!isHidden && <BtnAddProduct />}
             <FloatButton.BackTop />
             {!isHidden && <AppFooter />}
         </>

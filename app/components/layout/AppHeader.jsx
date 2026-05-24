@@ -72,7 +72,6 @@ function AppHeader() {
         { url: "/categories", label: "หมวดหมู่" },
         { url: "/auction", label: "การประมูล" },
         { url: "/user/favorites", label: "สิ่งที่ถูกใจ" },
-        { url: "/user/add-product", label: "สร้างรายการ" },
     ];
 
     const mapPath =
@@ -169,7 +168,7 @@ function AppHeader() {
             {/* Main bar */}
             <div
                 className={`
-                    fixed top-0 z-50 w-full flex items-center px-4 md:ps-10 gap-3
+                    fixed top-0 z-50 w-full flex items-center px-4 py-2 md:ps-10 gap-3
                     bg-white dark:bg-zinc-900 shadow-sm dark:shadow-zinc-800
                     transform transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]
                     ${show ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"}
@@ -293,7 +292,7 @@ function AppHeader() {
 
             {/* Mobile dropdown menu */}
             {mobileMenuOpen && (
-                <div className="md:hidden fixed top-15 left-0 right-0 z-40 bg-white dark:bg-zinc-900 border-t border-slate-200 dark:border-zinc-700 shadow-lg px-4 py-4 space-y-4">
+                <div className="md:hidden fixed top-12 left-0 right-0 z-40 bg-white dark:bg-zinc-900 border-t border-slate-200 dark:border-zinc-700 shadow-lg px-4 py-4 space-y-4">
                     <InputText
                         control={control}
                         name="search_mobile"
@@ -316,7 +315,16 @@ function AppHeader() {
                                 </Link>
                             </li>
                         ))}
+                        <li>
+                            <Link
+                                href="/user/wallet"
+                                className="flex items-center justify-center gap-1 h-9 px-3 rounded-full bg-orange-50 dark:bg-orange-950 text-orange-600 text-sm font-semibold hover:bg-orange-100 dark:hover:bg-orange-900 transition-colors"
+                            >
+                                <WalletFilled />฿{Number(walletBalance).toLocaleString("th-TH")}
+                            </Link>
+                        </li>
                     </ul>
+
                     {!user && (
                         <Link href="/login">
                             <UseButton label="เข้าสู่ระบบ" wFull />
