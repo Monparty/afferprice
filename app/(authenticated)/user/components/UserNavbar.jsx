@@ -6,6 +6,7 @@ import {
     TagOutlined,
     HeartOutlined,
     EnvironmentOutlined,
+    WalletOutlined,
 } from "@ant-design/icons";
 import UseButton from "../../../components/inputs/UseButton";
 import Link from "next/link";
@@ -19,6 +20,7 @@ const navItems = [
     { href: "/user/selling", icon: TagOutlined, label: "สินค้าของฉัน" },
     { href: "/user/favorites", icon: HeartOutlined, label: "ถูกใจ" },
     { href: "/user/address", icon: EnvironmentOutlined, label: "ที่อยู่" },
+    { href: "/user/wallet", icon: WalletOutlined, label: "กระเป๋าเงิน" },
 ];
 
 function UserNavbar() {

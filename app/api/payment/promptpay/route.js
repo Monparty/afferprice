@@ -18,7 +18,7 @@ async function omiseFetch(path, body) {
 
 export async function POST(req) {
     try {
-        const { auctionResultId, userId, amount } = await req.json();
+        const { auctionResultId, userId, amount, purpose = "auction" } = await req.json();
         const amountSatang = Math.round(amount * 100);
 
         const source = await omiseFetch("/sources", {
@@ -33,14 +33,15 @@ export async function POST(req) {
             source: source.id,
         });
 
-        if (auctionResultId) {
+        if (auctionResultId || purpose === "topup") {
             const { error } = await supabaseAdmin.from("payments").insert({
-                auction_result_id: auctionResultId,
+                auction_result_id: auctionResultId ?? null,
                 user_id: userId,
                 amount,
                 payment_method: "promptpay",
                 payment_status: "pending",
                 transaction_ref: charge.id,
+                purpose,
             });
             if (error) return NextResponse.json({ error: error.message }, { status: 500 });
         }

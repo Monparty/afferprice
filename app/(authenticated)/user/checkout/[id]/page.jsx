@@ -1,14 +1,14 @@
 "use client";
 import UseButton from "../../../../components/inputs/UseButton";
 import {
-    BankFilled,
     CheckCircleFilled,
-    CreditCardFilled,
     LockFilled,
     PlusOutlined,
     QrcodeOutlined,
     SafetyOutlined,
     CarOutlined,
+    WalletFilled,
+    MessageFilled,
 } from "@ant-design/icons";
 import UseTag from "../../../../components/utils/UseTag";
 import UseModal from "../../../../components/utils/UseModal";
@@ -47,6 +47,7 @@ function Page() {
     const { id } = useParams();
     const [result, setResult] = useState(null);
     const [shipping, setShipping] = useState("express");
+    const [paymentMethod, setPaymentMethod] = useState("promptpay");
     const [addresses, setAddresses] = useState([]);
     const [selectedAddressId, setSelectedAddressId] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
@@ -260,29 +261,28 @@ function Page() {
                         </span>
                         <h2 className="text-xl font-bold">รูปแบบการจัดส่ง</h2>
                     </div>
-                    <div className="space-y-3">
-                        {SHIPPING_OPTIONS.map((opt) => (
-                            <label
-                                key={opt.value}
-                                className="flex items-center justify-between p-4 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors has-checked:border-primary has-checked:bg-primary/5"
-                            >
-                                <div className="flex items-center gap-4">
-                                    <input
-                                        checked={shipping === opt.value}
-                                        onChange={() => setShipping(opt.value)}
-                                        className="text-primary focus:ring-primary h-5 w-5 border-gray-300"
-                                        name="shipping"
-                                        type="radio"
-                                        value={opt.value}
-                                    />
+                    <div className="grid gap-4">
+                        {SHIPPING_OPTIONS.map((opt) => {
+                            const isSelected = shipping === opt.value;
+                            return (
+                                <div
+                                    key={opt.value}
+                                    onClick={() => setShipping(opt.value)}
+                                    className={`rounded-xl cursor-pointer relative p-4 flex items-center justify-between ${isSelected ? "border-2 border-orange-400 shadow-md" : "border-2 border-slate-50"}`}
+                                >
                                     <div>
                                         <p className="font-bold">{opt.label}</p>
                                         <p className="text-xs text-gray-500">{opt.desc}</p>
                                     </div>
+                                    <span className="font-bold text-black mr-8">
+                                        {opt.fee === 0 ? "ฟรี" : `฿${opt.fee}`}
+                                    </span>
+                                    {isSelected && (
+                                        <CheckCircleFilled className="text-xl text-orange-500! absolute top-2 right-2" />
+                                    )}
                                 </div>
-                                <span className="font-bold text-black">{opt.fee === 0 ? "ฟรี" : `฿${opt.fee}`}</span>
-                            </label>
-                        ))}
+                            );
+                        })}
                     </div>
                 </section>
 
@@ -294,24 +294,28 @@ function Page() {
                         <h2 className="text-xl font-bold">ช่องทางชำระเงิน</h2>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <label className="flex flex-col items-center justify-center p-6 border border-gray-200 rounded-xl cursor-pointer hover:border-primary has-checked:border-primary has-checked:bg-primary/5 text-center transition-all">
-                            <input defaultChecked className="sr-only" name="payment" type="radio" value="promptpay" />
-                            <QrcodeOutlined className="text-xl! text-black! mb-4" />
-                            <p className="font-bold text-sm">Thai QR PromptPay</p>
-                            <p className="text-[10px] text-gray-400 mt-1 uppercase">Instant Payment</p>
-                        </label>
-                        <label className="flex flex-col items-center justify-center p-6 border border-gray-200 rounded-xl cursor-pointer hover:border-primary has-checked:border-primary has-checked:bg-primary/5 text-center transition-all">
-                            <input className="sr-only" name="payment" type="radio" value="card" />
-                            <CreditCardFilled className="text-xl! text-black! mb-4" />
-                            <p className="font-bold text-sm">Credit / Debit Card</p>
-                            <p className="text-[10px] text-gray-400 mt-1 uppercase">Visa, Mastercard, JCB</p>
-                        </label>
-                        <label className="flex flex-col items-center justify-center p-6 border border-gray-200 rounded-xl cursor-pointer hover:border-primary has-checked:border-primary has-checked:bg-primary/5 text-center transition-all">
-                            <input className="sr-only" name="payment" type="radio" value="transfer" />
-                            <BankFilled className="text-xl! text-black! mb-4" />
-                            <p className="font-bold text-sm">Mobile Banking</p>
-                            <p className="text-[10px] text-gray-400 mt-1 uppercase">Bank Transfer</p>
-                        </label>
+                        {[
+                            { value: "promptpay", label: "Thai QR PromptPay", desc: "Instant Payment", icon: QrcodeOutlined, color: "text-black!" },
+                            { value: "linepay", label: "LINE Pay", desc: "Pay via LINE App", icon: MessageFilled, color: "text-green-500!" },
+                            { value: "wallet", label: "Wallet", desc: "Account Balance", icon: WalletFilled, color: "text-orange-500!" },
+                        ].map((opt) => {
+                            const isSelected = paymentMethod === opt.value;
+                            const Icon = opt.icon;
+                            return (
+                                <div
+                                    key={opt.value}
+                                    onClick={() => setPaymentMethod(opt.value)}
+                                    className={`relative flex flex-col items-center justify-center p-6 border-2 rounded-xl cursor-pointer text-center transition-all ${isSelected ? "border-orange-500 bg-orange-50" : "border-gray-200 hover:border-orange-300"}`}
+                                >
+                                    {isSelected && (
+                                        <CheckCircleFilled className="text-xl text-orange-500! absolute top-2 right-2" />
+                                    )}
+                                    <Icon className={`text-xl! mb-4 ${opt.color}`} />
+                                    <p className="font-bold text-sm">{opt.label}</p>
+                                    <p className="text-[10px] text-gray-400 mt-1 uppercase">{opt.desc}</p>
+                                </div>
+                            );
+                        })}
                     </div>
                 </section>
             </div>
@@ -351,7 +355,7 @@ function Page() {
                         <UseButton
                             label="ยืนยันการชำระเงิน"
                             className="h-12! text-lg! font-bold!"
-                            onClick={() => router.push(`/user/payment/${id}`)}
+                            onClick={() => router.push(`/user/payment/${id}?method=${paymentMethod}`)}
                             wFull
                             disabled={!result}
                         />

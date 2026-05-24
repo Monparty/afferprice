@@ -4,4 +4,12 @@ export const ROUTES = {
     ADMIN_CATEGORIES: "/admin/categories",
     ADMIN_PRODUCT: "/admin/products",
     ADMIN_BID: "/admin/bids",
+    ADMIN_AUCTION_RESULTS: "/admin/auction-results",
+    ADMIN_PAYMENTS: "/admin/payments",
+    ADMIN_SHIPMENTS: "/admin/shipments",
+    ADMIN_WALLET: "/admin/wallet",
+    ADMIN_NOTIFICATIONS: "/admin/notifications",
+    ADMIN_REPORTS: "/admin/reports",
+    ADMIN_ISSUES: "/admin/issues",
+    ADMIN_SETTINGS: "/admin/settings",
 };

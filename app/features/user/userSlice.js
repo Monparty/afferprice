@@ -13,6 +13,8 @@ export const fetchUser = createAsyncThunk("user/fetchUser", async (_, thunkAPI) 
         if (profileError) return thunkAPI.rejectWithValue(profileError.message);
         if (!profileData) return thunkAPI.rejectWithValue("Profile not found");
 
+        console.log("profileData", profileData)
+
         return {
             ...profileData,
             email: userData.user.email,
@@ -34,6 +36,9 @@ const userSlice = createSlice({
         clearUser: (state) => {
             state.data = null;
         },
+        setWalletBalance: (state, action) => {
+            if (state.data) state.data.wallet_balance = action.payload;
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -51,5 +56,5 @@ const userSlice = createSlice({
     },
 });
 
-export const { clearUser } = userSlice.actions;
+export const { clearUser, setWalletBalance } = userSlice.actions;
 export default userSlice.reducer;

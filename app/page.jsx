@@ -29,6 +29,7 @@ function Page() {
                             <li>KYC ก่อนประมูล</li>
                             <li>สินค้าที่ user คนอื่นมี action ต้องขึ้นที่ state กำลังประมูล</li>
                             <li>เพิ่ม Omise payment (เพิ่ม linepay, wallet)</li>
+                            <li>ทำระบบเติมเงินไว้ให้ user เก็บเงินในเว็บผ่าน Omise</li>
                             <li>ทำ db ทดสอบ กับ bd จริง</li>
                             <li>ดูเรื่องความปลอดภัยข้อเว็บและ db</li>
                             <li>แก้เงื่อนไขการแสดงผล content หน้าแรก</li>

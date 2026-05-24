@@ -1,13 +1,19 @@
 "use client";
 import UseTable from "@/app/components/utils/UseTable";
-import UseTag from "@/app/components/utils/UseTag";
 import UseImage from "@/app/components/utils/UseImage";
+import UseTag from "@/app/components/utils/UseTag";
+import UseButton from "@/app/components/inputs/UseButton";
+import UseTooltip from "@/app/components/utils/UseTooltip";
 import { useColumnSearch } from "@/app/hooks/useColumnSearch";
 import { notifyError } from "@/app/providers/NotificationProvider";
-import { getAllBids } from "@/app/services/admin/bids.service";
+import { getBidsGroupedByProduct } from "@/app/services/admin/bids.service";
 import { formatDateTime } from "@/app/utils/dateUtils";
+import { mapProductState } from "@/app/utils/mapProductState";
+import { EyeFilled } from "@ant-design/icons";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
+import { ROUTES } from "../constants/routes";
 
 function Page() {
     const { control, setValue } = useForm();
@@ -15,18 +21,16 @@ function Page() {
     const { columnSearch } = useColumnSearch();
 
     useEffect(() => {
-        getAllBids().then(({ data, error }) => {
+        getBidsGroupedByProduct().then(({ data, error }) => {
             if (error) return notifyError(error);
             setDataSource(
                 data.map((item) => ({
                     ...item,
-                    bidTime: formatDateTime(item.bid_time),
-                    productTitle: item.products?.title || "—",
-                    imageUrl: item.products?.images_url?.[0]?.url || null,
-                    bidderName: item.profile
-                        ? `${item.profile.first_name ?? ""} ${item.profile.last_name ?? ""}`.trim() ||
-                          item.profile.email
-                        : "—",
+                    key: item.product_id,
+                    productTitle: item.product?.title || "—",
+                    imageUrl: item.product?.images_url?.[0]?.url || null,
+                    state: item.product?.state,
+                    latestBidTime: formatDateTime(item.latest_bid_time),
                 })),
             );
         });
@@ -42,41 +46,65 @@ function Page() {
             render: (_, record) => <UseImage width={60} height={60} alt="product thumbnail" src={record.imageUrl} />,
         },
         {
-            title: "ผู้ประมูล",
-            dataIndex: "bidderName",
-            key: "bidderName",
-            ...columnSearch("bidderName", control, setValue),
-        },
-        {
             title: "สินค้า",
             dataIndex: "productTitle",
             key: "productTitle",
             ...columnSearch("productTitle", control, setValue),
         },
         {
-            title: "ราคาประมูล",
-            dataIndex: "bid_price",
-            key: "bid_price",
-            sorter: (a, b) => a.bid_price - b.bid_price,
-            render: (_, record) => <>฿{record.bid_price?.toLocaleString()}</>,
+            title: "จำนวนผู้ประมูล",
+            dataIndex: "bidders_count",
+            key: "bidders_count",
+            align: "center",
+            sorter: (a, b) => a.bidders_count - b.bidders_count,
+            render: (_, record) => <>{record.bidders_count} คน</>,
         },
         {
-            title: "วันที่ประมูล",
-            dataIndex: "bidTime",
-            key: "bidTime",
-            sorter: (a, b) => a.bidTime.localeCompare(b.bidTime),
+            title: "จำนวนการประมูล",
+            dataIndex: "bids_count",
+            key: "bids_count",
+            align: "center",
+            sorter: (a, b) => a.bids_count - b.bids_count,
+            render: (_, record) => <>{record.bids_count} ครั้ง</>,
+        },
+        {
+            title: "ราคาสูงสุด",
+            dataIndex: "highest_price",
+            key: "highest_price",
+            sorter: (a, b) => a.highest_price - b.highest_price,
+            render: (_, record) => <>฿{record.highest_price?.toLocaleString()}</>,
+        },
+        {
+            title: "สถานะสินค้า",
+            dataIndex: "state",
+            key: "state",
+            render: (_, record) => {
+                const { color } = mapProductState(record.state);
+                return <UseTag label={record.state} variant="filled" color={color} className="capitalize" />;
+            },
+        },
+        {
+            title: "ประมูลล่าสุด",
+            dataIndex: "latestBidTime",
+            key: "latestBidTime",
+            sorter: (a, b) => a.latestBidTime.localeCompare(b.latestBidTime),
             defaultSortOrder: "descend",
         },
         {
-            title: "สถานะ",
-            dataIndex: "is_winning",
-            key: "is_winning",
-            render: (_, record) =>
-                record.is_winning ? (
-                    <UseTag label="ชนะ" color="green" variant="filled" />
-                ) : (
-                    <UseTag label="ไม่ชนะ" color="default" />
-                ),
+            title: "จัดการ",
+            dataIndex: "action",
+            key: "action",
+            width: 100,
+            align: "center",
+            render: (_, record) => (
+                <div className="flex gap-2 justify-center">
+                    <UseTooltip title="ดูรายละเอียดการประมูล">
+                        <Link href={`${ROUTES.ADMIN_BID}/${record.product_id}`}>
+                            <UseButton shape="circle" className="bg-blue-500!" icon={EyeFilled} />
+                        </Link>
+                    </UseTooltip>
+                </div>
+            ),
         },
     ];
 

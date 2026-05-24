@@ -5,16 +5,20 @@ import afferpriceLogo from "../../../public/images/afferpriceLogo.png";
 import {
     BarChartOutlined,
     BellOutlined,
+    CarOutlined,
     CreditCardOutlined,
     ExceptionOutlined,
+    FileTextOutlined,
     HistoryOutlined,
     InboxOutlined,
     LogoutOutlined,
+    NotificationOutlined,
     QuestionCircleOutlined,
     SettingOutlined,
     ShopOutlined,
     ShoppingCartOutlined,
     UserOutlined,
+    WalletOutlined,
 } from "@ant-design/icons";
 import UseAvatar from "@/app/components/utils/UseAvatar";
 import UsePopover from "@/app/components/utils/UsePopover";
@@ -27,12 +31,16 @@ const menus = [
     { url: ROUTES.ADMIN, label: "แดชบอร์ด", icon: <BarChartOutlined className="text-lg!" /> },
     { url: ROUTES.ADMIN_PRODUCT, label: "จัดการสินค้าประมูล", icon: <ShoppingCartOutlined className="text-lg!" /> },
     { url: ROUTES.ADMIN_BID, label: "ตรวจสอบการ bid", icon: <InboxOutlined className="text-lg!" /> },
-    { url: ROUTES.ADMIN, label: "หลังจากประมูลจบ", icon: <HistoryOutlined className="text-lg!" /> },
+    { url: ROUTES.ADMIN_AUCTION_RESULTS, label: "หลังจากประมูลจบ", icon: <HistoryOutlined className="text-lg!" /> },
+    { url: ROUTES.ADMIN_SHIPMENTS, label: "การจัดส่ง", icon: <CarOutlined className="text-lg!" /> },
+    { url: ROUTES.ADMIN_PAYMENTS, label: "การชำระเงิน", icon: <CreditCardOutlined className="text-lg!" /> },
+    { url: ROUTES.ADMIN_WALLET, label: "กระเป๋าเงิน", icon: <WalletOutlined className="text-lg!" /> },
     { url: ROUTES.ADMIN_USERS, label: "จัดการผู้ใช้งาน", icon: <UserOutlined className="text-lg!" /> },
     { url: ROUTES.ADMIN_CATEGORIES, label: "จัดการหมวดหมู่สินค้า", icon: <ShopOutlined className="text-lg!" /> },
-    { url: ROUTES.ADMIN, label: "การชำระเงิน", icon: <CreditCardOutlined className="text-lg!" /> },
-    { url: ROUTES.ADMIN, label: "ระบบแจ้งปัญหา", icon: <ExceptionOutlined className="text-lg!" /> },
-    { url: ROUTES.ADMIN, label: "การตั้งค่า", icon: <SettingOutlined className="text-lg!" /> },
+    { url: ROUTES.ADMIN_NOTIFICATIONS, label: "การแจ้งเตือน", icon: <NotificationOutlined className="text-lg!" /> },
+    { url: ROUTES.ADMIN_REPORTS, label: "รายงาน", icon: <FileTextOutlined className="text-lg!" /> },
+    { url: ROUTES.ADMIN_ISSUES, label: "ระบบแจ้งปัญหา", icon: <ExceptionOutlined className="text-lg!" /> },
+    { url: ROUTES.ADMIN_SETTINGS, label: "การตั้งค่า", icon: <SettingOutlined className="text-lg!" /> },
 ];
 
 function AdminLayout({ children }) {

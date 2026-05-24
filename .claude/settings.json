@@ -3,7 +3,15 @@
     "allow": [
       "Bash(npx skills *)",
       "Bash(node -e \"require\\('dayjs'\\); console.log\\('dayjs ok'\\)\")",
-      "Bash(Get-Content \"C:\\\\Users\\\\sense\\\\.claude\\\\projects\\\\c--Users-sense-Desktop-projects-afferprice\\\\e3218873-ec7a-4c5c-913b-fb3dfbc494c8\\\\tool-results\\\\toolu_01WDUfgipCaW3wqBmHm1Uqpc.txt\" -ReadCount 0)"
+      "Bash(Get-Content \"C:\\\\Users\\\\sense\\\\.claude\\\\projects\\\\c--Users-sense-Desktop-projects-afferprice\\\\e3218873-ec7a-4c5c-913b-fb3dfbc494c8\\\\tool-results\\\\toolu_01WDUfgipCaW3wqBmHm1Uqpc.txt\" -ReadCount 0)",
+      "Bash(^total\")",
+      "Bash(npm run *)",
+      "Bash(supabase db *)",
+      "PowerShell(supabase db push)",
+      "PowerShell(Get-Command supabase -ErrorAction SilentlyContinue)",
+      "PowerShell(npx supabase --version 2>&1)",
+      "PowerShell(scoop which supabase 2>&1)",
+      "PowerShell(npx supabase db push)"
     ]
   }
 }

@@ -13,7 +13,6 @@ export async function POST(req) {
     }
 
     const charge = event.data;
-
     const isSuccess = charge.status === "successful";
 
     const { data: payment } = await supabaseAdmin
@@ -23,14 +22,21 @@ export async function POST(req) {
             paid_at: isSuccess ? new Date().toISOString() : null,
         })
         .eq("transaction_ref", charge.id)
-        .select("auction_result_id")
+        .select("id, user_id, amount, purpose, auction_result_id")
         .single();
 
-    if (isSuccess && payment?.auction_result_id) {
-        await supabaseAdmin
-            .from("auction_results")
-            .update({ payment_status: "paid" })
-            .eq("id", payment.auction_result_id);
+    if (isSuccess && payment) {
+        if (payment.purpose === "topup") {
+            await supabaseAdmin.rpc("credit_wallet", { p_payment_id: payment.id });
+            await supabaseAdmin
+                .channel(`wallet-${payment.user_id}`)
+                .send({ type: "broadcast", event: "update", payload: {} });
+        } else if (payment.auction_result_id) {
+            await supabaseAdmin
+                .from("auction_results")
+                .update({ payment_status: "paid" })
+                .eq("id", payment.auction_result_id);
+        }
     }
 
     return NextResponse.json({ received: true });

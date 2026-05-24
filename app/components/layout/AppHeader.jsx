@@ -11,6 +11,7 @@ import {
     UserOutlined,
     SunOutlined,
     MoonOutlined,
+    WalletFilled,
 } from "@ant-design/icons";
 import UseButton from "../inputs/UseButton";
 import UseBadge from "../utils/UseBadge";
@@ -31,16 +32,20 @@ import { notifyError } from "@/app/providers/NotificationProvider";
 import { useTheme } from "@/app/providers/ThemeProvider";
 import UseAutoComplete from "../inputs/UseAutoComplete";
 import { useDispatch } from "react-redux";
-import { clearUser } from "@/app/features/user/userSlice";
+import { clearUser, setWalletBalance } from "@/app/features/user/userSlice";
+import { getMyWalletBalance, subscribeWallet } from "@/app/services/wallet.service";
 
 function AppHeader() {
     const { control } = useForm();
     const pathname = usePathname();
     const [user, setUser] = useState(null);
     const [profile, setProfile] = useState(null);
+    const [walletBalance, setWalletBalanceLocal] = useState(0);
     const router = useRouter();
     const { isDark, toggleTheme } = useTheme();
     const dispatch = useDispatch();
+
+    console.log("profile", profile)
 
     const fetchProductOptions = async (text) => {
         const { data } = await searchProducts(text);
@@ -96,15 +101,27 @@ function AppHeader() {
         return unsubscribe;
     }, []);
 
+    const fetchWallet = async () => {
+        const { data } = await getMyWalletBalance();
+        const bal = Number(data?.wallet_balance ?? 0);
+        setWalletBalanceLocal(bal);
+        dispatch(setWalletBalance(bal));
+    };
+
     useEffect(() => {
         if (!user) return;
         const fetchProfile = async () => {
             const { data, error } = await getProfileById(user.id);
             if (error) return notifyError(error);
+            console.log("data", data)
             setProfile(data);
         };
         fetchProfile();
         fetchUnreadCount();
+        fetchWallet();
+        const unsub = subscribeWallet(user.id, () => fetchWallet());
+        return unsub;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
 
     // hide header on scroll down
@@ -205,6 +222,12 @@ function AppHeader() {
                     ) : (
                         <div className="flex gap-4 items-center">
                             <DarkModeToggle />
+                            <Link
+                                href="/user/wallet"
+                                className="hidden sm:flex items-center gap-1 h-9 px-3 rounded-full bg-orange-50 dark:bg-orange-950 text-orange-600 text-sm font-semibold hover:bg-orange-100 dark:hover:bg-orange-900 transition-colors"
+                            >
+                                <WalletFilled />฿{Number(walletBalance).toLocaleString("th-TH")}
+                            </Link>
                             <UseBadge count={unreadCount}>
                                 <UseButton onClick={() => setOpenDrawer(true)} icon={BellFilled} />
                             </UseBadge>
@@ -229,6 +252,15 @@ function AppHeader() {
                                                 className="justify-start! h-10!"
                                                 type="text"
                                                 icon={UserOutlined}
+                                                wFull
+                                            />
+                                        </Link>
+                                        <Link href="/user/wallet">
+                                            <UseButton
+                                                label="กระเป๋าเงิน"
+                                                className="justify-start! h-10!"
+                                                type="text"
+                                                icon={WalletFilled}
                                                 wFull
                                             />
                                         </Link>

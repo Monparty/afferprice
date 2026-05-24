@@ -23,3 +23,14 @@ export async function getPaymentByAuctionResult(auctionResultId) {
         .eq("auction_result_id", auctionResultId)
         .single();
 }
+
+export async function createMockPayment({ auctionResultId, userId, amount, method }) {
+    return supabase.from("payments").insert({
+        auction_result_id: auctionResultId,
+        user_id: userId,
+        amount,
+        payment_method: method,
+        payment_status: "pending",
+        transaction_ref: `MOCK-${method.toUpperCase()}-${Date.now()}`,
+    });
+}
