@@ -1,7 +1,9 @@
 "use server";
 import { supabaseAdmin } from "../../lib/supabase/admin";
+import { requireAdmin } from "../../lib/auth";
 
 export async function getAllNotifications({ limit = 200 } = {}) {
+    await requireAdmin();
     const { data, error } = await supabaseAdmin
         .from("notifications")
         .select("id, user_id, type, title, message, is_read, created_at")

@@ -1,7 +1,9 @@
 "use server";
 import { supabaseAdmin } from "../../lib/supabase/admin";
+import { requireAdmin } from "../../lib/auth";
 
 export async function getReportSummary() {
+    await requireAdmin();
     const [
         { data: paidResults },
         { count: totalUsers },
@@ -30,6 +32,7 @@ export async function getReportSummary() {
 }
 
 export async function getRevenueByMonth() {
+    await requireAdmin();
     const { data, error } = await supabaseAdmin
         .from("auction_results")
         .select("final_price, created_at")

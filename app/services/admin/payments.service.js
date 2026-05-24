@@ -1,7 +1,9 @@
 "use server";
 import { supabaseAdmin } from "../../lib/supabase/admin";
+import { requireAdmin } from "../../lib/auth";
 
 export async function getPayments() {
+    await requireAdmin();
     const { data, error } = await supabaseAdmin
         .from("payments")
         .select("id, amount, payment_method, payment_status, transaction_ref, created_at, user_id, auction_result_id")

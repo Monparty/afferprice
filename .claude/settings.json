@@ -11,7 +11,8 @@
       "PowerShell(Get-Command supabase -ErrorAction SilentlyContinue)",
       "PowerShell(npx supabase --version 2>&1)",
       "PowerShell(scoop which supabase 2>&1)",
-      "PowerShell(npx supabase db push)"
+      "PowerShell(npx supabase db push)",
+      "Bash(npm audit *)"
     ]
   }
 }

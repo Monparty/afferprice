@@ -1,7 +1,9 @@
 "use server";
 import { supabaseAdmin } from "../../lib/supabase/admin";
+import { requireAdmin } from "../../lib/auth";
 
 export async function getShipments() {
+    await requireAdmin();
     const { data, error } = await supabaseAdmin
         .from("shipments")
         .select("id, shipping_company, tracking_number, shipping_status, created_at, auction_result_id, auction_results(product_id, winner_id, products(title, images_url, seller_id))")
@@ -29,5 +31,6 @@ export async function getShipments() {
 }
 
 export async function updateShipmentStatus(id, status) {
+    await requireAdmin();
     return supabaseAdmin.from("shipments").update({ shipping_status: status }).eq("id", id);
 }

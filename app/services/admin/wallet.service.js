@@ -1,7 +1,9 @@
 "use server";
 import { supabaseAdmin } from "../../lib/supabase/admin";
+import { requireAdmin } from "../../lib/auth";
 
 export async function getWalletBalances() {
+    await requireAdmin();
     const { data, error } = await supabaseAdmin
         .from("profiles")
         .select("id, first_name, last_name, wallet_balance")
@@ -10,6 +12,7 @@ export async function getWalletBalances() {
 }
 
 export async function getWalletTransactions({ limit = 100 } = {}) {
+    await requireAdmin();
     const { data, error } = await supabaseAdmin
         .from("wallet_transactions")
         .select("id, user_id, amount, type, reference_id, balance_after, note, created_at")

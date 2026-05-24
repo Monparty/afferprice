@@ -1,7 +1,9 @@
 "use server";
 import { supabaseAdmin } from "../../lib/supabase/admin";
+import { requireAdmin } from "../../lib/auth";
 
 export async function getAllBids() {
+    await requireAdmin();
     const { data: bids, error } = await supabaseAdmin
         .from("bids")
         .select("id, bid_price, is_winning, bid_time, user_id, products(title, images_url)")
@@ -22,6 +24,7 @@ export async function getAllBids() {
 }
 
 export async function getBidsGroupedByProduct() {
+    await requireAdmin();
     const { data: bids, error } = await supabaseAdmin
         .from("bids")
         .select("id, bid_price, bid_time, user_id, product_id, products(id, title, images_url, state, start_price)")
@@ -64,6 +67,7 @@ export async function getBidsGroupedByProduct() {
 }
 
 export async function getBidsByProductId(productId) {
+    await requireAdmin();
     const { data: bids, error } = await supabaseAdmin
         .from("bids")
         .select("id, bid_price, is_winning, bid_time, user_id, products(id, title, images_url, state, start_price)")

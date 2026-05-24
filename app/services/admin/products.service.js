@@ -1,7 +1,9 @@
 "use server";
 import { supabaseAdmin } from "../../lib/supabase/admin";
+import { requireAdmin } from "../../lib/auth";
 
 export async function getProducts() {
+    await requireAdmin();
     const { data: products, error } = await supabaseAdmin.from("products").select("*");
     if (error) return { data: null, error };
 
@@ -17,14 +19,17 @@ export async function getProducts() {
 }
 
 export async function deleteProduct(id) {
+    await requireAdmin();
     await supabaseAdmin.from("favorites").delete().eq("product_id", id);
     return supabaseAdmin.from("products").delete().eq("id", id);
 }
 
 export async function upsertProduct(data) {
+    await requireAdmin();
     return supabaseAdmin.from("products").upsert(data);
 }
 
 export async function getProductById(id) {
+    await requireAdmin();
     return supabaseAdmin.from("products").select("*").eq("id", id).single();
 }

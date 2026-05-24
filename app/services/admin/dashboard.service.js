@@ -1,7 +1,9 @@
 "use server";
 import { supabaseAdmin } from "../../lib/supabase/admin";
+import { requireAdmin } from "../../lib/auth";
 
 export async function getDashboardStats() {
+    await requireAdmin();
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
     const [{ count: activeCount }, { count: pendingCount }, { data: paidResults }, { count: newUsersCount }] =

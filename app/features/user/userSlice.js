@@ -13,8 +13,6 @@ export const fetchUser = createAsyncThunk("user/fetchUser", async (_, thunkAPI) 
         if (profileError) return thunkAPI.rejectWithValue(profileError.message);
         if (!profileData) return thunkAPI.rejectWithValue("Profile not found");
 
-        console.log("profileData", profileData)
-
         return {
             ...profileData,
             email: userData.user.email,

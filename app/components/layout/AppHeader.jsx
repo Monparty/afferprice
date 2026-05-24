@@ -45,8 +45,6 @@ function AppHeader() {
     const { isDark, toggleTheme } = useTheme();
     const dispatch = useDispatch();
 
-    console.log("profile", profile)
-
     const fetchProductOptions = async (text) => {
         const { data } = await searchProducts(text);
         return (data || []).map((p) => ({
@@ -113,7 +111,6 @@ function AppHeader() {
         const fetchProfile = async () => {
             const { data, error } = await getProfileById(user.id);
             if (error) return notifyError(error);
-            console.log("data", data)
             setProfile(data);
         };
         fetchProfile();
