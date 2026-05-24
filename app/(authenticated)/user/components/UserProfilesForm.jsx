@@ -11,6 +11,8 @@ import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider
 import UseUpload from "@/app/components/inputs/UseUpload";
 import UseButton from "@/app/components/inputs/UseButton";
 import { handleLocalPreview, removeDeletedFiles, uploadPendingFiles } from "@/app/utils/storageHelper";
+import { uploadIdCard, removeIdCard, createIdCardSignedUrl } from "@/app/services/upload.service";
+import { validateImageFile, fileErrorMessage } from "@/app/utils/fileValidation";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { schema } from "./schema";
 
@@ -21,6 +23,7 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
     });
     const id = getValues("id");
     const originalFilesRef = useRef({ profile: [], idCard: [] });
+    const originalIdCardPathRef = useRef(null);
 
     useEffect(() => {
         const fetchUserAndProfile = async () => {
@@ -55,20 +58,27 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
                           },
                       ]
                     : [],
-                id_card_image: safeProfile.id_card_image
-                    ? [
-                          {
-                              uid: safeProfile.id_card_image.split("/").pop(),
-                              url: safeProfile.id_card_image,
-                              status: "done",
-                          },
-                      ]
-                    : [],
+                id_card_image: [],
             };
             originalFilesRef.current = {
                 profile: formatData.profile_image,
-                idCard: formatData.id_card_image,
+                idCard: [],
             };
+            originalIdCardPathRef.current = safeProfile.id_card_image || null;
+
+            if (safeProfile.id_card_image) {
+                const { data: signed } = await createIdCardSignedUrl(safeProfile.id_card_image, 300);
+                if (signed?.signedUrl) {
+                    formatData.id_card_image = [
+                        {
+                            uid: safeProfile.id_card_image.split("/").pop(),
+                            url: signed.signedUrl,
+                            status: "done",
+                        },
+                    ];
+                    originalFilesRef.current.idCard = formatData.id_card_image;
+                }
+            }
 
             reset(formatData);
         };
@@ -78,7 +88,32 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
     const onSubmit = async (value) => {
         try {
             const uploadedProfile = await uploadPendingFiles(value?.profile_image || []);
-            const uploadedIdCard = await uploadPendingFiles(value?.id_card_image || []);
+
+            let idCardPath = originalIdCardPathRef.current;
+            const idCardFile = value?.id_card_image?.[0];
+            if (idCardFile?.originFileObj) {
+                const f = idCardFile.originFileObj;
+                const err = await validateImageFile(f);
+                if (err) {
+                    notifyError(new Error(fileErrorMessage(err)));
+                    return;
+                }
+                const { path, error: upErr } = await uploadIdCard({ userId: value.id, uid: idCardFile.uid, file: f });
+                if (upErr) {
+                    notifyError(upErr);
+                    return;
+                }
+                if (originalIdCardPathRef.current && originalIdCardPathRef.current !== path) {
+                    await removeIdCard(originalIdCardPathRef.current);
+                }
+                idCardPath = path;
+            } else if (!idCardFile) {
+                if (originalIdCardPathRef.current) {
+                    await removeIdCard(originalIdCardPathRef.current);
+                }
+                idCardPath = null;
+            }
+
             const birthDate =
                 value.birthYear && value.birthMonth && value.birthDay
                     ? `${value.birthYear}-${value.birthMonth}-${value.birthDay}`
@@ -87,7 +122,7 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
                 first_name: value.firstName,
                 last_name: value.lastName,
                 profile_image: uploadedProfile[0]?.url ?? null,
-                id_card_image: uploadedIdCard[0]?.url ?? null,
+                id_card_image: idCardPath,
                 gender: value.gender,
                 phone: value.phone,
                 birth_date: birthDate,
@@ -99,7 +134,7 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
                 if (passwordError) return notifyError(passwordError);
             }
             await removeDeletedFiles(originalFilesRef.current.profile, value?.profile_image || []);
-            await removeDeletedFiles(originalFilesRef.current.idCard, value?.id_card_image || []);
+            originalIdCardPathRef.current = idCardPath;
             notifySuccess("บันทึกข้อมูลสำเร็จ");
         } catch (error) {
             notifyError(error);

@@ -1,7 +1,12 @@
 import { supabaseAdmin } from "@/app/lib/supabase/admin";
+import { rateLimit, clientKey } from "@/app/lib/rateLimit";
 import { NextResponse } from "next/server";
 
 export async function POST(request) {
+    const rl = rateLimit({ key: clientKey(request, "auction-end"), limit: 30, windowMs: 60_000 });
+    if (!rl.ok) {
+        return NextResponse.json({ error: "rate_limited" }, { status: 429, headers: { "Retry-After": String(rl.retryAfter) } });
+    }
     const { productId } = await request.json();
     if (!productId) return NextResponse.json({ error: "productId required" }, { status: 400 });
 

@@ -8,7 +8,7 @@ function Page() {
 
     return (
         <div className="w-full max-w-360 mx-auto py-6 px-4 md:px-10">
-            {/* <div className="//hidden">
+            <div className="hidden">
                 <button
                     onClick={() => setShowDev(!showDev)}
                     className="h-fit w-fit bg-blue-400 p-4 fixed z-100 m-4 right-0 rounded-lg  text-white flex opacity-50 cursor-pointer"
@@ -36,7 +36,7 @@ function Page() {
                         </ul>
                     </div>
                 </div>
-            </div> */}
+            </div>
             <LandingPage />
         </div>
     );

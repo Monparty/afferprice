@@ -12,7 +12,16 @@
       "PowerShell(npx supabase --version 2>&1)",
       "PowerShell(scoop which supabase 2>&1)",
       "PowerShell(npx supabase db push)",
-      "Bash(npm audit *)"
+      "Bash(npm audit *)",
+      "Bash(npx next *)",
+      "WebFetch(domain:api.anthropic.com)",
+      "PowerShell($src = 'C:\\\\Users\\\\sense\\\\.claude\\\\projects\\\\c--Users-sense-Desktop-projects-afferprice\\\\bb887e1d-5271-41fd-a2e1-ce404759a5d3\\\\tool-results\\\\webfetch-1779621407118-ok450c.bin'; Get-Item $src | Select-Object Length, LastWriteTime; $bytes = [System.IO.File]::ReadAllBytes\\($src\\); '{0:X2} {1:X2} {2:X2} {3:X2}' -f $bytes[0],$bytes[1],$bytes[2],$bytes[3])",
+      "PowerShell($src = 'C:\\\\Users\\\\sense\\\\.claude\\\\projects\\\\c--Users-sense-Desktop-projects-afferprice\\\\bb887e1d-5271-41fd-a2e1-ce404759a5d3\\\\tool-results\\\\webfetch-1779621407118-ok450c.bin'; $bytes = [System.IO.File]::ReadAllBytes\\($src\\); $hex = '{0:X2} {1:X2} {2:X2} {3:X2}' -f $bytes[0],$bytes[1],$bytes[2],$bytes[3]; Write-Output \"Magic: $hex\")",
+      "PowerShell($src = 'C:\\\\Users\\\\sense\\\\.claude\\\\projects\\\\c--Users-sense-Desktop-projects-afferprice\\\\bb887e1d-5271-41fd-a2e1-ce404759a5d3\\\\tool-results\\\\webfetch-1779621407118-ok450c.bin'; $dst = 'C:\\\\Users\\\\sense\\\\AppData\\\\Local\\\\Temp\\\\afferprice-design.tar'; $in = [System.IO.File]::OpenRead\\($src\\); $out = [System.IO.File]::Create\\($dst\\); $gz = New-Object System.IO.Compression.GzipStream\\($in, [System.IO.Compression.CompressionMode]::Decompress\\); $gz.CopyTo\\($out\\); $gz.Close\\(\\); $out.Close\\(\\); $in.Close\\(\\); Get-Item $dst | Format-List Length)",
+      "Read(//c/Users/sense/AppData/Local/Temp/afferprice-design/afferprice/**)",
+      "Skill(update-config)",
+      "Skill(update-config:*)",
+      "Bash(npm uninstall *)"
     ]
   }
 }

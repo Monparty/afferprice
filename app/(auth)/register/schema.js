@@ -12,5 +12,11 @@ export const schema = yup.object({
     birthDay: yup.string().required("กรุณากรอกวันเกิด"),
     birthMonth: yup.string().required("กรุณากรอกเดือนเกิด"),
     birthYear: yup.string().required("กรุณากรอกปีเกิด"),
-    password: yup.string().required("กรุณากรอกรหัสผ่าน"),
+    password: yup
+        .string()
+        .required("กรุณากรอกรหัสผ่าน")
+        .min(8, "รหัสผ่านอย่างน้อย 8 ตัวอักษร")
+        .max(72, "รหัสผ่านยาวเกินไป")
+        .matches(/[A-Za-z]/, "ต้องมีตัวอักษรอย่างน้อย 1 ตัว")
+        .matches(/\d/, "ต้องมีตัวเลขอย่างน้อย 1 ตัว"),
 });

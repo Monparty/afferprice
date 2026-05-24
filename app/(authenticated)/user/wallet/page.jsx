@@ -57,7 +57,7 @@ function TopupModal({ open, onClose, userId }) {
                 const r = await fetch("/api/payment/promptpay", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ userId, amount, purpose: "topup" }),
+                    body: JSON.stringify({ amount, purpose: "topup" }),
                 });
                 const d = await r.json();
                 if (d.error) return notifyError(d.error);
@@ -66,7 +66,7 @@ function TopupModal({ open, onClose, userId }) {
                 const r = await fetch("/api/payment/linepay", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ userId, amount, purpose: "topup" }),
+                    body: JSON.stringify({ amount, purpose: "topup" }),
                 });
                 const d = await r.json();
                 if (d.error) return notifyError(d.error);

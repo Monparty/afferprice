@@ -7,6 +7,7 @@ import Providers from "./providers/Providers";
 import { ThemeProvider } from "./providers/ThemeProvider";
 import { ThemeAwareConfig } from "./providers/ThemeAwareConfig";
 import Script from "next/script";
+import { jsonLdSafe } from "./utils/jsonLdSafe";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -68,7 +69,7 @@ export default function RootLayout({ children }) {
     return (
         <html lang="th">
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-                <Script id="org-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }} />
+                <Script id="org-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdSafe(orgSchema) }} />
                 <HolyLoader color={volcano[5]} height={3} speed={250} easing="ease" showSpinner={false} />
                 <ThemeProvider>
                     <ThemeAwareConfig>

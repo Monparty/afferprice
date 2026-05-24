@@ -168,7 +168,7 @@ function AppHeader() {
             {/* Main bar */}
             <div
                 className={`
-                    fixed top-0 z-50 w-full flex items-center px-4 py-2 md:ps-10 gap-3
+                    fixed top-0 z-50 w-full flex items-center px-4 md:ps-10 gap-3
                     bg-white dark:bg-zinc-900 shadow-sm dark:shadow-zinc-800
                     transform transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]
                     ${show ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"}

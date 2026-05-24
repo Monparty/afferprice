@@ -25,7 +25,6 @@ export const register = async ({ email, password, firstName, lastName, phone, ge
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            id: data.user.id,
             first_name: firstName,
             last_name: lastName,
             phone,

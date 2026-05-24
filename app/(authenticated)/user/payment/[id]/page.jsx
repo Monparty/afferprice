@@ -51,7 +51,7 @@ function Page() {
         fetch("/api/payment/promptpay", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId: user.id, amount: total, auctionResultId: id }),
+            body: JSON.stringify({ auctionResultId: id }),
         })
             .then((r) => r.json())
             .then(setQrData)
@@ -70,7 +70,7 @@ function Page() {
         const r = await fetch("/api/payment/wallet/charge", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId: user.id, amount: total, auctionResultId: id }),
+            body: JSON.stringify({ auctionResultId: id }),
         });
         const d = await r.json();
         if (d.error) {

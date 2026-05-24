@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Spin } from "antd";
-import { useSelector } from "react-redux";
 import UseModal from "../utils/UseModal";
 import UseButton from "../inputs/UseButton";
 import UseSkeleton from "../utils/UseSkeleton";
@@ -13,8 +11,6 @@ function PromptPayQR({ amount = LISTING_FEE }) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [qrData, setQrData] = useState(null);
-    const user = useSelector((state) => state.user.data);
-    const userId = user?.id;
 
     const handleOpen = async () => {
         setOpen(true);
@@ -22,7 +18,7 @@ function PromptPayQR({ amount = LISTING_FEE }) {
         const res = await fetch("/api/payment/promptpay", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId, amount }),
+            body: JSON.stringify({ amount, purpose: "topup" }),
         });
         const data = await res.json();
         setQrData(data);

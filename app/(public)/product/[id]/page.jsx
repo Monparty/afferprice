@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import Script from "next/script";
 import ProductDetail from "./ProductDetail";
+import { jsonLdSafe } from "@/app/utils/jsonLdSafe";
 
 async function getProductMeta(id) {
     const supabase = createClient(
@@ -78,7 +79,7 @@ export default async function Page({ params }) {
                     key={i}
                     id={`schema-${i}`}
                     type="application/ld+json"
-                    dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+                    dangerouslySetInnerHTML={{ __html: jsonLdSafe(schema) }}
                 />
             ))}
             <ProductDetail />

@@ -20,6 +20,7 @@ import UseCarousel from "./UseCarousel";
 import UseCollapse from "./UseCollapse";
 import { getActiveProductsWithDetails } from "@/app/services/products.service";
 import UseSkeleton from "./UseSkeleton";
+import LandingPage2 from "./LandingPage2";
 
 function formatTimeRemaining(endTime) {
     if (!endTime) return "--:--:--";
@@ -270,6 +271,7 @@ function LandingPage() {
                 )}
             </section>
             <UseCollapse items={collapseItems} />
+            <LandingPage2 />
         </main>
     );
 }

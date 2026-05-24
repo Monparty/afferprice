@@ -1,5 +1,17 @@
 import { getUrlAttachments, removeAttachments, uploadAttachments } from "../services/upload.service";
 import { notifyError, notifySuccess } from "../providers/NotificationProvider";
+import {
+    validateImageFile,
+    validateVideoFile,
+    fileErrorMessage,
+    VIDEO_MIME,
+} from "./fileValidation";
+
+async function validateByOptions(file, acceptVideo) {
+    if (!file) return null;
+    const isVideo = acceptVideo || VIDEO_MIME.includes(file.type);
+    return isVideo ? validateVideoFile(file) : validateImageFile(file);
+}
 
 const getPublicUrls = (files = []) => {
     return files.map((file) => {
@@ -13,8 +25,15 @@ const getPublicUrls = (files = []) => {
     });
 };
 
-export const handleLocalPreview = ({ fileData, name, setValue }) => {
+export const handleLocalPreview = async ({ fileData, name, setValue, acceptVideo = false }) => {
     const { options, fileListData } = fileData;
+    const file = options?.file;
+    const err = await validateByOptions(file, acceptVideo);
+    if (err) {
+        notifyError(new Error(fileErrorMessage(err)));
+        options.onError?.(new Error(err));
+        return;
+    }
     const previewList = fileListData.map((item) => ({
         uid: item.uid,
         name: item.name,
@@ -39,7 +58,11 @@ export const uploadPendingFiles = async (files = []) => {
     const results = [];
     for (const file of files) {
         if (file.originFileObj) {
-            const { error } = await uploadAttachments({ fileName: file.uid, file: file.originFileObj });
+            const f = file.originFileObj;
+            const isVideo = VIDEO_MIME.includes(f.type);
+            const err = isVideo ? await validateVideoFile(f) : await validateImageFile(f);
+            if (err) throw new Error(fileErrorMessage(err));
+            const { error } = await uploadAttachments({ fileName: file.uid, file: f });
             if (error) throw error;
             const { data } = getUrlAttachments(file.uid);
             results.push({ uid: file.uid, name: file.name, url: data.publicUrl });
@@ -50,9 +73,16 @@ export const uploadPendingFiles = async (files = []) => {
     return results;
 };
 
-export const handleUpload = async ({ fileData, name, setValue }) => {
+export const handleUpload = async ({ fileData, name, setValue, acceptVideo = false }) => {
     try {
         const { options, fileListData } = fileData;
+        const fileToCheck = options?.file;
+        const err = await validateByOptions(fileToCheck, acceptVideo);
+        if (err) {
+            notifyError(new Error(fileErrorMessage(err)));
+            options.onError?.(new Error(err));
+            return;
+        }
         const uploadingList = fileListData.map((item) => {
             const preview = item.originFileObj ? URL.createObjectURL(item.originFileObj) : item.thumbUrl;
             return {

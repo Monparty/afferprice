@@ -122,7 +122,7 @@ function Form({ id, mode, onSubmit }) {
                     maxCount={6}
                     acceptVideo
                     customRequest={(fileData) =>
-                        handleLocalPreview({ fileData: fileData, name: "video_url", setValue: setValue })
+                        handleLocalPreview({ fileData, name: "video_url", setValue, acceptVideo: true })
                     }
                 />
                 <InputText {...inputProps} name="title" label="ชื่อสินค้า" />

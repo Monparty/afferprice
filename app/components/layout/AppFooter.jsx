@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import UseButton from "../inputs/UseButton";
 import InputText from "../inputs/InputText";
 import { useForm } from "react-hook-form";
@@ -19,7 +19,8 @@ function AppFooter() {
                             <h2 className="text-xl font-extrabold tracking-tight">Afferprice</h2>
                         </div>
                         <p className="text-sm leading-relaxed">
-                            แพลตฟอร์มประมูลสินค้าหรูชั้นนำระดับโลก มั่นใจได้ด้วยระบบตรวจสอบความถูกต้องแบบเรียลไทม์
+                            แพลตฟอร์มประมูลของสะสมระดับโลก มั่นใจได้ด้วยระบบตรวจสอบความถูกต้องแบบเรียลไทม์
+                            และผู้เชี่ยวชาญดูแลทุกรายการ
                         </p>
                     </div>
                     <div className="col-span-1">

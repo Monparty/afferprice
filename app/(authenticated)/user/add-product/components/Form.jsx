@@ -86,7 +86,7 @@ function Form({ activeStep, control, categoryList, setValue }) {
                                 isDrag
                                 acceptVideo
                                 customRequest={(fileData) =>
-                                    handleLocalPreview({ fileData: fileData, name: "video_url", setValue: setValue })
+                                    handleLocalPreview({ fileData, name: "video_url", setValue, acceptVideo: true })
                                 }
                             />
                         </section>
