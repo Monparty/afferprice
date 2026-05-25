@@ -39,7 +39,7 @@ function CardAddProductPreview({ control, watch, activeStep, setActiveStep, onSu
                     </div>
                 </div>
                 <div className="p-5">
-                    <h3 className="text-lg mb-1 font-bold text-slate-900 truncate">
+                    <h3 className="text-lg mb-1 font-bold text-slate-900 truncate w-60">
                         {watch("title") || "ชื่อสินค้าของคุณ..."}
                     </h3>
                     <div className={`${activeStep === 2 ? "" : "max-h-18 overflow-auto"}`}>
@@ -56,6 +56,7 @@ function CardAddProductPreview({ control, watch, activeStep, setActiveStep, onSu
                             <p className="text-[10px] text-slate-500 uppercase font-bold">เวลาที่เหลือ</p>
                             <p className="text-sm font-bold text-slate-900">
                                 {{
+                                    0: "10 นาที (TEST)",
                                     1: "1 วัน",
                                     5: "5 วัน",
                                     7: "7 วัน",

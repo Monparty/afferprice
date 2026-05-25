@@ -115,6 +115,7 @@ function Form({ activeStep, control, categoryList, setValue }) {
                                 name="durationDays"
                                 label="ระยะเวลาประมูล"
                                 options={[
+                                    { value: 0, label: "10 นาที", subTitle: "TEST" },
                                     { value: 1, label: "1 วัน", subTitle: "QUICK SALE" },
                                     { value: 5, label: "5 วัน", subTitle: "POPULAR" },
                                     { value: 7, label: "7 วัน", subTitle: "STANDARD" },

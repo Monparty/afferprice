@@ -132,6 +132,7 @@ function Form({ id, mode, onSubmit }) {
                     name="durationDays"
                     label="ระยะเวลาประมูล"
                     options={[
+                        { value: 0, label: "10 นาที (TEST)" },
                         { value: 1, label: "1 วัน" },
                         { value: 5, label: "5 วัน" },
                         { value: 7, label: "7 วัน" },

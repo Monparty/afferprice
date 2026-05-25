@@ -29,7 +29,10 @@ function Page() {
         try {
             const uploadedImages = await uploadPendingFiles(value?.images_url || []);
             const uploadedVideos = await uploadPendingFiles(value?.video_url || []);
-            const formatEndTime = dayjs().add(value.durationDays, "day").toISOString();
+            const formatEndTime =
+                value.durationDays === 0
+                    ? dayjs().add(10, "minute").toISOString()
+                    : dayjs().add(value.durationDays, "day").toISOString();
 
             const payload = {
                 id: id,
