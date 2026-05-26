@@ -6,6 +6,7 @@ import UseSelect from "@/app/components/inputs/UseSelect";
 import UseUpload from "@/app/components/inputs/UseUpload";
 import {
     CameraFilled,
+    CheckCircleFilled,
     CreditCardFilled,
     EditFilled,
     ExclamationCircleFilled,
@@ -18,12 +19,17 @@ import UseTextArea from "@/app/components/inputs/UseTextArea";
 import { handleLocalPreview } from "@/app/utils/storageHelper";
 import { useWatch } from "react-hook-form";
 import PromptPayQR from "@/app/components/payment/PromptPayQR";
-import UseButton from "@/app/components/inputs/UseButton";
+import WalletListingBtn from "@/app/components/payment/WalletListingBtn";
 import UseCheckbox from "@/app/components/inputs/UseCheckbox";
+import UseButton from "@/app/components/inputs/UseButton";
+import { useEffect, useState } from "react";
+import { getListingFeePayment } from "@/app/services/payment.service";
 
 function Form({ activeStep, control, categoryList, setValue }) {
     const watchState = useWatch({ control, name: "state" });
     const watchCategoryId = useWatch({ control, name: "categoryId" });
+    const watchStartPrice = useWatch({ control, name: "startPrice" });
+    const watchProductId = useWatch({ control, name: "productId" });
     const evaluationGroups = categoryList.find((c) => c.id === watchCategoryId)?.evaluation || [];
     const watchEvaluation = useWatch({ control, name: "evaluation" }) || {};
     const totalScore = evaluationGroups.reduce((sum, group, hIdx) => {
@@ -31,6 +37,25 @@ function Form({ activeStep, control, categoryList, setValue }) {
         const selected = group.subEvaluations.find((_, sIdx) => row[sIdx] === true);
         return sum + (selected?.score || 0);
     }, 0);
+    const listingFee = Math.max(1, Math.round((Number(watchStartPrice) || 0) * 0.05));
+    const [feePayment, setFeePayment] = useState(null);
+
+    const refreshFeePayment = async () => {
+        if (!watchProductId) {
+            setFeePayment(null);
+            return;
+        }
+        const { data } = await getListingFeePayment(watchProductId);
+        setFeePayment(data || null);
+    };
+
+    useEffect(() => {
+        refreshFeePayment();
+    }, [watchProductId]);
+
+    const feeStatus = feePayment?.payment_status ?? null;
+    const isFeePaid = feeStatus === "success";
+    const isFeePending = feeStatus === "pending";
     return (
         <form className="flex flex-col gap-6">
             {watchState === "rejected" && (
@@ -212,12 +237,47 @@ function Form({ activeStep, control, categoryList, setValue }) {
                             <CreditCardFilled className="text-orange-600!" />
                             ชำระค่าธรรมเนียม
                         </h2>
+                        <p className="text-slate-500 text-sm mt-1">
+                            ค่าธรรมเนียมการลงขาย 5% ของราคาเริ่มต้น = ฿{listingFee.toLocaleString()}
+                        </p>
                     </div>
-                    <div className="grid gap-2">
-                        <PromptPayQR />
-                        <UseButton label="ชําระด้วย TrueMoney" />
-                        <UseButton label="ชําระด้วย Line Pay" />
-                    </div>
+                    {!watchProductId ? (
+                        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm text-orange-700">
+                            กรุณาบันทึกเป็นฉบับร่างก่อนเพื่อสร้างรายการสินค้า แล้วจึงชำระค่าธรรมเนียม
+                        </div>
+                    ) : isFeePaid ? (
+                        <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
+                            <CheckCircleFilled className="text-2xl! text-green-600!" />
+                            <div>
+                                <p className="font-semibold text-green-700">ชำระค่าธรรมเนียมเรียบร้อยแล้ว</p>
+                                <p className="text-xs text-slate-600">
+                                    ฿{Number(feePayment.amount).toLocaleString()} •{" "}
+                                    {feePayment.payment_method?.toUpperCase()}
+                                </p>
+                            </div>
+                        </div>
+                    ) : isFeePending ? (
+                        <div className="grid gap-3">
+                            <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm text-orange-700">
+                                กำลังตรวจสอบการชำระเงิน หากชำระแล้วโปรดรอสักครู่หรือกดรีเฟรช
+                            </div>
+                            <UseButton label="รีเฟรชสถานะ" type="default" onClick={refreshFeePayment} />
+                        </div>
+                    ) : (
+                        <div className="grid gap-3">
+                            <PromptPayQR
+                                amount={listingFee}
+                                purpose="listing_fee"
+                                productId={watchProductId}
+                                label={`ชำระด้วย PromptPay (฿${listingFee.toLocaleString()})`}
+                            />
+                            <WalletListingBtn
+                                productId={watchProductId}
+                                amount={listingFee}
+                                onSuccess={refreshFeePayment}
+                            />
+                        </div>
+                    )}
                 </section>
             </Activity>
         </form>

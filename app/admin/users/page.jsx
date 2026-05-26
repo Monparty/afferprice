@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import UseModal from "@/app/components/utils/UseModal";
 import Form from "./components/Form";
+import KycReviewModal from "./components/KycReviewModal";
 import { useForm } from "react-hook-form";
 import { ROUTES } from "../constants/routes";
 import { deleteAuthUser, getUsersFull } from "@/app/services/admin/users.service";
@@ -15,12 +16,21 @@ import UseTag from "@/app/components/utils/UseTag";
 import BtnActionGroup from "../components/BtnActionGroup";
 import { useColumnSearch } from "@/app/hooks/useColumnSearch";
 
+const KYC_TAG = {
+    approved: { color: "green", label: "ยืนยันแล้ว" },
+    pending: { color: "orange", label: "รอตรวจสอบ" },
+    rejected: { color: "red", label: "ไม่ผ่าน" },
+    unknown: { color: "default", label: "ยังไม่ยืนยัน" },
+};
+
 function Page() {
     const { control, setValue, getValues } = useForm();
     const id = getValues("id");
     const route = ROUTES.ADMIN_USERS;
     const [modalWatch, setModalWatch] = useState(false);
     const [dataSource, setDataSource] = useState([]);
+    const [kycModalOpen, setKycModalOpen] = useState(false);
+    const [kycUserId, setKycUserId] = useState(null);
     const { columnSearch } = useColumnSearch();
 
     const onGetUsersFull = async () => {
@@ -29,7 +39,7 @@ function Page() {
         const formatData = data.map((item) => {
             return {
                 ...item,
-                fullName: `${item.first_name} ${item.last_name}`,
+                fullName: `${item.first_name ?? ""} ${item.last_name ?? ""}`.trim() || "-",
                 createdAt: formatDateTime(item.created_at),
             };
         });
@@ -45,6 +55,11 @@ function Page() {
         await deleteAuthUser(id);
         notifySuccess("ลบข้อมูลสำเร็จ");
         setDataSource((prev) => prev.filter((item) => item.id !== id));
+    };
+
+    const handleOpenKyc = (userId) => {
+        setKycUserId(userId);
+        setKycModalOpen(true);
     };
 
     const columns = [
@@ -86,17 +101,30 @@ function Page() {
             ),
         },
         {
+            title: "KYC",
+            dataIndex: "is_kyc",
+            key: "is_kyc",
+            render: (_, record) => {
+                const tag = KYC_TAG[record.is_kyc] ?? KYC_TAG.unknown;
+                return <UseTag label={tag.label} color={tag.color} variant="filled" />;
+            },
+            sorter: (a, b) => {
+                const order = { pending: 0, rejected: 1, unknown: 2, approved: 3 };
+                return (order[a.is_kyc] ?? 4) - (order[b.is_kyc] ?? 4);
+            },
+            defaultSortOrder: "ascend",
+        },
+        {
             title: "วันที่สร้าง",
             dataIndex: "createdAt",
             key: "createdAt",
             sorter: (a, b) => a.createdAt?.localeCompare(b.createdAt),
-            defaultSortOrder: "descend",
         },
         {
             title: "จัดการ",
             dataIndex: "action",
             key: "action",
-            width: 160,
+            width: 200,
             render: (_, record) => (
                 <BtnActionGroup
                     recordId={record.id}
@@ -104,6 +132,7 @@ function Page() {
                     setValue={setValue}
                     editRoute={route}
                     handleDelete={handleDelete}
+                    onViewKyc={handleOpenKyc}
                 />
             ),
         },
@@ -122,6 +151,12 @@ function Page() {
             <UseModal open={modalWatch} onCancel={() => setModalWatch(false)}>
                 <Form mode="watch" id={id} />
             </UseModal>
+            <KycReviewModal
+                open={kycModalOpen}
+                userId={kycUserId}
+                onClose={() => setKycModalOpen(false)}
+                onSuccess={onGetUsersFull}
+            />
         </main>
     );
 }

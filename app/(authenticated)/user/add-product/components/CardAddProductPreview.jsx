@@ -1,19 +1,56 @@
 "use client";
 import UseButton from "@/app/components/inputs/UseButton";
 import UseCheckbox from "@/app/components/inputs/UseCheckbox";
-import { ArrowLeftOutlined, ArrowRightOutlined, CheckCircleFilled, EyeFilled } from "@ant-design/icons";
+import {
+    ArrowLeftOutlined,
+    ArrowRightOutlined,
+    CheckCircleFilled,
+    EyeFilled,
+    SafetyCertificateFilled,
+} from "@ant-design/icons";
 import Image from "next/image";
+import { useState } from "react";
 import { useWatch } from "react-hook-form";
 import verifiedIcon from "../../../../../public/images/verifiedIcon.png";
 import imageNotFound from "../../../../../public/images/imageNotFound.png";
+import UseModal from "@/app/components/utils/UseModal";
+import UseTag from "@/app/components/utils/UseTag";
+import UserProfilesForm from "../../components/UserProfilesForm";
 
-function CardAddProductPreview({ control, watch, activeStep, setActiveStep, onSubmit }) {
+const KYC_BANNER = {
+    unknown: {
+        tone: "orange",
+        label: "ยังไม่ได้ยืนยันตัวตน",
+        desc: "ส่งเอกสาร KYC เพื่อให้ admin อนุมัติให้สินค้าเปิดประมูลได้",
+        cta: "ยืนยันตัวตน",
+    },
+    pending: {
+        tone: "orange",
+        label: "รอ admin ตรวจสอบ KYC",
+        desc: "บันทึกร่างได้ แต่ admin จะอนุมัติสินค้าให้เปิดประมูลได้หลัง KYC ผ่าน",
+        cta: null,
+    },
+    rejected: {
+        tone: "red",
+        label: "KYC ไม่ผ่านการตรวจสอบ",
+        desc: "กรุณาอัปโหลดเอกสารใหม่เพื่อให้ admin ตรวจสอบอีกครั้ง",
+        cta: "ส่งเอกสารอีกครั้ง",
+    },
+};
+
+function CardAddProductPreview({ control, watch, activeStep, setActiveStep, onSubmit, isKyc = "unknown" }) {
+    const [kycModalOpen, setKycModalOpen] = useState(false);
     // ใช้ที่ "/user/add-product"
     const image = useWatch({
         control,
         name: "images_url.0",
     });
     const imageUrl = image?.url || image?.thumbUrl;
+    const banner = isKyc === "approved" ? null : KYC_BANNER[isKyc] ?? KYC_BANNER.unknown;
+    const bannerStyle =
+        banner?.tone === "red"
+            ? "bg-red-50 border-red-300"
+            : "bg-orange-50 border-orange-300";
 
     return (
         <div className="flex flex-col gap-6">
@@ -72,6 +109,20 @@ function CardAddProductPreview({ control, watch, activeStep, setActiveStep, onSu
                         className="text-xs! text-gray-500!"
                     />
                 </div>
+                {banner && (
+                    <div className={`mx-5 mb-3 p-3 rounded-lg border ${bannerStyle}`}>
+                        <div className="flex items-center gap-2 mb-1">
+                            <SafetyCertificateFilled
+                                className={banner.tone === "red" ? "text-red-500!" : "text-orange-500!"}
+                            />
+                            <UseTag label={banner.label} color={banner.tone} variant="filled" />
+                        </div>
+                        <p className="text-xs text-slate-600 mb-2">{banner.desc}</p>
+                        {banner.cta && (
+                            <UseButton label={banner.cta} type="default" onClick={() => setKycModalOpen(true)} />
+                        )}
+                    </div>
+                )}
                 <div className="p-5 flex flex-col gap-3 bg-slate-50">
                     <UseButton
                         label="ดำเนินการต่อ"
@@ -130,6 +181,19 @@ function CardAddProductPreview({ control, watch, activeStep, setActiveStep, onSu
                     </div>
                 </div>
             </div>
+
+            <UseModal
+                open={kycModalOpen}
+                onCancel={() => setKycModalOpen(false)}
+                title="ยืนยันตัวตน (KYC)"
+                isShowCancel={false}
+            >
+                <UserProfilesForm
+                    kycMode
+                    setIsOpenModalProfile={setKycModalOpen}
+                    onKycSubmitted={() => setKycModalOpen(false)}
+                />
+            </UseModal>
         </div>
     );
 }

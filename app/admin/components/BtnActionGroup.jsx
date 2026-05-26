@@ -1,13 +1,23 @@
 "use client";
 import UseButton from "@/app/components/inputs/UseButton";
-import { DeleteFilled, EditOutlined, EyeFilled } from "@ant-design/icons";
+import { DeleteFilled, EditOutlined, EyeFilled, SafetyCertificateFilled } from "@ant-design/icons";
 import UseTooltip from "@/app/components/utils/UseTooltip";
 import Link from "next/link";
 import UsePopconfirm from "@/app/components/utils/UsePopconfirm";
 
-function BtnActionGroup({ recordId, setModalWatch, setValue, editRoute, handleDelete }) {
+function BtnActionGroup({ recordId, setModalWatch, setValue, editRoute, handleDelete, onViewKyc }) {
     return (
         <div className="flex gap-2 justify-center">
+            {onViewKyc && (
+                <UseTooltip title="ตรวจสอบ KYC">
+                    <UseButton
+                        onClick={() => onViewKyc(recordId)}
+                        shape="circle"
+                        className="bg-orange-500!"
+                        icon={SafetyCertificateFilled}
+                    />
+                </UseTooltip>
+            )}
             <UseTooltip title="ดู">
                 <UseButton
                     onClick={() => {

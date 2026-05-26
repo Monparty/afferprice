@@ -13,6 +13,9 @@ const errorMap = [
     // Storage errors
     { match: /bucket not found/i, thai: "ไม่พบ Storage Bucket" },
     { match: /object not found/i, thai: "ไม่พบไฟล์ที่ต้องการ" },
+    // KYC / business rules
+    { match: /seller_kyc_not_approved/i, thai: "ไม่สามารถอนุมัติได้ เนื่องจาก KYC ของผู้ขายยังไม่ผ่านการตรวจสอบ" },
+    { match: /missing_seller_id/i, thai: "ไม่พบข้อมูลผู้ขาย" },
 ];
 
 export function translateSupabaseError(message) {

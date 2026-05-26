@@ -7,7 +7,7 @@ export const mapProductState = (state) => {
         ended: { name: "หมดเวลาประมูล", color: "pink" },
         sold: { name: "มีผู้ชนะ", color: "orange" },
         order: { name: "การจัดส่ง", color: "cyan" },
-        cancelled: { name: "ยกเลิก", color: "yellow" },
+        cancelled: { name: "ไม่สำเร็จ", color: "yellow" },
     };
     const { name, color } = dataConfig[state] || {
         name: "-",

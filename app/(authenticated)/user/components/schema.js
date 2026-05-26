@@ -8,3 +8,16 @@ export const schema = yup.object({
         .notRequired()
         .min(6, "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร"),
 });
+
+export const kycSchema = yup.object({
+    profile_image: yup
+        .array()
+        .of(yup.object())
+        .min(1, "กรุณาอัปโหลดรูปโปรไฟล์")
+        .required("กรุณาอัปโหลดรูปโปรไฟล์"),
+    id_card_image: yup
+        .array()
+        .of(yup.object())
+        .min(1, "กรุณาอัปโหลดสำเนาบัตรประชาชน")
+        .required("กรุณาอัปโหลดสำเนาบัตรประชาชน"),
+});

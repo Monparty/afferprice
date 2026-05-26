@@ -4,10 +4,9 @@ import { useState } from "react";
 import UseModal from "../utils/UseModal";
 import UseButton from "../inputs/UseButton";
 import UseSkeleton from "../utils/UseSkeleton";
+import { notifyError } from "@/app/providers/NotificationProvider";
 
-const LISTING_FEE = 30;
-
-function PromptPayQR({ amount = LISTING_FEE }) {
+function PromptPayQR({ amount, purpose = "topup", productId, auctionResultId, label = "ชำระด้วย PromptPay" }) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [qrData, setQrData] = useState(null);
@@ -15,14 +14,25 @@ function PromptPayQR({ amount = LISTING_FEE }) {
     const handleOpen = async () => {
         setOpen(true);
         setLoading(true);
-        const res = await fetch("/api/payment/promptpay", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ amount, purpose: "topup" }),
-        });
-        const data = await res.json();
-        setQrData(data);
-        setLoading(false);
+        try {
+            const res = await fetch("/api/payment/promptpay", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ amount, purpose, productId, auctionResultId }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                notifyError(new Error(data?.error || "เกิดข้อผิดพลาด"));
+                setOpen(false);
+                return;
+            }
+            setQrData(data);
+        } catch (err) {
+            notifyError(err);
+            setOpen(false);
+        } finally {
+            setLoading(false);
+        }
     };
 
     function CardSkeleton() {
@@ -36,7 +46,7 @@ function PromptPayQR({ amount = LISTING_FEE }) {
 
     return (
         <>
-            <UseButton label="ชำระด้วย PromptPay" onClick={handleOpen} />
+            <UseButton label={label} onClick={handleOpen} />
 
             <UseModal open={open} onCancel={() => setOpen(false)} title="ข้อมูลการชำระเงิน">
                 {loading ? (

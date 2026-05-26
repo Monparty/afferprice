@@ -127,6 +127,7 @@ function AddProductLayout({ productId }) {
                         activeStep={activeStep}
                         setActiveStep={setActiveStep}
                         onSubmit={onSubmit}
+                        isKyc={data?.is_kyc ?? "unknown"}
                     />
                 </div>
             </div>

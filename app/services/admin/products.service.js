@@ -24,8 +24,30 @@ export async function deleteProduct(id) {
     return supabaseAdmin.from("products").delete().eq("id", id);
 }
 
+const KYC_GATED_STATES = ["pending_review", "active"];
+
 export async function upsertProduct(data) {
     await requireAdmin();
+    if (KYC_GATED_STATES.includes(data?.state)) {
+        let sellerId = data.seller_id;
+        if (!sellerId && data.id) {
+            const { data: existing } = await supabaseAdmin
+                .from("products")
+                .select("seller_id")
+                .eq("id", data.id)
+                .single();
+            sellerId = existing?.seller_id;
+        }
+        if (!sellerId) return { error: { message: "missing_seller_id" } };
+        const { data: seller } = await supabaseAdmin
+            .from("profiles")
+            .select("is_kyc")
+            .eq("id", sellerId)
+            .single();
+        if (seller?.is_kyc !== "approved") {
+            return { error: { message: "seller_kyc_not_approved" } };
+        }
+    }
     return supabaseAdmin.from("products").upsert(data);
 }
 

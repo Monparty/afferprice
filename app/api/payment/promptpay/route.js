@@ -29,9 +29,10 @@ export async function POST(req) {
             return NextResponse.json({ error: "rate_limited" }, { status: 429, headers: { "Retry-After": String(rl.retryAfter) } });
         }
         const user = await requireUser();
-        const { auctionResultId, amount: clientAmount, purpose = "auction" } = await req.json();
+        const { auctionResultId, productId, amount: clientAmount, purpose = "auction" } = await req.json();
 
         let amount;
+        let resolvedProductId = null;
 
         if (purpose === "auction") {
             if (!auctionResultId) {
@@ -55,6 +56,28 @@ export async function POST(req) {
                 return NextResponse.json({ error: "invalid_amount" }, { status: 400 });
             }
             amount = Math.round(n);
+        } else if (purpose === "listing_fee") {
+            if (!productId) {
+                return NextResponse.json({ error: "missing_product_id" }, { status: 400 });
+            }
+            const { data: product } = await supabaseAdmin
+                .from("products")
+                .select("id, seller_id, start_price, state")
+                .eq("id", productId)
+                .single();
+            if (!product) return NextResponse.json({ error: "product_not_found" }, { status: 404 });
+            if (product.seller_id !== user.id) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+            const { data: existing } = await supabaseAdmin
+                .from("payments")
+                .select("id")
+                .eq("product_id", productId)
+                .eq("purpose", "listing_fee")
+                .eq("payment_status", "success")
+                .maybeSingle();
+            if (existing) return NextResponse.json({ error: "already_paid" }, { status: 409 });
+            const startPrice = Number(product.start_price);
+            amount = Math.max(1, Math.round(startPrice * AUCTION_FEE_RATE));
+            resolvedProductId = productId;
         } else {
             return NextResponse.json({ error: "invalid_purpose" }, { status: 400 });
         }
@@ -75,6 +98,7 @@ export async function POST(req) {
 
         const { error } = await supabaseAdmin.from("payments").insert({
             auction_result_id: purpose === "auction" ? auctionResultId : null,
+            product_id: resolvedProductId,
             user_id: user.id,
             amount,
             payment_method: "promptpay",

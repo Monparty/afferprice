@@ -76,15 +76,15 @@ Schema defined in `db/00_schema.sql`. Key tables:
 
 | Table | Notes |
 |---|---|
-| `profiles` | Extends `auth.users`; `role` = `user` \| `admin` |
+| `profiles` | Extends `auth.users`; `role` = `user` \| `admin`; `is_kyc` = `unknown` \| `pending` \| `approved` \| `rejected` (default `unknown`); `kyc_remark` (admin reject reason) |
 | `products` | Core auction listings; status lifecycle below |
 | `product_images` | Ordered images per product |
 | `bids` | Bids with `is_winning` flag — **set อัตโนมัติโดย `/api/auction/end`** เมื่อประมูลสิ้นสุด; ใช้ `getHighestBid()` ถ้าต้องการราคาสูงสุดแบบ real-time |
 | `auction_results` | Winner + final price per auction — สร้างโดย `/api/auction/end`; `payment_status`: `pending` → `paid` (webhook อัปเมื่อจ่ายสำเร็จ) |
-| `payments` | Methods: `bank`, `credit_card`, `promptpay`, `wallet`, `linepay`; `purpose` = `auction` \| `topup` \| `listing_fee`; `auction_result_id` nullable (สำหรับ topup) |
+| `payments` | Methods: `bank`, `credit_card`, `promptpay`, `wallet`, `linepay`; `purpose` = `auction` \| `topup` \| `listing_fee`; `auction_result_id` nullable (topup/listing_fee); `product_id` nullable (listing_fee เก็บ link ไปยัง product) |
 | `wallet_transactions` | Audit trail ของ wallet — `type`: `topup` \| `payment` \| `refund`, `amount` (+/−), `balance_after`, `reference_id` (payment.id) |
 | `shipments` | Tracking info |
-| `notifications` | Types: `bid`, `win`, `lose`, `payment`, `shipping` |
+| `notifications` | Types: `bid`, `win`, `lose`, `payment`, `shipping`, `kyc` |
 | `categories` | Hierarchical via `parent_id` |
 
 **Product status lifecycle**: `draft` → `pending_review` → `active` → `sold` (มีผู้ชนะ) / `cancelled` (ไม่มี bid); หลังจ่ายเงิน seller ระบุจัดส่ง → `order`; `rejected` มาจาก `pending_review`. Helper: `app/utils/mapProductState.js`.
@@ -152,7 +152,11 @@ Schema defined in `db/00_schema.sql`. Key tables:
   - `isHighestBidder = userData.id === highestBidderId` → disable ปุ่ม + เปลี่ยน label เป็น "รอผู้อื่นเสนอราคา"
   - `getHighestBid()` ใน `bids.service.js` คืน `{ bid_price, user_id }` (เพิ่ม `user_id`)
   - broadcast `new_bid` payload: `{ price, userId }` — sync `highestBidderId` ทุก tab
-- **Bid history UI** (`ProductDetail.jsx`): highlight bid ของ user ปัจจุบัน — ดึง `currentUserId` จาก Redux (`state.user.data?.id`) แล้วเทียบกับ `bid.user_id` → avatar สีน้ำเงิน "ME", ชื่อ `"คุณ"`, แท็กสีน้ำเงิน, พื้นหลังแถวสีน้ำเงินอ่อน
+- **Bid history UI** (`app/(public)/product/[id]/BidHistory.jsx`): component แยกออกจาก `ProductDetail.jsx` — รับ props `bids` + `currentUserId`
+  - แสดง 5 รายการแรกใน sidebar; ถ้า `bids.length > 5` แสดงปุ่ม "ดูประวัติทั้งหมด N รายการ" → เปิด `UseModal` แสดงทั้งหมด (scrollable `max-h-[60vh]`)
+  - sub-component `BidRow` ใช้ร่วมระหว่าง list หลักกับ modal (กัน duplicate markup)
+  - highlight bid ของ user ปัจจุบัน — เทียบ `bid.user_id` กับ `currentUserId` → avatar สีน้ำเงิน "ME", ชื่อ `"คุณ"`, พื้นหลังแถวสีน้ำเงินอ่อน
+  - `currentUserId` ดึงจาก Redux (`state.user.data?.id`) ใน `ProductDetail.jsx` แล้วส่งเป็น prop
 
 ### Realtime Bid (Supabase Broadcast)
 
@@ -184,7 +188,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
   - `/admin/shipments` — รายการจัดส่ง (บริษัทขนส่ง, tracking, status)
   - `/admin/payments` — รายการชำระเงิน (transaction_ref, method, status — รองรับ promptpay/linepay/wallet/credit_card/bank)
   - `/admin/wallet` — กระเป๋าเงิน (ยอดรวมในระบบ + balance รายผู้ใช้ + ตาราง wallet_transactions)
-  - `/admin/users` — จัดการผู้ใช้ (CRUD)
+  - `/admin/users` — จัดการผู้ใช้ (CRUD) + ตรวจสอบ KYC ผ่าน `KycReviewModal` (ปุ่ม `SafetyCertificateFilled` สีส้มใน `BtnActionGroup`)
   - `/admin/categories` — จัดการหมวดหมู่ (CRUD)
   - `/admin/notifications` — รายการการแจ้งเตือนทั้งระบบ
   - `/admin/reports` — สรุปรายงาน (รายได้ + ค่าธรรมเนียม 5% + ยอดรายเดือน)
@@ -209,6 +213,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - **Form** (`app/admin/products/components/Form.jsx`) โหลด product ด้วย `getProductById` แล้ว `reset()` ค่าลงฟอร์ม
 - **⚠️ `seller_id` ต้องส่งใน payload เสมอ** — Supabase `upsert` ทำ full replace; ถ้าไม่ส่ง `seller_id` จะ error NOT NULL. Page component fetch `seller_id` จาก product ตอน mount แล้วเก็บใน state
 - **approve** → `state = 'active'` + set `auction_end_time` จาก `durationDays`; **reject** → `state = 'rejected'` + `rejected_remark`
+- **🔒 KYC gate ใน `upsertProduct`** ([app/services/admin/products.service.js](app/services/admin/products.service.js)) — ถ้า `data.state` ∈ `['pending_review', 'active']` → fetch `profiles.is_kyc` ของ seller; ถ้าไม่ใช่ `'approved'` → return `{ error: 'seller_kyc_not_approved' }` (มี Thai translation ใน [supabaseErrorMap.js](app/utils/supabaseErrorMap.js)) — **reject ไม่ติด gate** (admin reject ได้แม้ KYC ยังไม่ผ่าน)
 
 ### Selling Page (`/user/selling`)
 
@@ -242,15 +247,16 @@ Schema defined in `db/00_schema.sql`. Key tables:
 
 - **Keys**: `OMISE_SECRET_KEY` (server-only), `NEXT_PUBLIC_OMISE_PUBLIC_KEY` (client)
 - **DO NOT use `omise` npm package** — ESM interop broken in Next.js App Router. Use `fetch` โดยตรงผ่าน helper `omiseFetch` ใน `app/api/payment/promptpay/route.js`
-- **PromptPay flow**: POST `/api/payment/promptpay` body `{ auctionResultId?, amount?, purpose? }` (default `auction`) → server ดึง `final_price` จาก DB + verify winner; topup ใช้ amount จาก body (range 20–100,000); สร้าง source + charge + insert `payments` → คืน `qrCodeUrl`
+- **PromptPay flow**: POST `/api/payment/promptpay` body `{ auctionResultId?, productId?, amount?, purpose? }` (default `auction`) → server ดึง `final_price` จาก DB + verify winner (auction); topup ใช้ amount จาก body (range 20–100,000); `listing_fee` ดึง `start_price` จาก `products` ของ seller (verify ownership) + คำนวณ 5% ฝั่ง server + เช็คซ้ำว่ายังไม่มี success payment ของ product+purpose (`already_paid` 409); สร้าง source + charge + insert `payments` (`product_id` ถ้า listing_fee) → คืน `qrCodeUrl`
 - **Webhook**: POST `/api/payment/webhook` — รับ `charge.complete` → **re-fetch charge จาก Omise** (ไม่ trust body) → update `payments.payment_status='success'` ถ้า amount ตรง → branch ตาม `payment.purpose`:
   - `topup` → `rpc('credit_wallet', { p_payment_id })` + broadcast `wallet-{userId}` event `update` (payload ว่าง)
   - `auction` (default) → UPDATE `auction_results.payment_status = 'paid'`
+  - `listing_fee` → ไม่มี side-effect เพิ่มเติม (frontend poll/refresh เอง)
   - Optional auth: ถ้ามี `OMISE_WEBHOOK_USER`/`OMISE_WEBHOOK_PASSWORD` ใน env → ตรวจ Basic Auth header
 - **⚠️ payments row ต้องสร้างก่อน QR แสดง** — webhook หา record ด้วย `transaction_ref` (charge.id); ถ้าไม่มี row จะ update ไม่ได้
-- **Component**: `app/components/payment/PromptPayQR.jsx` — รับ `amount?` (default `LISTING_FEE`); userId ดึงจาก session ฝั่ง server
+- **Component**: `app/components/payment/PromptPayQR.jsx` — รับ props `{ amount, purpose, productId?, auctionResultId?, label? }` (ไม่มี LISTING_FEE constant แล้ว — ใช้ 5% calc แทน)
 - **Payment page**: `/user/payment/[auctionResultId]`
-- **Listing fee payment**: `PaymentBtn.jsx` ใน add-product flow — ค่าธรรมเนียม `LISTING_FEE` บาท (ไม่มี auctionResultId)
+- **Listing fee payment** (add-product step 3): ค่าธรรมเนียม = **5% ของ `start_price`** (calc ทั้ง server & client ตรงกัน); รองรับ 2 ช่องทาง: PromptPay + Wallet (`WalletListingBtn`); ถ้ามี success payment แล้ว → ฝั่ง backend RAISE `already_paid` / 409, ฝั่ง frontend ซ่อนปุ่มแล้วโชว์ "ชำระเรียบร้อยแล้ว"
 - **Local dev webhook**: ต้องใช้ ngrok — `ngrok http 3000` แล้วตั้ง endpoint ใน Omise Dashboard
 
 ### Wallet System
@@ -260,13 +266,16 @@ Schema defined in `db/00_schema.sql`. Key tables:
   - `20260524130100_create_wallet_transactions.sql` — table + RLS (`SELECT WHERE auth.uid() = user_id`; **no INSERT policy** — service_role/RPC only)
   - `20260524130200_payments_allow_topup.sql` — `auction_result_id` nullable + `purpose` column
   - `20260524130300_wallet_rpcs.sql` — `credit_wallet` + `charge_wallet` (SECURITY DEFINER, granted to service_role)
+  - `20260526000003_charge_wallet_listing.sql` — เพิ่ม `payments.product_id` (nullable FK) + RPC `charge_wallet_listing` สำหรับชำระค่าธรรมเนียม listing
 - **RPCs** (เรียกผ่าน `supabaseAdmin.rpc()` จาก API route เท่านั้น):
   - `credit_wallet(p_payment_id)` — ใช้ตอน topup สำเร็จ; idempotent ผ่าน `EXISTS wallet_transactions WHERE reference_id = payment_id AND type='topup'` กัน double-credit เมื่อ webhook ส่งซ้ำ
   - `charge_wallet(p_user_id, p_amount, p_auction_result_id)` — atomic deduction; `SELECT FOR UPDATE` lock + ราคา < balance + insert `payments(wallet, success)` + insert `wallet_transactions(payment, -amount)` + update `auction_results.payment_status='paid'`
+  - `charge_wallet_listing(p_user_id, p_amount, p_product_id)` — atomic ตัด wallet ชำระค่า listing fee; idempotent ผ่าน `EXISTS payments WHERE product_id AND purpose='listing_fee' AND payment_status='success'` (RAISE `already_paid` ถ้าจ่ายแล้ว) + insert `payments(wallet, success, listing_fee, product_id)` + insert `wallet_transactions`
 - **Service**: `app/services/wallet.service.js` — `getMyWalletBalance()`, `getMyTransactions({limit})`, `subscribeWallet(userId, onUpdate)` (broadcast channel `wallet-{userId}`)
 - **API routes**:
   - `POST /api/payment/wallet/charge` — เรียก `charge_wallet` RPC + broadcast `wallet-{userId}` update
-  - `POST /api/payment/promptpay` (extended) — รับ `purpose: 'topup'` แล้ว insert payments แม้ไม่มี `auctionResultId`
+  - `POST /api/payment/wallet/listing-fee` — body `{ productId }`; server verify seller_id ตรงกับ session + calc 5% ของ `start_price` → เรียก `charge_wallet_listing` RPC + broadcast `wallet-{userId}` update
+  - `POST /api/payment/promptpay` (extended) — รับ `purpose: 'topup' | 'listing_fee'` แล้ว insert payments แม้ไม่มี `auctionResultId`
   - `POST /api/payment/linepay` + `POST /api/payment/linepay/confirm` — **mockup** topup (insert pending → confirm trigger `credit_wallet`)
   - `POST /api/payment/credit-card` — Omise charge ด้วย card token (รอ frontend Omise.js tokenize)
 - **AppHeader pill** (`app/components/layout/AppHeader.jsx`):
@@ -295,6 +304,50 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - **Drawer**: `UseDrawer` → `CardDrawer` — เปิดครั้งแรก fetch + mark all read + reset badge
 - **Persistent alerts** (ไม่ mark as read): products ที่ state = `rejected` — ดึงจาก `products` table โดยตรง หายเองเมื่อ user แก้ไขแล้ว state เปลี่ยน; กดปุ่ม "แก้ไขสินค้า" → `/user/add-product/[id]/edit`
 - `profiles` ไม่มี column `email` — email อยู่ใน `auth.users`; ใช้ view `users_full` เพื่อ query รวม
+
+### KYC Verification
+
+- **Migrations** (`supabase/migrations/`):
+  - `20260526000000_add_kyc_to_profiles.sql` — `profiles.is_kyc text NOT NULL DEFAULT 'unknown'` + CHECK `IN ('unknown','pending','approved','rejected')` + `profiles.kyc_remark text`
+  - `20260526000001_kyc_rls_and_view.sql` — แก้ `"update own profile"` policy เพิ่ม `is_kyc` + `kyc_remark` ใน `WITH CHECK` (lock เหมือน role/status) + recreate `users_full` view เพิ่ม `id_card_image`, `is_kyc`, `kyc_remark` (REVOKE จาก anon/authenticated เหมือนเดิม)
+  - `20260526000002_submit_kyc_rpc.sql` — RPC `submit_kyc(p_user_id)` (SECURITY DEFINER, grant authenticated) — transition `unknown`/`rejected` → `pending`; guard: `auth.uid() = p_user_id` + ต้องมี `profile_image` + `id_card_image` ครบ + state ปัจจุบันต้อง ∈ `('unknown','rejected')`
+  - `20260526000004_notification_type_kyc.sql` — เพิ่ม `'kyc'` ใน `notifications_type_check`
+- **State transitions**:
+  - `unknown` → user upload profile + id_card → submit_kyc RPC → `pending`
+  - `pending` → admin approve → `approved` / admin reject + remark → `rejected`
+  - `rejected` → user re-upload → submit_kyc RPC → `pending` (วน loop ได้)
+  - `approved` → terminal (เว้นแต่ admin จะ manual change ผ่าน supabaseAdmin)
+- **User UI** (`app/(authenticated)/user/components/UserProfilesForm.jsx`):
+  - แสดงแท็กสถานะด้านบนของฟอร์ม (`KYC_TAG` map: เขียว/ส้ม/แดง/เทา)
+  - ถ้า `is_kyc='rejected'` → กล่องแดงโชว์ `kyc_remark`
+  - รับ prop `kycMode` (default false) — เมื่อ `true`: ซ่อน fields อื่นเหลือเฉพาะ `profile_image` + `id_card_image`, ใช้ `kycSchema` (yup) บังคับ required ทั้งคู่, หลัง update สำเร็จเรียก `supabase.rpc("submit_kyc", { p_user_id })` แล้ว `dispatch(fetchUser())`
+- **Add product KYC banner** (`app/(authenticated)/user/add-product/components/CardAddProductPreview.jsx`):
+  - **ไม่ block** บันทึกฉบับร่าง (user save ได้เสมอ)
+  - แสดง banner สถานะ KYC ถ้า `isKyc !== 'approved'` (รับจาก Redux `state.user.data.is_kyc` ผ่าน `AddProductLayout`)
+  - `unknown` / `rejected` → ปุ่ม "ยืนยันตัวตน" / "ส่งเอกสารอีกครั้ง" เปิด `UseModal` ที่ render `<UserProfilesForm kycMode />`
+  - `pending` → banner อย่างเดียว (ไม่มีปุ่ม)
+- **Admin KYC review** (`app/admin/users/components/KycReviewModal.jsx`):
+  - เปิดผ่านปุ่มไอคอน `SafetyCertificateFilled` สีส้มใน `BtnActionGroup` (prop ใหม่ `onViewKyc` — optional, render เฉพาะถ้ามี)
+  - โหลด user ผ่าน `getUserById(userId)` (admin service, ใช้ `users_full` view) + signed URL ของ `id_card_image` ผ่าน `getIdCardSignedUrlAdmin(path, 300)`
+  - แสดงรูป profile + id_card (anchor `target="_blank"` คลิกขยายได้)
+  - ปุ่ม approve/reject แสดงเฉพาะ `is_kyc='pending'`
+  - reject → sub-modal `<UseModal>` ขอ remark (`Input.TextArea`) → `rejectKyc(userId, remark)`
+  - useEffect ล้าง state เมื่อ `open=false` หรือ `userId` เปลี่ยน (กันข้อมูลเก่าค้าง)
+- **Admin services** (`app/services/admin/users.service.js`):
+  - `approveKyc(userId)` — UPDATE `is_kyc='approved'`, `kyc_remark=null` + INSERT notification (`type='kyc'`)
+  - `rejectKyc(userId, remark)` — UPDATE `is_kyc='rejected'`, `kyc_remark=remark` + INSERT notification
+  - `getIdCardSignedUrlAdmin(path, expiresIn=300)` — admin sign URL จาก bucket `id-cards` (admin RLS policy อนุญาตอ่านทุก path)
+- **Admin product gate**: admin ไม่สามารถ transition product → `pending_review` / `active` ได้ถ้า seller ยังไม่ `approved` (ดู [Admin Product Edit](#admin-product-edit-adminproductsidedit) ด้านบน)
+
+### Add Product Listing Fee
+
+- **Calc**: `5% ของ start_price` (calc ทั้ง server-side ใน `/api/payment/promptpay` + `/api/payment/wallet/listing-fee` และ client-side ใน [Form.jsx](app/(authenticated)/user/add-product/components/Form.jsx) — ค่าต้องตรงกันเพื่อ UI แสดงถูก)
+- **Step 3 ใน [Form.jsx](app/(authenticated)/user/add-product/components/Form.jsx)**: ตรวจ `feePayment` (ดึงจาก `getListingFeePayment(productId)` ใน `payment.service.js`) แล้ว conditional render:
+  - **ไม่มี `productId`** → กล่องส้ม "บันทึกฉบับร่างก่อน"
+  - **`payment_status='success'`** → กล่องเขียว "ชำระเรียบร้อยแล้ว" (ซ่อนทุกปุ่ม)
+  - **`payment_status='pending'`** → กล่องส้ม "กำลังตรวจสอบ" + ปุ่ม "รีเฟรชสถานะ" (ซ่อนปุ่มชำระเพื่อกันชำระทับ PromptPay)
+  - **null** → แสดง `<PromptPayQR purpose="listing_fee" />` + `<WalletListingBtn />` (callback `onSuccess={refreshFeePayment}`)
+- **`WalletListingBtn`** ([app/components/payment/WalletListingBtn.jsx](app/components/payment/WalletListingBtn.jsx)) — load balance ผ่าน `getMyWalletBalance()` + subscribe `wallet-{userId}` (mounted flag กัน race); balance < amount → ปุ่ม redirect `/user/wallet`
 
 ## Key Conventions
 
@@ -375,7 +428,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
 
 ### Profiles RLS (สำคัญ)
 
-- **`update own profile`** ([20260502000000_fix_critical_rls.sql](supabase/migrations/20260502000000_fix_critical_rls.sql)) มี `WITH CHECK` กัน user แก้ `role` / `status` ตัวเอง
+- **`update own profile`** ([20260502000000_fix_critical_rls.sql](supabase/migrations/20260502000000_fix_critical_rls.sql) + [20260526000001_kyc_rls_and_view.sql](supabase/migrations/20260526000001_kyc_rls_and_view.sql)) มี `WITH CHECK` กัน user แก้ `role` / `status` / `is_kyc` / `kyc_remark` ตัวเอง — KYC transition ทำผ่าน `submit_kyc` RPC (SECURITY DEFINER) เท่านั้น
 - **`admin read all profiles`** อ่าน role จาก `auth.jwt() -> 'app_metadata' ->> 'role'`
   - ตอน promote user เป็น admin ต้อง update **ทั้ง 2 ที่**:
     1. `profiles.role = 'admin'` (สำหรับ proxy + requireAdmin check)
@@ -411,3 +464,5 @@ Schema defined in `db/00_schema.sql`. Key tables:
 5. **อัปโหลดไฟล์** → ผ่าน `handleLocalPreview`/`handleUpload`/`uploadPendingFiles` (auto-validate); PII (เช่น id_card) → bucket `id-cards`
 6. **เพิ่ม env var ใหม่** → ถ้าเป็น secret อย่าตั้งชื่อ `NEXT_PUBLIC_*`
 7. **เพิ่ม endpoint POST ใหม่** → ใส่ `rateLimit()` ด้วย
+8. **เพิ่ม column ที่ user ห้ามแก้เอง** → เพิ่มใน `WITH CHECK` ของ `"update own profile"` policy + ทำ RPC SECURITY DEFINER (มี caller guard) สำหรับ transition ที่อนุญาตเฉพาะกรณี
+9. **State transition ใน admin service ที่ผูกกับ business rule** → check rule ภายใน service function (เช่น `upsertProduct` ตรวจ seller KYC ก่อนเปลี่ยน state) + เพิ่ม error code ใน [supabaseErrorMap.js](app/utils/supabaseErrorMap.js) ให้ user เห็นข้อความภาษาไทย

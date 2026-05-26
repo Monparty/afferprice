@@ -4,26 +4,41 @@ import UseInputPassword from "@/app/components/inputs/UseInputPassword";
 import UseSelect from "@/app/components/inputs/UseSelect";
 import { genderList, birthDayList, birthMonthList, birthYearList } from "../../../utils/dataSelect";
 import { useForm } from "react-hook-form";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getProfileById, updateProfileById } from "@/app/services/profile.service";
 import { getCurrentUser, updatePassword } from "@/app/services/auth.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import UseUpload from "@/app/components/inputs/UseUpload";
 import UseButton from "@/app/components/inputs/UseButton";
+import UseTag from "@/app/components/utils/UseTag";
 import { handleLocalPreview, removeDeletedFiles, uploadPendingFiles } from "@/app/utils/storageHelper";
 import { uploadIdCard, removeIdCard, createIdCardSignedUrl } from "@/app/services/upload.service";
 import { validateImageFile, fileErrorMessage } from "@/app/utils/fileValidation";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { schema } from "./schema";
+import { schema, kycSchema } from "./schema";
+import { supabase } from "@/app/lib/supabase/client";
+import { useDispatch } from "react-redux";
+import { fetchUser } from "@/app/features/user/userSlice";
+import { ExclamationCircleFilled } from "@ant-design/icons";
 
-function UserProfilesForm({ setIsOpenModalProfile }) {
+const KYC_TAG = {
+    approved: { color: "green", label: "ยืนยันตัวตนแล้ว" },
+    pending: { color: "orange", label: "รอการตรวจสอบ" },
+    rejected: { color: "red", label: "ไม่ผ่านการตรวจสอบ" },
+    unknown: { color: "default", label: "ยังไม่ได้ยืนยันตัวตน" },
+};
+
+function UserProfilesForm({ setIsOpenModalProfile, kycMode = false, onKycSubmitted }) {
+    const dispatch = useDispatch();
     const { handleSubmit, control, reset, setValue, getValues } = useForm({
-        resolver: yupResolver(schema),
+        resolver: yupResolver(kycMode ? kycSchema : schema),
         mode: "onBlur",
     });
     const id = getValues("id");
     const originalFilesRef = useRef({ profile: [], idCard: [] });
     const originalIdCardPathRef = useRef(null);
+    const [kycStatus, setKycStatus] = useState("unknown");
+    const [kycRemark, setKycRemark] = useState(null);
 
     useEffect(() => {
         const fetchUserAndProfile = async () => {
@@ -37,6 +52,9 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
 
             const safeProfile = profile ?? {};
             const [birthYear, birthMonth, birthDay] = safeProfile.birth_date?.split("-") ?? [];
+
+            setKycStatus(safeProfile.is_kyc ?? "unknown");
+            setKycRemark(safeProfile.kyc_remark ?? null);
 
             const formatData = {
                 id: userId,
@@ -114,71 +132,117 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
                 idCardPath = null;
             }
 
-            const birthDate =
-                value.birthYear && value.birthMonth && value.birthDay
-                    ? `${value.birthYear}-${value.birthMonth}-${value.birthDay}`
-                    : null;
-            const payload = {
-                first_name: value.firstName,
-                last_name: value.lastName,
-                profile_image: uploadedProfile[0]?.url ?? null,
-                id_card_image: idCardPath,
-                gender: value.gender,
-                phone: value.phone,
-                birth_date: birthDate,
-            };
+            const profileImageUrl = uploadedProfile[0]?.url ?? null;
+
+            const payload = kycMode
+                ? {
+                      profile_image: profileImageUrl,
+                      id_card_image: idCardPath,
+                  }
+                : {
+                      first_name: value.firstName,
+                      last_name: value.lastName,
+                      profile_image: profileImageUrl,
+                      id_card_image: idCardPath,
+                      gender: value.gender,
+                      phone: value.phone,
+                      birth_date:
+                          value.birthYear && value.birthMonth && value.birthDay
+                              ? `${value.birthYear}-${value.birthMonth}-${value.birthDay}`
+                              : null,
+                  };
+
             const { error } = await updateProfileById(value.id, payload);
             if (error) return notifyError(error);
-            if (value.password) {
+            if (!kycMode && value.password) {
                 const { error: passwordError } = await updatePassword(value.password);
                 if (passwordError) return notifyError(passwordError);
             }
             await removeDeletedFiles(originalFilesRef.current.profile, value?.profile_image || []);
             originalIdCardPathRef.current = idCardPath;
+
+            if (kycMode) {
+                const { error: rpcError } = await supabase.rpc("submit_kyc", { p_user_id: value.id });
+                if (rpcError) return notifyError(rpcError);
+                setKycStatus("pending");
+                setKycRemark(null);
+                dispatch(fetchUser());
+                notifySuccess("ส่งเอกสารยืนยันตัวตนสำเร็จ รอ admin ตรวจสอบ");
+                onKycSubmitted?.();
+                return;
+            }
+
             notifySuccess("บันทึกข้อมูลสำเร็จ");
         } catch (error) {
             notifyError(error);
         }
     };
 
+    const tag = KYC_TAG[kycStatus] ?? KYC_TAG.unknown;
+
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
-            <InputText control={control} name="email" label="อีเมล" size="large" />
-            <div className="flex gap-4 items-start">
-                <InputText control={control} name="phone" label="เบอร์โทรศัพท์" size="large" />
-                <UseSelect control={control} name="gender" label="เพศ" size="large" options={genderList} />
+            <div className="flex items-center gap-2">
+                <span className="text-sm text-slate-500">สถานะการยืนยันตัวตน:</span>
+                <UseTag label={tag.label} color={tag.color} />
             </div>
-            <div className="flex gap-4 items-start">
-                <InputText control={control} name="firstName" label="ชื่อ" size="large" />
-                <InputText control={control} name="lastName" label="นามสกุล" size="large" />
-            </div>
-            <div className="flex gap-4 items-start">
-                <UseSelect
-                    control={control}
-                    name="birthDay"
-                    label="วันเดือนปีเกิด"
-                    size="large"
-                    options={birthDayList}
-                    placeholder="โปรดระบุ วัน"
-                />
-                <UseSelect
-                    control={control}
-                    name="birthMonth"
-                    label=" "
-                    size="large"
-                    options={birthMonthList}
-                    placeholder="โปรดระบุ เดือน"
-                />
-                <UseSelect
-                    control={control}
-                    name="birthYear"
-                    label=" "
-                    size="large"
-                    options={birthYearList()}
-                    placeholder="โปรดระบุ ปี"
-                />
-            </div>
-            <UseInputPassword control={control} name="password" label="รหัสผ่าน" size="large" />
+            {kycStatus === "rejected" && kycRemark && (
+                <div className="bg-red-50 p-4 rounded-xl border border-red-300 border-l-4">
+                    <p className="text-sm font-semibold text-red-700 flex items-center gap-2 mb-1">
+                        <ExclamationCircleFilled />
+                        เหตุผลที่ไม่ผ่านการตรวจสอบ
+                    </p>
+                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{kycRemark}</p>
+                </div>
+            )}
+
+            {!kycMode && (
+                <>
+                    <InputText control={control} name="email" label="อีเมล" size="large" />
+                    <div className="flex gap-4 items-start">
+                        <InputText control={control} name="phone" label="เบอร์โทรศัพท์" size="large" />
+                        <UseSelect control={control} name="gender" label="เพศ" size="large" options={genderList} />
+                    </div>
+                    <div className="flex gap-4 items-start">
+                        <InputText control={control} name="firstName" label="ชื่อ" size="large" />
+                        <InputText control={control} name="lastName" label="นามสกุล" size="large" />
+                    </div>
+                    <div className="flex gap-4 items-start">
+                        <UseSelect
+                            control={control}
+                            name="birthDay"
+                            label="วันเดือนปีเกิด"
+                            size="large"
+                            options={birthDayList}
+                            placeholder="โปรดระบุ วัน"
+                        />
+                        <UseSelect
+                            control={control}
+                            name="birthMonth"
+                            label=" "
+                            size="large"
+                            options={birthMonthList}
+                            placeholder="โปรดระบุ เดือน"
+                        />
+                        <UseSelect
+                            control={control}
+                            name="birthYear"
+                            label=" "
+                            size="large"
+                            options={birthYearList()}
+                            placeholder="โปรดระบุ ปี"
+                        />
+                    </div>
+                    <UseInputPassword control={control} name="password" label="รหัสผ่าน" size="large" />
+                </>
+            )}
+
+            {kycMode && (
+                <p className="text-sm text-slate-600">
+                    กรุณาอัปโหลดรูปโปรไฟล์และสำเนาบัตรประชาชนเพื่อยืนยันตัวตนก่อนลงขายสินค้า
+                </p>
+            )}
+
             <div className="flex gap-4 items-start">
                 <UseUpload
                     control={control}
@@ -200,8 +264,8 @@ function UserProfilesForm({ setIsOpenModalProfile }) {
                 />
             </div>
             <div className="flex justify-end gap-2 ">
-                <UseButton type="default" label="ปิด" onClick={() => setIsOpenModalProfile(false)} />
-                <UseButton label="บันทึก" htmlType="submit" />
+                <UseButton type="default" label="ปิด" onClick={() => setIsOpenModalProfile?.(false)} />
+                <UseButton label={kycMode ? "ส่งเอกสารยืนยัน" : "บันทึก"} htmlType="submit" />
             </div>
         </form>
     );
