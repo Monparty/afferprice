@@ -56,6 +56,8 @@ function Form({ activeStep, control, categoryList, setValue }) {
     const feeStatus = feePayment?.payment_status ?? null;
     const isFeePaid = feeStatus === "success";
     const isFeePending = feeStatus === "pending";
+
+    // console.log("watchState", watchState)
     return (
         <form className="flex flex-col gap-6">
             {watchState === "rejected" && (
@@ -243,7 +245,7 @@ function Form({ activeStep, control, categoryList, setValue }) {
                     </div>
                     {!watchProductId ? (
                         <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm text-orange-700">
-                            กรุณาบันทึกเป็นฉบับร่างก่อนเพื่อสร้างรายการสินค้า แล้วจึงชำระค่าธรรมเนียม
+                            กรุณาส่งเอกสารยืนยัน KYC ก่อนจึงจะสามารถสร้างรายการสินค้าได้
                         </div>
                     ) : isFeePaid ? (
                         <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">

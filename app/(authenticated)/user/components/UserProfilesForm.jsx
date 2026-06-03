@@ -28,80 +28,80 @@ const KYC_TAG = {
     unknown: { color: "default", label: "ยังไม่ได้ยืนยันตัวตน" },
 };
 
-function UserProfilesForm({ setIsOpenModalProfile, kycMode = false, onKycSubmitted }) {
+function UserProfilesForm({ setIsOpenModalProfile, kycMode = false, onKycSubmitted, onSubmitSaveProduct }) {
     const dispatch = useDispatch();
     const { handleSubmit, control, reset, setValue, getValues } = useForm({
         resolver: yupResolver(kycMode ? kycSchema : schema),
         mode: "onBlur",
     });
-    const id = getValues("id");
     const originalFilesRef = useRef({ profile: [], idCard: [] });
     const originalIdCardPathRef = useRef(null);
     const [kycStatus, setKycStatus] = useState("unknown");
     const [kycRemark, setKycRemark] = useState(null);
 
     useEffect(() => {
-        const fetchUserAndProfile = async () => {
-            const { data: currentUserData, error: userError } = await getCurrentUser();
-            if (userError) return notifyError(userError);
-            const userId = currentUserData.user?.id;
-            const userEmail = currentUserData.user?.email;
-            if (!userId) return;
-            const { data: profile, error: profileError } = await getProfileById(userId);
-            if (profileError) return notifyError(profileError);
-
-            const safeProfile = profile ?? {};
-            const [birthYear, birthMonth, birthDay] = safeProfile.birth_date?.split("-") ?? [];
-
-            setKycStatus(safeProfile.is_kyc ?? "unknown");
-            setKycRemark(safeProfile.kyc_remark ?? null);
-
-            const formatData = {
-                id: userId,
-                ...safeProfile,
-                email: userEmail,
-                firstName: safeProfile.first_name ?? "",
-                lastName: safeProfile.last_name ?? "",
-                phone: safeProfile.phone ?? "",
-                gender: safeProfile.gender ?? undefined,
-                birthDay,
-                birthMonth,
-                birthYear,
-                profile_image: safeProfile.profile_image
-                    ? [
-                          {
-                              uid: safeProfile.profile_image.split("/").pop(),
-                              url: safeProfile.profile_image,
-                              status: "done",
-                          },
-                      ]
-                    : [],
-                id_card_image: [],
-            };
-            originalFilesRef.current = {
-                profile: formatData.profile_image,
-                idCard: [],
-            };
-            originalIdCardPathRef.current = safeProfile.id_card_image || null;
-
-            if (safeProfile.id_card_image) {
-                const { data: signed } = await createIdCardSignedUrl(safeProfile.id_card_image, 300);
-                if (signed?.signedUrl) {
-                    formatData.id_card_image = [
-                        {
-                            uid: safeProfile.id_card_image.split("/").pop(),
-                            url: signed.signedUrl,
-                            status: "done",
-                        },
-                    ];
-                    originalFilesRef.current.idCard = formatData.id_card_image;
-                }
-            }
-
-            reset(formatData);
-        };
         fetchUserAndProfile();
     }, [reset]);
+
+    const fetchUserAndProfile = async () => {
+        const { data: currentUserData, error: userError } = await getCurrentUser();
+        if (userError) return notifyError(userError);
+        const userId = currentUserData.user?.id;
+        const userEmail = currentUserData.user?.email;
+        if (!userId) return;
+        const { data: profile, error: profileError } = await getProfileById(userId);
+        if (profileError) return notifyError(profileError);
+
+        const safeProfile = profile ?? {};
+        const [birthYear, birthMonth, birthDay] = safeProfile.birth_date?.split("-") ?? [];
+
+        setKycStatus(safeProfile.is_kyc ?? "unknown");
+        setKycRemark(safeProfile.kyc_remark ?? null);
+
+        const formatData = {
+            id: userId,
+            ...safeProfile,
+            email: userEmail,
+            firstName: safeProfile.first_name ?? "",
+            lastName: safeProfile.last_name ?? "",
+            phone: safeProfile.phone ?? "",
+            gender: safeProfile.gender ?? undefined,
+            birthDay,
+            birthMonth,
+            birthYear,
+            profile_image: safeProfile.profile_image
+                ? [
+                      {
+                          uid: safeProfile.profile_image.split("/").pop(),
+                          url: safeProfile.profile_image,
+                          status: "done",
+                      },
+                  ]
+                : [],
+            id_card_image: [],
+        };
+        originalFilesRef.current = {
+            profile: formatData.profile_image,
+            idCard: [],
+        };
+        originalIdCardPathRef.current = safeProfile.id_card_image || null;
+
+        if (safeProfile.id_card_image) {
+            const { data: signed } = await createIdCardSignedUrl(safeProfile.id_card_image, 300);
+            if (signed?.signedUrl) {
+                formatData.id_card_image = [
+                    {
+                        uid: safeProfile.id_card_image.split("/").pop(),
+                        url: signed.signedUrl,
+                        status: "done",
+                    },
+                ];
+                originalFilesRef.current.idCard = formatData.id_card_image;
+            }
+        }
+
+        reset(formatData);
+    };
 
     const onSubmit = async (value) => {
         try {
@@ -169,6 +169,9 @@ function UserProfilesForm({ setIsOpenModalProfile, kycMode = false, onKycSubmitt
                 dispatch(fetchUser());
                 notifySuccess("ส่งเอกสารยืนยันตัวตนสำเร็จ รอ admin ตรวจสอบ");
                 onKycSubmitted?.();
+
+                onSubmitSaveProduct();
+                fetchUserAndProfile();
                 return;
             }
 

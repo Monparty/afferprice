@@ -69,7 +69,7 @@ function AddProductLayout({ productId }) {
         onGetProductById();
     }, [productId]);
 
-    const onSubmit = async () => {
+    const onSubmit = async (state) => {
         try {
             const value = getValues();
             const uploadedImages = await uploadPendingFiles(value?.images_url || []);
@@ -83,7 +83,7 @@ function AddProductLayout({ productId }) {
                 description: value.description,
                 condition: value.condition || "new",
                 start_price: value.startPrice,
-                state: "draft",
+                state: state,
                 images_url: uploadedImages,
                 video_url: uploadedVideos,
                 duration_days: value.durationDays,

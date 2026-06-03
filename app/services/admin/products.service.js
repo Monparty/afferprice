@@ -4,7 +4,7 @@ import { requireAdmin } from "../../lib/auth";
 
 export async function getProducts() {
     await requireAdmin();
-    const { data: products, error } = await supabaseAdmin.from("products").select("*");
+    const { data: products, error } = await supabaseAdmin.from("products").select("*").neq("state", "draft");
     if (error) return { data: null, error };
 
     const sellerIds = [...new Set(products.map((p) => p.seller_id).filter(Boolean))];
@@ -39,11 +39,7 @@ export async function upsertProduct(data) {
             sellerId = existing?.seller_id;
         }
         if (!sellerId) return { error: { message: "missing_seller_id" } };
-        const { data: seller } = await supabaseAdmin
-            .from("profiles")
-            .select("is_kyc")
-            .eq("id", sellerId)
-            .single();
+        const { data: seller } = await supabaseAdmin.from("profiles").select("is_kyc").eq("id", sellerId).single();
         if (seller?.is_kyc !== "approved") {
             return { error: { message: "seller_kyc_not_approved" } };
         }

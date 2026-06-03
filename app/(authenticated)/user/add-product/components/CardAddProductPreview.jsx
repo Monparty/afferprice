@@ -46,11 +46,8 @@ function CardAddProductPreview({ control, watch, activeStep, setActiveStep, onSu
         name: "images_url.0",
     });
     const imageUrl = image?.url || image?.thumbUrl;
-    const banner = isKyc === "approved" ? null : KYC_BANNER[isKyc] ?? KYC_BANNER.unknown;
-    const bannerStyle =
-        banner?.tone === "red"
-            ? "bg-red-50 border-red-300"
-            : "bg-orange-50 border-orange-300";
+    const banner = isKyc === "approved" ? null : (KYC_BANNER[isKyc] ?? KYC_BANNER.unknown);
+    const bannerStyle = banner?.tone === "red" ? "bg-red-50 border-red-300" : "bg-orange-50 border-orange-300";
 
     return (
         <div className="flex flex-col gap-6">
@@ -125,15 +122,25 @@ function CardAddProductPreview({ control, watch, activeStep, setActiveStep, onSu
                 )}
                 <div className="p-5 flex flex-col gap-3 bg-slate-50">
                     <UseButton
-                        label="ดำเนินการต่อ"
+                        label={
+                            activeStep === 3
+                                ? isKyc === "pending"
+                                    ? "รอ admin ตรวจสอบ KYC"
+                                    : "การบันทึกและส่งตรวจสอบสินค้า"
+                                : "ดำเนินการต่อ"
+                        }
                         icon={ArrowRightOutlined}
                         iconPlacement
                         wFull
                         className="h-12!"
                         onClick={() => {
+                            if (activeStep === 3 && (isKyc === "unknown" || isKyc === "rejected")) {
+                                setKycModalOpen(true);
+                            }
                             if (activeStep === 3) return;
                             setActiveStep(activeStep + 1);
                         }}
+                        disabled={activeStep === 3 && isKyc === "pending"}
                     />
                     {activeStep !== 0 && (
                         <UseButton
@@ -148,7 +155,13 @@ function CardAddProductPreview({ control, watch, activeStep, setActiveStep, onSu
                             }}
                         />
                     )}
-                    <UseButton label="บันทึกเป็นฉบับร่าง" type="default" wFull className="h-12!" onClick={onSubmit} />
+                    <UseButton
+                        label="บันทึกเป็นฉบับร่าง"
+                        type="default"
+                        wFull
+                        className="h-12!"
+                        onClick={() => onSubmit("draft")}
+                    />
                     <p className="text-[11px] text-center text-slate-400 px-4 leading-relaxed">
                         ในการดำเนินการต่อ คุณยอมรับนโยบายผู้ขายและโครงสร้างค่าธรรมเนียมของเรา
                     </p>
@@ -192,6 +205,7 @@ function CardAddProductPreview({ control, watch, activeStep, setActiveStep, onSu
                     kycMode
                     setIsOpenModalProfile={setKycModalOpen}
                     onKycSubmitted={() => setKycModalOpen(false)}
+                    onSubmitSaveProduct={() => onSubmit("pending_review")}
                 />
             </UseModal>
         </div>
