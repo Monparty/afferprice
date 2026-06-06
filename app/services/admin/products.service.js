@@ -51,3 +51,15 @@ export async function getProductById(id) {
     await requireAdmin();
     return supabaseAdmin.from("products").select("*").eq("id", id).single();
 }
+
+export async function getListingFeePayment(productId) {
+    await requireAdmin();
+    return supabaseAdmin
+        .from("payments")
+        .select("id, amount, payment_method, payment_status, paid_at, transaction_ref")
+        .eq("product_id", productId)
+        .eq("purpose", "listing_fee")
+        .order("payment_status", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+}

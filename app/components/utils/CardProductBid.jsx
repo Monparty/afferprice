@@ -12,12 +12,15 @@ import {
     LockFilled,
     NotificationFilled,
     RiseOutlined,
+    SafetyCertificateFilled,
 } from "@ant-design/icons";
 import { insertBid, getHighestBid } from "@/app/services/bids.service";
 import { supabase } from "@/app/lib/supabase/client";
 import { updateProductPrice } from "@/app/services/products.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import { fetchUser } from "@/app/features/user/userSlice";
+import UseModal from "./UseModal";
+import UserProfilesForm from "@/app/(authenticated)/user/components/UserProfilesForm";
 
 function padTwo(n) {
     return String(n).padStart(2, "0");
@@ -38,6 +41,7 @@ function CardProductBid({ product, onBidSuccess }) {
     const [ended, setEnded] = useState(false);
     const [currentPrice, setCurrentPrice] = useState(product?.start_price);
     const [highestBidderId, setHighestBidderId] = useState(null);
+    const [kycModalOpen, setKycModalOpen] = useState(false);
     const channelRef = useRef(null);
 
     useEffect(() => {
@@ -104,6 +108,10 @@ function CardProductBid({ product, onBidSuccess }) {
             router.push("/login");
             return;
         }
+        if (userData.is_kyc !== "approved") {
+            setKycModalOpen(true);
+            return;
+        }
         setLoading(true);
         const { error } = await insertBid({
             product_id: product.id,
@@ -133,6 +141,8 @@ function CardProductBid({ product, onBidSuccess }) {
     const isSeller = userData?.id === product?.seller_id;
     // ผู้ที่ประมูลสูงสุดอยู่ตอนนี้ ต้องรอผู้อื่นมาประมูลก่อนถึงจะประมูลต่อได้
     const isHighestBidder = !!userData?.id && userData.id === highestBidderId;
+    // ต้องยืนยันตัวตน (KYC) ก่อนจึงจะประมูลได้
+    const needKyc = !!userData?.id && !isSeller && userData.is_kyc !== "approved";
 
     return (
         <div className="bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
@@ -201,17 +211,31 @@ function CardProductBid({ product, onBidSuccess }) {
                         placeholder="ระบุราคา..."
                         disabled={ended}
                     />
-                    <UseButton
-                        label={isHighestBidder ? "รอผู้อื่นเสนอราคา" : "วางประมูลทันที"}
-                        wFull
-                        size="large"
-                        icon={NotificationFilled}
-                        iconPlacement
-                        className="h-12! text-lg! font-bold!"
-                        htmlType="submit"
-                        loading={loading}
-                        disabled={ended || isBelowMin || isSeller || isHighestBidder}
-                    />
+                    {needKyc ? (
+                        <UseButton
+                            label="ยืนยันตัวตนก่อนประมูล"
+                            wFull
+                            size="large"
+                            icon={SafetyCertificateFilled}
+                            iconPlacement
+                            className="h-12! text-lg! font-bold!"
+                            type="default"
+                            disabled={ended}
+                            onClick={() => setKycModalOpen(true)}
+                        />
+                    ) : (
+                        <UseButton
+                            label={isHighestBidder ? "รอผู้อื่นเสนอราคา" : "วางประมูลทันที"}
+                            wFull
+                            size="large"
+                            icon={NotificationFilled}
+                            iconPlacement
+                            className="h-12! text-lg! font-bold!"
+                            htmlType="submit"
+                            loading={loading}
+                            disabled={ended || isBelowMin || isSeller || isHighestBidder}
+                        />
+                    )}
                     <div className="flex flex-col gap-2 text-sm text-slate-400 text-center">
                         <span className="flex items-center justify-center gap-2">
                             <BankFilled className=" text-blue-500!" />
@@ -224,6 +248,20 @@ function CardProductBid({ product, onBidSuccess }) {
                     </div>
                 </form>
             </div>
+
+            <UseModal
+                open={kycModalOpen}
+                onCancel={() => setKycModalOpen(false)}
+                title="ยืนยันตัวตน (KYC)"
+                isShowCancel={false}
+            >
+                <UserProfilesForm
+                    kycMode
+                    setIsOpenModalProfile={setKycModalOpen}
+                    onKycSubmitted={() => setKycModalOpen(false)}
+                    onSubmitSaveProduct={() => {}}
+                />
+            </UseModal>
         </div>
     );
 }

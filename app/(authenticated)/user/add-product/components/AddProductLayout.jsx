@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { getParentCategories } from "@/app/services/categories.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import { getProductById, upsertProduct } from "@/app/services/products.service";
+import { getListingFeePayment } from "@/app/services/payment.service";
 import { uploadPendingFiles, removeDeletedFiles } from "@/app/utils/storageHelper";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUser } from "@/app/features/user/userSlice";
@@ -23,6 +24,25 @@ function AddProductLayout({ productId }) {
     });
     const dispatch = useDispatch();
     const { data, loading, error } = useSelector((state) => state.user);
+
+    const watchProductId = watch("productId");
+    const effectiveProductId = watchProductId || productId;
+    const [feePayment, setFeePayment] = useState(null);
+
+    const refreshFeePayment = async () => {
+        if (!effectiveProductId) {
+            setFeePayment(null);
+            return;
+        }
+        const { data: fee } = await getListingFeePayment(effectiveProductId);
+        setFeePayment(fee || null);
+    };
+
+    useEffect(() => {
+        refreshFeePayment();
+    }, [effectiveProductId]);
+
+    const isFeePaid = feePayment?.payment_status === "success";
 
     useEffect(() => {
         dispatch(fetchUser());
@@ -43,6 +63,7 @@ function AddProductLayout({ productId }) {
 
             const formatData = {
                 ...data,
+                productId: data.id,
                 title: data.title,
                 categoryId: data.category_id,
                 condition: data.condition,
@@ -88,6 +109,8 @@ function AddProductLayout({ productId }) {
                 video_url: uploadedVideos,
                 duration_days: value.durationDays,
                 is_seller: value.isSeller ? "Y" : "N",
+                evaluation: value.evaluation ?? null,
+                quality_score: value.quality_score ?? null,
             };
 
             const { data: productData, error: productError } = await upsertProduct(payload);
@@ -97,7 +120,7 @@ function AddProductLayout({ productId }) {
             if (productData) {
                 setValue("productId", productData.id);
             }
-            notifySuccess("บันทึกร่างสำเร็จ");
+            notifySuccess(state === "pending_review" ? "ส่งตรวจสอบสินค้าสำเร็จ" : "บันทึกร่างสำเร็จ");
         } catch (error) {
             notifyError(error);
         }
@@ -118,7 +141,15 @@ function AddProductLayout({ productId }) {
             <AddProductSteps activeStep={activeStep} />
             <div className="flex justify-center gap-6">
                 <div className={`flex-2 ${activeStep === 2 ? "hidden" : ""}`}>
-                    <Form activeStep={activeStep} control={control} categoryList={categoryList} setValue={setValue} />
+                    <Form
+                        activeStep={activeStep}
+                        control={control}
+                        categoryList={categoryList}
+                        setValue={setValue}
+                        isKyc={data?.is_kyc ?? "unknown"}
+                        feePayment={feePayment}
+                        refreshFeePayment={refreshFeePayment}
+                    />
                 </div>
                 <div className={`${activeStep === 2 ? "w-1/2" : "flex-1"}`}>
                     <CardAddProductPreview
@@ -128,6 +159,7 @@ function AddProductLayout({ productId }) {
                         setActiveStep={setActiveStep}
                         onSubmit={onSubmit}
                         isKyc={data?.is_kyc ?? "unknown"}
+                        isFeePaid={isFeePaid}
                     />
                 </div>
             </div>

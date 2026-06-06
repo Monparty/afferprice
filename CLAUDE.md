@@ -147,6 +147,10 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - หลัง submit: `insertBid` → `updateProductPrice` → `setCurrentPrice` → `setHighestBidderId` → broadcast → `onBidSuccess?.()`
 - `getBidsByProduct(productId)` ใน `bids.service.js` — ดึง bid history เรียงตาม `bid_time DESC`
 - **Validation**: `bidPrice` ต้องมากกว่า `currentPrice` เท่านั้น (ไม่อนุญาตเท่ากัน) — `isBelowMin` ใช้ `<=`
+- **🔒 KYC gate ก่อนประมูล**: `needKyc = login + ไม่ใช่ seller + userData.is_kyc !== 'approved'`
+  - `needKyc` → ปุ่มเปลี่ยนเป็น "ยืนยันตัวตนก่อนประมูล" (`SafetyCertificateFilled`) → เปิด `UseModal` ที่ render `<UserProfilesForm kycMode>` แทนปุ่มประมูล (ส่ง `onSubmitSaveProduct={() => {}}` no-op เพราะ form เรียกแบบไม่มี optional chaining)
+  - `onSubmit` มี guard ซ้ำ: ถ้า `is_kyc !== 'approved'` → เด้ง modal ไม่ insert bid
+  - หลังส่ง KYC สถานะเป็น `pending` → ยังประมูลไม่ได้จนกว่า admin approve (`UserProfilesForm` dispatch `fetchUser` ให้ Redux อัปเดต)
 - **ห้าม bid ติดกัน 2 ครั้ง**: ผู้ที่เป็น highest bidder อยู่ตอนนี้กดประมูลซ้ำไม่ได้ ต้องรอ user คนอื่นมา bid ก่อน
   - state `highestBidderId` เก็บ user id ของผู้ bid สูงสุด — set จาก `getHighestBid()` ตอน mount + จาก broadcast payload `userId`
   - `isHighestBidder = userData.id === highestBidderId` → disable ปุ่ม + เปลี่ยน label เป็น "รอผู้อื่นเสนอราคา"
@@ -214,6 +218,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - **⚠️ `seller_id` ต้องส่งใน payload เสมอ** — Supabase `upsert` ทำ full replace; ถ้าไม่ส่ง `seller_id` จะ error NOT NULL. Page component fetch `seller_id` จาก product ตอน mount แล้วเก็บใน state
 - **approve** → `state = 'active'` + set `auction_end_time` จาก `durationDays`; **reject** → `state = 'rejected'` + `rejected_remark`
 - **🔒 KYC gate ใน `upsertProduct`** ([app/services/admin/products.service.js](app/services/admin/products.service.js)) — ถ้า `data.state` ∈ `['pending_review', 'active']` → fetch `profiles.is_kyc` ของ seller; ถ้าไม่ใช่ `'approved'` → return `{ error: 'seller_kyc_not_approved' }` (มี Thai translation ใน [supabaseErrorMap.js](app/utils/supabaseErrorMap.js)) — **reject ไม่ติด gate** (admin reject ได้แม้ KYC ยังไม่ผ่าน)
+- **ค่าธรรมเนียมลงขาย (read-only)** — Form โหลด `getListingFeePayment(productId)` ([admin/products.service.js](app/services/admin/products.service.js) — `requireAdmin` + `supabaseAdmin` bypass RLS เพราะ payment เป็นของ seller) แล้วโชว์การ์ด: จำนวนเงิน, ช่องทาง, สถานะ (เขียว/ส้ม/แดง), วันที่ชำระ, `transaction_ref`; ไม่มี payment → "ยังไม่มีการชำระค่าธรรมเนียม"
 
 ### Selling Page (`/user/selling`)
 
@@ -321,11 +326,13 @@ Schema defined in `db/00_schema.sql`. Key tables:
   - แสดงแท็กสถานะด้านบนของฟอร์ม (`KYC_TAG` map: เขียว/ส้ม/แดง/เทา)
   - ถ้า `is_kyc='rejected'` → กล่องแดงโชว์ `kyc_remark`
   - รับ prop `kycMode` (default false) — เมื่อ `true`: ซ่อน fields อื่นเหลือเฉพาะ `profile_image` + `id_card_image`, ใช้ `kycSchema` (yup) บังคับ required ทั้งคู่, หลัง update สำเร็จเรียก `supabase.rpc("submit_kyc", { p_user_id })` แล้ว `dispatch(fetchUser())`
-- **Add product KYC banner** (`app/(authenticated)/user/add-product/components/CardAddProductPreview.jsx`):
-  - **ไม่ block** บันทึกฉบับร่าง (user save ได้เสมอ)
-  - แสดง banner สถานะ KYC ถ้า `isKyc !== 'approved'` (รับจาก Redux `state.user.data.is_kyc` ผ่าน `AddProductLayout`)
-  - `unknown` / `rejected` → ปุ่ม "ยืนยันตัวตน" / "ส่งเอกสารอีกครั้ง" เปิด `UseModal` ที่ render `<UserProfilesForm kycMode />`
-  - `pending` → banner อย่างเดียว (ไม่มีปุ่ม)
+- **Global KYC gate** (`app/(authenticated)/components/KycGate.jsx`) — mount ใน [(authenticated)/layout.jsx](app/(authenticated)/layout.jsx) ครอบทุกหน้าใน authenticated group; on mount `supabase.auth.getUser()` + `getProfileById` → ถ้า `is_kyc === 'unknown'` เด้ง `UseModal` (`<UserProfilesForm kycMode>`) อัตโนมัติให้บันทึก KYC (ปิดได้ผ่าน X, ไม่ block แบบ hard)
+- **Add product KYC gate / submit flow** (`app/(authenticated)/user/add-product/components/CardAddProductPreview.jsx`) — `isKyc` + `isFeePaid` รับจาก `AddProductLayout`:
+  - **ปุ่มหลัก step 3** แยกตาม `isKyc`: `approved` → `onSubmit("pending_review")` (ส่งตรวจสอบได้เลย); `unknown`/`rejected` → เปิด KYC modal (`<UserProfilesForm kycMode />`) — หลังส่ง KYC `onSubmitSaveProduct` save เป็น `draft` (เพราะ is_kyc ยังไม่ approved); `pending` → ปุ่ม disabled label "รอ admin ตรวจสอบ KYC"
+  - **"บันทึกเป็นฉบับร่าง"** save `draft` ได้เสมอ (ไม่ block)
+  - แสดง KYC banner เมื่อ `isKyc !== 'approved'` (`unknown`/`rejected` มีปุ่มเปิด modal; `pending` banner อย่างเดียว)
+  - **🔒 จ่ายค่าธรรมเนียมได้เฉพาะ `approved`** — กล่องจ่ายใน `Form.jsx` gate ด้วย `isKyc === 'approved' && productId` (ดู [Add Product Listing Fee](#add-product-listing-fee)); server เช็คซ้ำอีกชั้น
+  - **จ่ายค่าธรรมเนียมแล้ว (`isFeePaid`) → ล็อก**: ปุ่มหลัก + "บันทึกฉบับร่าง" disabled, ปุ่มหลัก label "รอ admin ตรวจสอบ" + banner เขียว "ชำระค่าธรรมเนียมแล้ว"; ปุ่ม "ย้อนกลับ" ยังกดได้
 - **Admin KYC review** (`app/admin/users/components/KycReviewModal.jsx`):
   - เปิดผ่านปุ่มไอคอน `SafetyCertificateFilled` สีส้มใน `BtnActionGroup` (prop ใหม่ `onViewKyc` — optional, render เฉพาะถ้ามี)
   - โหลด user ผ่าน `getUserById(userId)` (admin service, ใช้ `users_full` view) + signed URL ของ `id_card_image` ผ่าน `getIdCardSignedUrlAdmin(path, 300)`
@@ -342,12 +349,26 @@ Schema defined in `db/00_schema.sql`. Key tables:
 ### Add Product Listing Fee
 
 - **Calc**: `5% ของ start_price` (calc ทั้ง server-side ใน `/api/payment/promptpay` + `/api/payment/wallet/listing-fee` และ client-side ใน [Form.jsx](app/(authenticated)/user/add-product/components/Form.jsx) — ค่าต้องตรงกันเพื่อ UI แสดงถูก)
-- **Step 3 ใน [Form.jsx](app/(authenticated)/user/add-product/components/Form.jsx)**: ตรวจ `feePayment` (ดึงจาก `getListingFeePayment(productId)` ใน `payment.service.js`) แล้ว conditional render:
-  - **ไม่มี `productId`** → กล่องส้ม "บันทึกฉบับร่างก่อน"
+- **🔒 จ่ายได้เฉพาะ seller ที่ `is_kyc='approved'`** — เช็ค 2 ชั้น:
+  - **UI** (`Form.jsx`): `isKyc !== 'approved'` → กล่องส้มให้ KYC ก่อน (ซ่อนปุ่มจ่าย)
+  - **Server**: ทั้ง `/api/payment/promptpay` (branch `listing_fee`) + `/api/payment/wallet/listing-fee` fetch `profiles.is_kyc` ของ session user; ไม่ใช่ `approved` → 403 `seller_kyc_not_approved`
+- **Fee state เป็น single source ใน [AddProductLayout.jsx](app/(authenticated)/user/add-product/components/AddProductLayout.jsx)** — fetch `getListingFeePayment(effectiveProductId)` (`= watch("productId") || productId` ครอบทั้ง add/edit) แล้วส่ง `feePayment` + `refreshFeePayment` ให้ `Form`, ส่ง `isFeePaid` ให้ `CardAddProductPreview` (ไม่ fetch ซ้ำ 2 ที่ → ปุ่ม save ล็อกพร้อมกล่องจ่าย); edit page เซ็ต `productId: data.id` ตอน reset เพื่อให้รู้ productId ตั้งแต่โหลด
+- **Step 3 conditional render ใน [Form.jsx](app/(authenticated)/user/add-product/components/Form.jsx)** (รับ `feePayment` เป็น prop):
+  - **`isKyc !== 'approved'`** → กล่องส้ม "ยืนยันตัวตน + รอ admin อนุมัติก่อน"
+  - **ไม่มี `productId`** → กล่องส้ม "บันทึกและส่งตรวจสอบก่อน"
   - **`payment_status='success'`** → กล่องเขียว "ชำระเรียบร้อยแล้ว" (ซ่อนทุกปุ่ม)
-  - **`payment_status='pending'`** → กล่องส้ม "กำลังตรวจสอบ" + ปุ่ม "รีเฟรชสถานะ" (ซ่อนปุ่มชำระเพื่อกันชำระทับ PromptPay)
-  - **null** → แสดง `<PromptPayQR purpose="listing_fee" />` + `<WalletListingBtn />` (callback `onSuccess={refreshFeePayment}`)
+  - **`payment_status='pending'`** → กล่องส้ม "กำลังตรวจสอบ" + ปุ่ม "รีเฟรชสถานะ" (`refreshFeePayment` prop)
+  - **null** → แสดง `<PromptPayQR purpose="listing_fee" />` + `<WalletListingBtn onSuccess={refreshFeePayment} />`
 - **`WalletListingBtn`** ([app/components/payment/WalletListingBtn.jsx](app/components/payment/WalletListingBtn.jsx)) — load balance ผ่าน `getMyWalletBalance()` + subscribe `wallet-{userId}` (mounted flag กัน race); balance < amount → ปุ่ม redirect `/user/wallet`
+
+### Product Quality Evaluation (Add Product Step 2)
+
+- **Source**: แบบประเมินมาจาก `categories.evaluation` (jsonb) — array ของ `{ heading, subEvaluations: [{ label, score }] }` ที่ admin สร้างใน `/admin/categories` ([EvaluationForm.jsx](app/admin/categories/components/EvaluationForm.jsx)); ดึงผ่าน `getParentCategories()` (select รวม `evaluation`)
+- **Component**: [ProductEvaluation.jsx](app/(authenticated)/user/add-product/components/ProductEvaluation.jsx) — รับ `{ control, setValue, evaluationGroups }`; แต่ละ heading เลือกได้ **1 ตัวเลือก** (ติ๊กใหม่ → `setValue` เคลียร์ตัวอื่นในกลุ่ม false); render เฉพาะเมื่อ category มี evaluation
+- **Form field `evaluation`**: object `{ [headingIdx]: { [subIdx]: boolean } }` — เก็บลง `products.evaluation` (jsonb) ตรง ๆ เพื่อ round-trip; ตอน edit `getProductById` (`select("*")`) คืนค่ากลับ → `reset()` ติ๊กเดิมอัตโนมัติ (**ต้องเป็น category เดิม** เพราะ map ด้วย index)
+- **`quality_score`** (0-100): normalize = `round(rawScore / maxScore * 100)` โดย `rawScore` = ผลรวม score ของตัวเลือกที่เลือก, `maxScore` = ผลรวม max score ต่อ heading; sync ลงฟอร์มผ่าน `setValue("quality_score", ...)` ใน `useEffect` → เก็บลง `products.quality_score` (smallint, CHECK 0-100)
+- **Migration**: [20260606000000_add_product_evaluation.sql](supabase/migrations/20260606000000_add_product_evaluation.sql) — เพิ่ม `products.evaluation` (jsonb) + `products.quality_score` (smallint, CHECK 0-100)
+- **Payload**: [AddProductLayout.jsx](app/(authenticated)/user/add-product/components/AddProductLayout.jsx) `onSubmit` ส่ง `evaluation` + `quality_score` (default `null`)
 
 ## Key Conventions
 
@@ -383,7 +404,8 @@ Schema defined in `db/00_schema.sql`. Key tables:
 ### Bid Validation (DB-side)
 
 - Trigger `validate_bid` BEFORE INSERT บน `bids` ([20260524150000_validate_bid_trigger.sql](supabase/migrations/20260524150000_validate_bid_trigger.sql))
-- ตรวจ: product `state='active'`, `auction_end_time > now()`, seller ≠ bidder, `bid_price > max(existing)`, ไม่ bid ติดกัน 2 ครั้ง, force `is_winning=false`
+- ตรวจ: product `state='active'`, `auction_end_time > now()`, seller ≠ bidder, **bidder `is_kyc='approved'`**, `bid_price > max(existing)`, ไม่ bid ติดกัน 2 ครั้ง, force `is_winning=false`
+- **KYC check** ([20260606010000_bid_requires_kyc.sql](supabase/migrations/20260606010000_bid_requires_kyc.sql)) — `CREATE OR REPLACE` `validate_bid` เพิ่มเช็ค `profiles.is_kyc`; ถ้า `IS DISTINCT FROM 'approved'` → `RAISE 'bidder_kyc_not_approved'` (มี Thai translation ใน [supabaseErrorMap.js](app/utils/supabaseErrorMap.js)) — defense-in-depth คู่กับ UX guard ใน `CardProductBid`
 - **ไม่ต้อง validate ซ้ำใน client** — แต่ก็ยังควรมี UX guard เพื่อกัน roundtrip
 
 ### Storage Buckets

@@ -31,6 +31,15 @@ export async function POST(req) {
             return NextResponse.json({ error: "forbidden" }, { status: 403 });
         }
 
+        const { data: sellerProfile } = await supabaseAdmin
+            .from("profiles")
+            .select("is_kyc")
+            .eq("id", user.id)
+            .single();
+        if (sellerProfile?.is_kyc !== "approved") {
+            return NextResponse.json({ error: "seller_kyc_not_approved" }, { status: 403 });
+        }
+
         const startPrice = Number(product.start_price);
         if (!Number.isFinite(startPrice) || startPrice <= 0) {
             return NextResponse.json({ error: "invalid_start_price" }, { status: 400 });

@@ -15,6 +15,7 @@ const errorMap = [
     { match: /object not found/i, thai: "ไม่พบไฟล์ที่ต้องการ" },
     // KYC / business rules
     { match: /seller_kyc_not_approved/i, thai: "ไม่สามารถอนุมัติได้ เนื่องจาก KYC ของผู้ขายยังไม่ผ่านการตรวจสอบ" },
+    { match: /bidder_kyc_not_approved/i, thai: "กรุณายืนยันตัวตน (KYC) ให้ผ่านการตรวจสอบก่อนเข้าร่วมประมูล" },
     { match: /missing_seller_id/i, thai: "ไม่พบข้อมูลผู้ขาย" },
 ];
 

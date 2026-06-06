@@ -20,7 +20,8 @@ import InputNumber from "@/app/components/inputs/InputNumber";
 import UseSelect from "@/app/components/inputs/UseSelect";
 import UseTextArea from "@/app/components/inputs/UseTextArea";
 import { getParentCategories } from "@/app/services/categories.service";
-import { getProductById } from "@/app/services/admin/products.service";
+import { getProductById, getListingFeePayment } from "@/app/services/admin/products.service";
+import dayjs from "dayjs";
 import UseTooltip from "@/app/components/utils/UseTooltip";
 import UseModal from "@/app/components/utils/UseModal";
 import { handleLocalPreview, removeDeletedFiles } from "@/app/utils/storageHelper";
@@ -45,6 +46,7 @@ function Form({ id, mode, onSubmit }) {
     const originalFilesRef = useRef({ images: [], video: [] });
     const [modalRejected, setModalRejected] = useState(false);
     const [categoryList, setCategoryList] = useState([]);
+    const [feePayment, setFeePayment] = useState(null);
     const watchState = useWatch({ control, name: "state" });
 
     useEffect(() => {
@@ -90,6 +92,8 @@ function Form({ id, mode, onSubmit }) {
             video: formatData.video_url || [],
         };
         reset(formatData);
+        const { data: fee } = await getListingFeePayment(id);
+        setFeePayment(fee || null);
     };
 
     const submitForm = async (data, state) => {
@@ -175,6 +179,55 @@ function Form({ id, mode, onSubmit }) {
                 <UseSwitch {...inputProps} name="status" label="สถานะการใช้งาน" />
                 {watchState === "rejected" && (
                     <UseTextArea {...inputProps} name="rejectedRemark" label="เหตุผลที่ไม่อนุมัติ" />
+                )}
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-sm font-semibold text-slate-700 mb-2">ค่าธรรมเนียมลงขาย (5%)</p>
+                {feePayment ? (
+                    <div className="grid sm:grid-cols-2 gap-2 text-sm">
+                        <div>
+                            <span className="text-slate-400">จำนวนเงิน:</span>{" "}
+                            <span className="font-semibold text-slate-800">
+                                ฿{Number(feePayment.amount).toLocaleString()}
+                            </span>
+                        </div>
+                        <div>
+                            <span className="text-slate-400">ช่องทาง:</span>{" "}
+                            <span className="font-semibold text-slate-800">
+                                {feePayment.payment_method?.toUpperCase() || "-"}
+                            </span>
+                        </div>
+                        <div>
+                            <span className="text-slate-400">สถานะ:</span>{" "}
+                            <span
+                                className={`font-semibold ${
+                                    feePayment.payment_status === "success"
+                                        ? "text-green-600"
+                                        : feePayment.payment_status === "pending"
+                                          ? "text-orange-500"
+                                          : "text-red-500"
+                                }`}
+                            >
+                                {{ success: "ชำระแล้ว", pending: "รอชำระ", failed: "ล้มเหลว" }[
+                                    feePayment.payment_status
+                                ] || feePayment.payment_status}
+                            </span>
+                        </div>
+                        <div>
+                            <span className="text-slate-400">วันที่ชำระ:</span>{" "}
+                            <span className="font-semibold text-slate-800">
+                                {feePayment.paid_at ? dayjs(feePayment.paid_at).format("DD/MM/YYYY HH:mm") : "-"}
+                            </span>
+                        </div>
+                        {feePayment.transaction_ref && (
+                            <div className="sm:col-span-2 break-all">
+                                <span className="text-slate-400">อ้างอิง:</span>{" "}
+                                <span className="font-mono text-xs text-slate-600">{feePayment.transaction_ref}</span>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <p className="text-sm text-slate-400">ยังไม่มีการชำระค่าธรรมเนียม</p>
                 )}
             </div>
             {!isWatch && (

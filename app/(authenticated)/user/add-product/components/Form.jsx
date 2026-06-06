@@ -20,38 +20,16 @@ import { handleLocalPreview } from "@/app/utils/storageHelper";
 import { useWatch } from "react-hook-form";
 import PromptPayQR from "@/app/components/payment/PromptPayQR";
 import WalletListingBtn from "@/app/components/payment/WalletListingBtn";
-import UseCheckbox from "@/app/components/inputs/UseCheckbox";
+import ProductEvaluation from "./ProductEvaluation";
 import UseButton from "@/app/components/inputs/UseButton";
-import { useEffect, useState } from "react";
-import { getListingFeePayment } from "@/app/services/payment.service";
 
-function Form({ activeStep, control, categoryList, setValue }) {
+function Form({ activeStep, control, categoryList, setValue, isKyc = "unknown", feePayment = null, refreshFeePayment }) {
     const watchState = useWatch({ control, name: "state" });
     const watchCategoryId = useWatch({ control, name: "categoryId" });
     const watchStartPrice = useWatch({ control, name: "startPrice" });
     const watchProductId = useWatch({ control, name: "productId" });
     const evaluationGroups = categoryList.find((c) => c.id === watchCategoryId)?.evaluation || [];
-    const watchEvaluation = useWatch({ control, name: "evaluation" }) || {};
-    const totalScore = evaluationGroups.reduce((sum, group, hIdx) => {
-        const row = watchEvaluation[hIdx] || {};
-        const selected = group.subEvaluations.find((_, sIdx) => row[sIdx] === true);
-        return sum + (selected?.score || 0);
-    }, 0);
     const listingFee = Math.max(1, Math.round((Number(watchStartPrice) || 0) * 0.05));
-    const [feePayment, setFeePayment] = useState(null);
-
-    const refreshFeePayment = async () => {
-        if (!watchProductId) {
-            setFeePayment(null);
-            return;
-        }
-        const { data } = await getListingFeePayment(watchProductId);
-        setFeePayment(data || null);
-    };
-
-    useEffect(() => {
-        refreshFeePayment();
-    }, [watchProductId]);
 
     const feeStatus = feePayment?.payment_status ?? null;
     const isFeePaid = feeStatus === "success";
@@ -180,46 +158,11 @@ function Form({ activeStep, control, categoryList, setValue }) {
                                     size="large"
                                 />
                             </div>
-                            {evaluationGroups.length > 0 && (
-                                // ทำให้ save ได้ และเมื่อกลับมาแก้ไขต้อง ติ๊กอันเดิม
-                                <div className="flex flex-col gap-3 mb-6">
-                                    {evaluationGroups.map((group, headingIdx) => (
-                                        <div
-                                            key={headingIdx}
-                                            className="rounded-lg border border-slate-100 bg-slate-50 p-3"
-                                        >
-                                            <p className="font-semibold text-slate-700 mb-2">{group.heading}</p>
-                                            <div className="flex flex-col gap-2 pl-3 w-fit">
-                                                {group.subEvaluations.map((sub, subIdx) => (
-                                                    <UseCheckbox
-                                                        key={subIdx}
-                                                        control={control}
-                                                        name={`evaluation.${headingIdx}.${subIdx}`}
-                                                        label={sub.label}
-                                                        onChange={(checked) => {
-                                                            if (checked) {
-                                                                group.subEvaluations.forEach((_, idx) => {
-                                                                    if (idx !== subIdx)
-                                                                        setValue(
-                                                                            `evaluation.${headingIdx}.${idx}`,
-                                                                            false,
-                                                                        );
-                                                                });
-                                                            }
-                                                        }}
-                                                    />
-                                                ))}
-                                            </div>
-                                        </div>
-                                    ))}
-                                    <div className="flex items-center justify-end px-1">
-                                        <span className="text-xs text-slate-400">คะแนนรวม</span>
-                                        <span className="text-sm font-semibold text-orange-500 ml-2">
-                                            {totalScore} คะแนน
-                                        </span>
-                                    </div>
-                                </div>
-                            )}
+                            <ProductEvaluation
+                                control={control}
+                                setValue={setValue}
+                                evaluationGroups={evaluationGroups}
+                            />
                             <UseTextArea
                                 control={control}
                                 name="description"
@@ -243,9 +186,13 @@ function Form({ activeStep, control, categoryList, setValue }) {
                             ค่าธรรมเนียมการลงขาย 5% ของราคาเริ่มต้น = ฿{listingFee.toLocaleString()}
                         </p>
                     </div>
-                    {!watchProductId ? (
+                    {isKyc !== "approved" ? (
                         <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm text-orange-700">
-                            กรุณาส่งเอกสารยืนยัน KYC ก่อนจึงจะสามารถสร้างรายการสินค้าได้
+                            กรุณายืนยันตัวตน (KYC) และรอ admin อนุมัติก่อน จึงจะชำระค่าธรรมเนียมลงขายได้
+                        </div>
+                    ) : !watchProductId ? (
+                        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm text-orange-700">
+                            กรุณาบันทึกและส่งตรวจสอบสินค้าก่อน จึงจะชำระค่าธรรมเนียมได้
                         </div>
                     ) : isFeePaid ? (
                         <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">

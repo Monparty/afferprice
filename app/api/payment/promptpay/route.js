@@ -67,6 +67,14 @@ export async function POST(req) {
                 .single();
             if (!product) return NextResponse.json({ error: "product_not_found" }, { status: 404 });
             if (product.seller_id !== user.id) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+            const { data: sellerProfile } = await supabaseAdmin
+                .from("profiles")
+                .select("is_kyc")
+                .eq("id", user.id)
+                .single();
+            if (sellerProfile?.is_kyc !== "approved") {
+                return NextResponse.json({ error: "seller_kyc_not_approved" }, { status: 403 });
+            }
             const { data: existing } = await supabaseAdmin
                 .from("payments")
                 .select("id")

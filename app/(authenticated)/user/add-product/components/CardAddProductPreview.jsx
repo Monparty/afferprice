@@ -38,7 +38,15 @@ const KYC_BANNER = {
     },
 };
 
-function CardAddProductPreview({ control, watch, activeStep, setActiveStep, onSubmit, isKyc = "unknown" }) {
+function CardAddProductPreview({
+    control,
+    watch,
+    activeStep,
+    setActiveStep,
+    onSubmit,
+    isKyc = "unknown",
+    isFeePaid = false,
+}) {
     const [kycModalOpen, setKycModalOpen] = useState(false);
     // ใช้ที่ "/user/add-product"
     const image = useWatch({
@@ -120,13 +128,26 @@ function CardAddProductPreview({ control, watch, activeStep, setActiveStep, onSu
                         )}
                     </div>
                 )}
+                {isFeePaid && (
+                    <div className="mx-5 mb-1 p-3 rounded-lg border bg-green-50 border-green-300">
+                        <div className="flex items-center gap-2 mb-1">
+                            <CheckCircleFilled className="text-green-600!" />
+                            <span className="text-sm font-semibold text-green-700">ชำระค่าธรรมเนียมแล้ว</span>
+                        </div>
+                        <p className="text-xs text-slate-600">
+                            รอ admin ตรวจสอบและอนุมัติสินค้า ไม่สามารถแก้ไขหรือบันทึกเพิ่มได้
+                        </p>
+                    </div>
+                )}
                 <div className="p-5 flex flex-col gap-3 bg-slate-50">
                     <UseButton
                         label={
                             activeStep === 3
-                                ? isKyc === "pending"
-                                    ? "รอ admin ตรวจสอบ KYC"
-                                    : "การบันทึกและส่งตรวจสอบสินค้า"
+                                ? isFeePaid
+                                    ? "รอ admin ตรวจสอบ"
+                                    : isKyc === "pending"
+                                      ? "รอ admin ตรวจสอบ KYC"
+                                      : "การบันทึกและส่งตรวจสอบสินค้า"
                                 : "ดำเนินการต่อ"
                         }
                         icon={ArrowRightOutlined}
@@ -134,13 +155,18 @@ function CardAddProductPreview({ control, watch, activeStep, setActiveStep, onSu
                         wFull
                         className="h-12!"
                         onClick={() => {
-                            if (activeStep === 3 && (isKyc === "unknown" || isKyc === "rejected")) {
-                                setKycModalOpen(true);
+                            if (activeStep === 3) {
+                                if (isFeePaid) return;
+                                if (isKyc === "approved") {
+                                    onSubmit("pending_review");
+                                } else if (isKyc === "unknown" || isKyc === "rejected") {
+                                    setKycModalOpen(true);
+                                }
+                                return;
                             }
-                            if (activeStep === 3) return;
                             setActiveStep(activeStep + 1);
                         }}
-                        disabled={activeStep === 3 && isKyc === "pending"}
+                        disabled={activeStep === 3 && (isKyc === "pending" || isFeePaid)}
                     />
                     {activeStep !== 0 && (
                         <UseButton
@@ -161,6 +187,7 @@ function CardAddProductPreview({ control, watch, activeStep, setActiveStep, onSu
                         wFull
                         className="h-12!"
                         onClick={() => onSubmit("draft")}
+                        disabled={isFeePaid}
                     />
                     <p className="text-[11px] text-center text-slate-400 px-4 leading-relaxed">
                         ในการดำเนินการต่อ คุณยอมรับนโยบายผู้ขายและโครงสร้างค่าธรรมเนียมของเรา
@@ -205,7 +232,7 @@ function CardAddProductPreview({ control, watch, activeStep, setActiveStep, onSu
                     kycMode
                     setIsOpenModalProfile={setKycModalOpen}
                     onKycSubmitted={() => setKycModalOpen(false)}
-                    onSubmitSaveProduct={() => onSubmit("pending_review")}
+                    onSubmitSaveProduct={() => onSubmit(isKyc === "approved" ? "pending_review" : "draft")}
                 />
             </UseModal>
         </div>
