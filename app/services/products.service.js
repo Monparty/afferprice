@@ -80,6 +80,49 @@ export async function getWonProductCountByUser() {
         .eq("winner_id", user.id);
 }
 
+// ปิดประมูลที่หมดเวลาแล้วแต่ state ยังค้างที่ 'active'
+// (auction end ถูก trigger ฝั่ง client เท่านั้น — ถ้าไม่มีใครเปิดหน้า product detail สถานะจะค้าง)
+// เรียกตอนโหลดหน้า /user/selling เพื่อ reconcile สถานะของสินค้าตัวเอง + สินค้าที่ user เคย bid
+export async function endExpiredActiveAuctions() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { ended: 0 };
+    const nowIso = new Date().toISOString();
+
+    const { data: ownExpired } = await supabase
+        .from("products")
+        .select("id")
+        .eq("seller_id", user.id)
+        .eq("state", "active")
+        .lt("auction_end_time", nowIso);
+
+    const { data: bidRows } = await supabase.from("bids").select("product_id").eq("user_id", user.id);
+    const bidIds = [...new Set((bidRows ?? []).map((b) => b.product_id))];
+    let bidExpired = [];
+    if (bidIds.length) {
+        const { data } = await supabase
+            .from("products")
+            .select("id")
+            .in("id", bidIds)
+            .eq("state", "active")
+            .lt("auction_end_time", nowIso);
+        bidExpired = data ?? [];
+    }
+
+    const ids = [...new Set([...(ownExpired ?? []), ...bidExpired].map((p) => p.id))];
+    if (!ids.length) return { ended: 0 };
+
+    await Promise.all(
+        ids.map((id) =>
+            fetch("/api/auction/end", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ productId: id }),
+            }).catch(() => {})
+        )
+    );
+    return { ended: ids.length };
+}
+
 export async function updateProductPrice(id, price) {
     return supabase.from("products").update({ start_price: price }).eq("id", id);
 }

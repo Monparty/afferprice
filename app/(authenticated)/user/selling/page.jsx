@@ -11,6 +11,7 @@ import {
     getWonProductCountByUser,
     getActiveProductsBidByUser,
     getLostBidProductsByUser,
+    endExpiredActiveAuctions,
 } from "@/app/services/products.service";
 import { AppstoreOutlined, BarsOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
@@ -24,6 +25,7 @@ function Page() {
     const [products, setProducts] = useState([]);
     const [countState, setCountState] = useState({});
     const [loading, setLoading] = useState(true);
+    const [refreshKey, setRefreshKey] = useState(0);
 
     const stateConfig = [
         { key: "draft", label: "บันทึกร่าง" },
@@ -36,6 +38,13 @@ function Page() {
         { key: "cancelled", label: "ไม่สำเร็จ" },
     ];
     const sellerStateKeys = stateConfig.filter((s) => s.key !== "won").map((s) => s.key);
+
+    // ปิดประมูลที่หมดเวลาแต่ค้างที่ active ก่อน แล้วค่อย refresh ถ้ามีการเปลี่ยนสถานะ
+    useEffect(() => {
+        endExpiredActiveAuctions().then(({ ended }) => {
+            if (ended > 0) setRefreshKey((k) => k + 1);
+        });
+    }, []);
 
     useEffect(() => {
         const onGetProducts = async () => {
@@ -68,7 +77,7 @@ function Page() {
             }
         };
         onGetProducts();
-    }, [activeTab]);
+    }, [activeTab, refreshKey]);
 
     useEffect(() => {
         const onGetCounts = async () => {
@@ -87,7 +96,7 @@ function Page() {
             setLoading(false);
         };
         onGetCounts();
-    }, []);
+    }, [refreshKey]);
 
     const renderProducts = () => {
         if (!products || products.length === 0) return <UseEmpty />;

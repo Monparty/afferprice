@@ -111,6 +111,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
      - มีผู้ชนะ → `'sold'`
      - ไม่มี bid → `'cancelled'`
 - **`auction_end_time`** ถูก set โดย admin ตอน approve เท่านั้น (ไม่ set ตอน draft save)
+- **⚠️ Trigger เป็น client-side อย่างเดียว** → ถ้าหมดเวลาแต่ไม่มีใครเปิดหน้า product detail สถานะจะค้างที่ `active`. **Reconciliation**: `endExpiredActiveAuctions()` ใน `products.service.js` หาสินค้า `state='active'` ที่ `auction_end_time < now()` (สินค้าตัวเอง + สินค้าที่ user เคย bid) แล้วยิง `/api/auction/end` ให้ครบ — เรียกตอน mount หน้า `/user/selling`; ถ้า `ended > 0` bump `refreshKey` re-fetch list + counts (ยังไม่มี server-side cron — ค้างได้ถ้าไม่มีใครเปิดหน้า selling/detail เลย)
 
 ### Favorites
 
@@ -223,6 +224,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
 
 ### Selling Page (`/user/selling`)
 
+- **Auto-reconcile สถานะค้าง**: on mount เรียก `endExpiredActiveAuctions()` ปิดประมูลที่หมดเวลาแต่ค้างที่ `active` (ดู [Auction End Flow](#auction-end-flow)); ถ้ามีการเปลี่ยนสถานะ bump `refreshKey` → effect fetch products + counts re-run (ทั้ง 2 effect depend on `refreshKey`)
 - `getProductsByState(state)` join `auction_results(id, payment_status, winner_id)` + `bids(id, bid_price, user_id)` (user_id ใช้คำนวณจำนวนผู้ประมูล distinct)
 - Tab พิเศษ:
   - `won` (สินค้าที่ฉันชนะ) → `getWonProductsByUser()` query จาก `auction_results` ด้วย `winner_id`
