@@ -54,8 +54,8 @@ export default function AuctionPage() {
                             กำลังประมูล (Live)
                         </span>
                     </div>
-                    <h1 className="text-3xl font-bold text-slate-900">กำลังจะจบเร็วๆ นี้</h1>
-                    <p className="text-slate-500 mt-1">รีบเสนอราคาเลย! รายการเหล่านี้กำลังจะปิดการประมูลในไม่ช้า</p>
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white">กำลังจะจบเร็วๆ นี้</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1">รีบเสนอราคาเลย! รายการเหล่านี้กำลังจะปิดการประมูลในไม่ช้า</p>
                 </div>
                 <div className="flex gap-3 overflow-x-auto pb-2 md:pb-0">
                     <UseButton label="จบเร็วที่สุด" size="large" />

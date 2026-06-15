@@ -47,8 +47,8 @@ function UseSelectCard({ control, name, label, options, type = "radio", dot = fa
                                     htmlFor={id}
                                     className={`flex justify-center h-28 w-full p-5 border rounded-lg cursor-pointer ${
                                         isChecked
-                                            ? "border-2 border-orange-600 bg-orange-50 text-gray-800"
-                                            : "border-orange-100 border-2 bg-white text-gray-500"
+                                            ? "border-2 border-orange-600 bg-orange-50 dark:bg-orange-950/40 text-gray-800 dark:text-orange-200"
+                                            : "border-orange-100 dark:border-zinc-700 border-2 bg-white dark:bg-zinc-800 text-gray-500 dark:text-slate-400"
                                     }`}
                                 >
                                     <input

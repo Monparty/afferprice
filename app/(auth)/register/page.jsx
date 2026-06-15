@@ -54,7 +54,7 @@ function Page() {
             </h2>
             <form
                 onSubmit={handleSubmit(onSubmit)}
-                className="bg-white dark::bg-zinc-900 rounded-xl shadow-xl p-6 border border-gray-100 dark::border-gray-800 grid gap-4"
+                className="bg-white dark:bg-zinc-900 rounded-xl shadow-xl p-6 border border-gray-100 dark:border-zinc-800 grid gap-4"
             >
                 <InputText control={control} name="email" label="อีเมล" size="large" />
                 <div className="flex gap-4 items-start">
@@ -115,9 +115,9 @@ function Page() {
                 )}
                 <div className="space-y-4">
                     <div className="flex items-center gap-3 text-gray-400 text-xs">
-                        <div className="flex-1 border-b border-gray-200"></div>
+                        <div className="flex-1 border-b border-gray-200 dark:border-zinc-700"></div>
                         หรือ
-                        <div className="flex-1 border-b border-gray-200"></div>
+                        <div className="flex-1 border-b border-gray-200 dark:border-zinc-700"></div>
                     </div>
                     {!showOtherField && <LoginWithGoogleBtn />}
                 </div>

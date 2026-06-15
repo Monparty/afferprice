@@ -33,7 +33,7 @@ function UseImageGroup({ imageGroup, alone = false, aloneWidth = "100%", aloneHe
                             height={image?.height}
                             src={image.src}
                             alt={image.alt}
-                            className="rounded-lg border border-slate-200 object-cover!"
+                            className="rounded-lg border border-slate-200 dark:border-zinc-700 object-cover!"
                             classNames={{
                                 cover: "rounded-lg",
                             }}

@@ -56,11 +56,11 @@ function PromptPayQR({ amount, purpose = "topup", productId, auctionResultId, la
                         {qrData?.qrCodeUrl && (
                             <div className="flex w-full flex-col items-center gap-3">
                                 <div className="w-full flex flex-col items-center">
-                                    <div className="flex justify-between w-1/2 items-center py-3 border-b border-slate-200">
+                                    <div className="flex justify-between w-1/2 items-center py-3 border-b border-slate-200 dark:border-zinc-700">
                                         <p>ยอดชำระเงินทั้งหมด</p>
                                         <p className="font-semibold text-orange-600">฿{amount}</p>
                                     </div>
-                                    <div className="flex justify-between w-1/2 items-center py-3 border-b border-slate-200">
+                                    <div className="flex justify-between w-1/2 items-center py-3 border-b border-slate-200 dark:border-zinc-700">
                                         <p>กรุณาชำระภายใน</p>
                                         <p className="font-semibold text-orange-600">
                                             {new Date(qrData.expiresAt).toLocaleString("th-TH")}

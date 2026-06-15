@@ -17,6 +17,9 @@ const errorMap = [
     { match: /seller_kyc_not_approved/i, thai: "ไม่สามารถอนุมัติได้ เนื่องจาก KYC ของผู้ขายยังไม่ผ่านการตรวจสอบ" },
     { match: /bidder_kyc_not_approved/i, thai: "กรุณายืนยันตัวตน (KYC) ให้ผ่านการตรวจสอบก่อนเข้าร่วมประมูล" },
     { match: /missing_seller_id/i, thai: "ไม่พบข้อมูลผู้ขาย" },
+    { match: /missing_(documents|kyc_fields)/i, thai: "กรุณากรอกข้อมูลและอัปโหลดเอกสารยืนยันตัวตนให้ครบถ้วน" },
+    { match: /invalid_kyc_state/i, thai: "ไม่สามารถส่งยืนยันตัวตนซ้ำได้ในสถานะปัจจุบัน" },
+    { match: /profiles_national_id_check/i, thai: "เลขประจำตัวประชาชนต้องเป็นตัวเลข 13 หลัก" },
 ];
 
 export function translateSupabaseError(message) {

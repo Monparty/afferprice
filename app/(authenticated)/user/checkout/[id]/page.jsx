@@ -111,7 +111,7 @@ function Page() {
         const productImage = product?.images_url?.[0]?.url;
         return (
             <main className="max-w-lg mx-auto flex flex-col gap-6">
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <div className="bg-white dark:bg-zinc-900 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-zinc-800">
                     <div className="flex items-center gap-4 mb-6">
                         <Image
                             src={productImage || "https://picsum.photos/80/80"}
@@ -132,21 +132,21 @@ function Page() {
                     </div>
                     <div className="grid gap-4">
                         <div className="flex flex-col gap-1">
-                            <label className="text-sm font-semibold text-slate-700">บริษัทขนส่ง</label>
+                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">บริษัทขนส่ง</label>
                             <input
                                 value={shippingCompany}
                                 onChange={(e) => setShippingCompany(e.target.value)}
                                 placeholder="เช่น Kerry Express, Flash Express, ไปรษณีย์ไทย"
-                                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                                className="border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
                             />
                         </div>
                         <div className="flex flex-col gap-1">
-                            <label className="text-sm font-semibold text-slate-700">หมายเลขพัสดุ</label>
+                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">หมายเลขพัสดุ</label>
                             <input
                                 value={trackingNumber}
                                 onChange={(e) => setTrackingNumber(e.target.value)}
                                 placeholder="เช่น TH1234567890K"
-                                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                                className="border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
                             />
                         </div>
                         <UseButton
@@ -166,14 +166,14 @@ function Page() {
     return (
         <main className="flex flex-col lg:flex-row gap-6">
             <div className="flex-1 space-y-6">
-                <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <section className="bg-white dark:bg-zinc-900 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-zinc-800">
                     <div className="flex items-center gap-2 mb-6">
                         <span className="flex items-center bg-orange-600 justify-center w-8 h-8 rounded-full text-white text-sm font-bold">
                             1
                         </span>
                         <h2 className="text-xl font-bold">สรุปรายการสินค้าที่ชนะ</h2>
                     </div>
-                    <div className="flex flex-col md:flex-row gap-6 p-4 border border-gray-100 rounded-xl bg-gray-50">
+                    <div className="flex flex-col md:flex-row gap-6 p-4 border border-gray-100 dark:border-zinc-800 rounded-xl bg-gray-50 dark:bg-zinc-800/50">
                         <Image
                             src={productImage || "https://picsum.photos/192/128"}
                             unoptimized
@@ -185,15 +185,15 @@ function Page() {
                         />
                         <div className="flex-1 flex flex-col justify-between">
                             <div>
-                                <h3 className="text-lg font-bold text-black mb-1">
+                                <h3 className="text-lg font-bold text-black dark:text-white mb-1">
                                     {product?.title || "กำลังโหลด..."}
                                 </h3>
-                                <p className="text-sm text-gray-500">รหัสการประมูล: #{id?.slice(0, 8).toUpperCase()}</p>
+                                <p className="text-sm text-gray-500 dark:text-slate-400">รหัสการประมูล: #{id?.slice(0, 8).toUpperCase()}</p>
                             </div>
                             <div className="mt-4 md:mt-0">
                                 <UseTag label="ราคาชนะประมูล" color="orange" />
                                 <div className="mt-1">
-                                    <span className="text-2xl font-bold text-black">
+                                    <span className="text-2xl font-bold text-black dark:text-white">
                                         {result ? formatPrice(finalPrice) : "—"}
                                     </span>
                                 </div>
@@ -202,7 +202,7 @@ function Page() {
                     </div>
                 </section>
 
-                <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <section className="bg-white dark:bg-zinc-900 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-zinc-800">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-2">
                             <span className="flex items-center bg-orange-600 justify-center w-8 h-8 rounded-full text-white text-sm font-bold">
@@ -227,7 +227,7 @@ function Page() {
                                 <div
                                     key={addr.id}
                                     onClick={() => setSelectedAddressId(addr.id)}
-                                    className={`rounded-xl cursor-pointer relative ${isSelected ? "border-2 border-orange-400 shadow-md" : "border-2 border-slate-50"}`}
+                                    className={`rounded-xl cursor-pointer relative ${isSelected ? "border-2 border-orange-400 shadow-md" : "border-2 border-slate-50 dark:border-zinc-700"}`}
                                 >
                                     <CardUserAddress address={addr} readonly />
                                     {isSelected && (
@@ -254,7 +254,7 @@ function Page() {
                     />
                 </UseModal>
 
-                <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <section className="bg-white dark:bg-zinc-900 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-zinc-800">
                     <div className="flex items-center gap-2 mb-6">
                         <span className="flex items-center justify-center bg-orange-600 w-8 h-8 rounded-full text-white text-sm font-bold">
                             3
@@ -268,13 +268,13 @@ function Page() {
                                 <div
                                     key={opt.value}
                                     onClick={() => setShipping(opt.value)}
-                                    className={`rounded-xl cursor-pointer relative p-4 flex items-center justify-between ${isSelected ? "border-2 border-orange-400 shadow-md" : "border-2 border-slate-50"}`}
+                                    className={`rounded-xl cursor-pointer relative p-4 flex items-center justify-between ${isSelected ? "border-2 border-orange-400 shadow-md" : "border-2 border-slate-50 dark:border-zinc-700"}`}
                                 >
                                     <div>
                                         <p className="font-bold">{opt.label}</p>
                                         <p className="text-xs text-gray-500">{opt.desc}</p>
                                     </div>
-                                    <span className="font-bold text-black mr-8">
+                                    <span className="font-bold text-black dark:text-white mr-8">
                                         {opt.fee === 0 ? "ฟรี" : `฿${opt.fee}`}
                                     </span>
                                     {isSelected && (
@@ -286,7 +286,7 @@ function Page() {
                     </div>
                 </section>
 
-                <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <section className="bg-white dark:bg-zinc-900 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-zinc-800">
                     <div className="flex items-center gap-2 mb-6">
                         <span className="flex items-center justify-center bg-orange-600 w-8 h-8 rounded-full text-white text-sm font-bold">
                             4
@@ -295,7 +295,7 @@ function Page() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {[
-                            { value: "promptpay", label: "Thai QR PromptPay", desc: "Instant Payment", icon: QrcodeOutlined, color: "text-black!" },
+                            { value: "promptpay", label: "Thai QR PromptPay", desc: "Instant Payment", icon: QrcodeOutlined, color: "text-black! dark:text-white!" },
                             { value: "linepay", label: "LINE Pay", desc: "Pay via LINE App", icon: MessageFilled, color: "text-green-500!" },
                             { value: "wallet", label: "Wallet", desc: "Account Balance", icon: WalletFilled, color: "text-orange-500!" },
                         ].map((opt) => {
@@ -305,7 +305,7 @@ function Page() {
                                 <div
                                     key={opt.value}
                                     onClick={() => setPaymentMethod(opt.value)}
-                                    className={`relative flex flex-col items-center justify-center p-6 border-2 rounded-xl cursor-pointer text-center transition-all ${isSelected ? "border-orange-500 bg-orange-50" : "border-gray-200 hover:border-orange-300"}`}
+                                    className={`relative flex flex-col items-center justify-center p-6 border-2 rounded-xl cursor-pointer text-center transition-all ${isSelected ? "border-orange-500 bg-orange-50 dark:bg-orange-950/40" : "border-gray-200 dark:border-zinc-700 hover:border-orange-300"}`}
                                 >
                                     {isSelected && (
                                         <CheckCircleFilled className="text-xl text-orange-500! absolute top-2 right-2" />
@@ -322,29 +322,29 @@ function Page() {
 
             <div className="w-full lg:w-95">
                 <div className="sticky top-12 space-y-6">
-                    <div className="bg-white rounded-xl p-6 shadow-lg border border-orange-300">
+                    <div className="bg-white dark:bg-zinc-900 rounded-xl p-6 shadow-lg border border-orange-300 dark:border-orange-500/40">
                         <h2 className="text-xl font-bold mb-6">สรุปยอดชำระเงิน</h2>
                         <div className="space-y-4 mb-6">
-                            <div className="flex justify-between text-gray-600">
+                            <div className="flex justify-between text-gray-600 dark:text-slate-300">
                                 <span>ราคาชนะประมูล</span>
-                                <span className="font-semibold text-black">{formatPrice(finalPrice)}</span>
+                                <span className="font-semibold text-black dark:text-white">{formatPrice(finalPrice)}</span>
                             </div>
-                            <div className="flex justify-between text-gray-600">
+                            <div className="flex justify-between text-gray-600 dark:text-slate-300">
                                 <span>ค่าธรรมเนียมการประมูล (5%)</span>
-                                <span className="font-semibold text-black">{formatPrice(auctionFee)}</span>
+                                <span className="font-semibold text-black dark:text-white">{formatPrice(auctionFee)}</span>
                             </div>
-                            <div className="flex justify-between text-gray-600">
+                            <div className="flex justify-between text-gray-600 dark:text-slate-300">
                                 <span>
                                     ค่าจัดส่ง ({SHIPPING_OPTIONS.find((o) => o.value === shipping)?.label.split(" ")[0]}
                                     )
                                 </span>
-                                <span className="font-semibold text-black">
+                                <span className="font-semibold text-black dark:text-white">
                                     {shippingFee === 0 ? "ฟรี" : formatPrice(shippingFee)}
                                 </span>
                             </div>
-                            <div className="pt-4 border-t border-gray-100 flex justify-between items-end">
+                            <div className="pt-4 border-t border-gray-100 dark:border-zinc-800 flex justify-between items-end">
                                 <div>
-                                    <p className="text-sm text-gray-500 uppercase font-bold tracking-wider">
+                                    <p className="text-sm text-gray-500 dark:text-slate-400 uppercase font-bold tracking-wider">
                                         ยอดรวมสุทธิ
                                     </p>
                                     <p className="text-xs text-gray-400 italic">(รวมภาษีมูลค่าเพิ่มแล้ว)</p>
@@ -369,11 +369,11 @@ function Page() {
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 flex gap-1 flex-col items-center text-center">
+                        <div className="bg-gray-50 dark:bg-zinc-800 p-4 rounded-lg border border-gray-200 dark:border-zinc-700 flex gap-1 flex-col items-center text-center">
                             <SafetyOutlined className="text-lg text-blue-500!" />
                             <p className="text-xs font-semibold">ความปลอดภัยสูงสุด</p>
                         </div>
-                        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 flex gap-1 flex-col items-center text-center">
+                        <div className="bg-gray-50 dark:bg-zinc-800 p-4 rounded-lg border border-gray-200 dark:border-zinc-700 flex gap-1 flex-col items-center text-center">
                             <CheckCircleFilled className="text-lg text-blue-500!" />
                             <p className="text-xs font-semibold">ผู้ขายผ่านการรับรอง</p>
                         </div>

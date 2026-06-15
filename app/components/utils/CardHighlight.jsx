@@ -12,7 +12,7 @@ function CardHighlight({ id, image, time, category, name, price, bidCount }) {
     const livePrice = useRealtimePrice(id, price);
 
     return (
-        <div className="group bg-white dark::bg-blue-500/20 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
+        <div className="group bg-white dark:bg-zinc-900 rounded-xl overflow-hidden shadow-sm dark:border dark:border-zinc-800 hover:shadow-xl transition-all duration-300">
             <div className="relative aspect-4/3 overflow-hidden">
                 <Image
                     src={image || "https://picsum.photos/200/300"}
@@ -22,9 +22,9 @@ function CardHighlight({ id, image, time, category, name, price, bidCount }) {
                     sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
-                <div className="absolute top-3 right-3 bg-white/90 dark::bgbg-blue-500/90 px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                <div className="absolute top-3 right-3 bg-white/90 dark:bg-zinc-800/90 px-3 py-1 rounded-full flex items-center gap-1 shadow-sm text-slate-700 dark:text-slate-200">
                     <FieldTimeOutlined />
-                    <span className="text-xs font-bold text-black dark::text-white">{time || "--:--:--"}</span>
+                    <span className="text-xs font-bold text-black dark:text-white">{time || "--:--:--"}</span>
                 </div>
                 <div className="absolute bottom-3 left-3 bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
                     <UseTag label="HOT DEAL" color="red" variant="solid" />
@@ -34,20 +34,20 @@ function CardHighlight({ id, image, time, category, name, price, bidCount }) {
                 <p className="text-xs text-primary font-bold mb-1 uppercase tracking-tight">
                     {category || "ไม่มีหมวดหมู่"}
                 </p>
-                <h3 className="font-bold text-black dark::text-slate-100 text-lg line-clamp-1 mb-3">
+                <h3 className="font-bold text-black dark:text-slate-100 text-lg line-clamp-1 mb-3">
                     {name || "ไม่มีชื่อสินค้า"}
                 </h3>
                 <div className="flex justify-between items-center">
                     <div>
-                        <p className="text-xs mb-1 text-black/40 dark::text-white/40 uppercase">ราคาปัจจุบัน</p>
+                        <p className="text-xs mb-1 text-black/40 dark:text-white/40 uppercase">ราคาปัจจุบัน</p>
                     </div>
                     <div className="text-right">
-                        <p className="text-xs mb-1 text-black/40 dark::text-white/40">{bidCount ?? 0} บิด</p>
+                        <p className="text-xs mb-1 text-black/40 dark:text-white/40">{bidCount ?? 0} บิด</p>
                     </div>
                 </div>
                 <div className="flex justify-between items-end">
                     <div>
-                        <p className="text-xl font-bold text-black dark::text-slate-100">
+                        <p className="text-xl font-bold text-black dark:text-slate-100">
                             ฿{livePrice?.toLocaleString() || 0}
                         </p>
                     </div>

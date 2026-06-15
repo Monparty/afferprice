@@ -33,12 +33,12 @@ function AddProductSteps({ activeStep }) {
     };
 
     return (
-        <div className="w-full bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <div className="w-full bg-white dark:bg-zinc-900 p-6 rounded-xl border border-slate-200 dark:border-zinc-800 shadow-sm">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-accent">ขั้นตอนที่ {step} จาก 4</span>
                     <span className="text-sm text-slate-400">•</span>
-                    <span className="text-sm font-medium text-slate-600">{title}</span>
+                    <span className="text-sm font-medium text-slate-600 dark:text-slate-300">{title}</span>
                 </div>
                 <span className="text-sm font-medium text-slate-400">สำเร็จแล้ว {percentage}%</span>
             </div>

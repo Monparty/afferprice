@@ -61,7 +61,7 @@ export default function ProductDetail() {
             <UseBreadcrumb items={UseBreadcrumbItems} />
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <div className="lg:col-span-8 space-y-6">
-                    <div className="aspect-4/3 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 relative group">
+                    <div className="aspect-4/3 rounded-xl overflow-hidden bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 relative group">
                         <div className="absolute top-4 left-4 z-10">
                             <span className="bg-accent-orange text-white text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-lg">
                                 <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span> กำลังประมูล
@@ -70,12 +70,12 @@ export default function ProductDetail() {
                         <UseImageGroup imageGroup={formatProductImage} alone />
                     </div>
                     <UseImageGroup imageGroup={formatProductImage} />
-                    <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm space-y-6">
+                    <div className="bg-white dark:bg-zinc-900 rounded-xl p-6 border border-slate-200 dark:border-zinc-700 shadow-sm space-y-6">
                         <div>
                             <h1 className="text-3xl font-extrabold mb-4 text-primary">{product?.title}</h1>
-                            <p className="text-slate-600 leading-relaxed">{product?.description}</p>
+                            <p className="text-slate-600 dark:text-slate-300 leading-relaxed">{product?.description}</p>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-6 border-y border-slate-100">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-6 border-y border-slate-100 dark:border-zinc-800">
                             <div className="space-y-1">
                                 <p className="text-xs text-slate-400 uppercase font-bold tracking-widest">ปีที่ผลิต</p>
                                 <p className="font-semibold text-lg">x2023</p>
@@ -95,7 +95,7 @@ export default function ProductDetail() {
                         </div>
                         <div className="space-y-4">
                             <h3 className="text-lg font-bold">ข้อมูลผู้ขาย</h3>
-                            <div className="flex items-center gap-4 p-4 rounded-lg bg-slate-50 border border-slate-100">
+                            <div className="flex items-center gap-4 p-4 rounded-lg bg-slate-50 dark:bg-zinc-800 border border-slate-100 dark:border-zinc-700">
                                 <div className="text-white bg-orange-600 h-9 w-9 flex items-center justify-center rounded-full">
                                     <SafetyOutlined className="text-2xl" />
                                 </div>
@@ -104,7 +104,7 @@ export default function ProductDetail() {
                                         <span className="font-bold">ChronoElite Traders</span>
                                         <UseTag label="Top Seller" color="blue" variant="outlined" />
                                     </div>
-                                    <p className="text-xs text-slate-500">
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
                                         สำเร็จการประมูล 4,821 ครั้ง • คะแนนบวก 99.8%
                                     </p>
                                 </div>
@@ -117,7 +117,7 @@ export default function ProductDetail() {
                     <div className="sticky top-12 space-y-6">
                         <CardProductBid product={product} onBidSuccess={() => fetchBids(id)} />
                         <BidHistory bids={bids} currentUserId={currentUserId} />
-                        <div className="bg-orange-50 rounded-2xl p-6 border border-l-4 border-orange-600">
+                        <div className="bg-orange-50 dark:bg-orange-950/30 rounded-2xl p-6 border border-l-4 border-orange-600">
                             <div className="flex items-start gap-3">
                                 <BarChartOutlined className="text-2xl text-orange-600!" />
                                 <div>

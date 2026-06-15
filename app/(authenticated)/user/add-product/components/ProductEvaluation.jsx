@@ -27,8 +27,8 @@ function ProductEvaluation({ control, setValue, evaluationGroups }) {
     return (
         <div className="flex flex-col gap-3 mb-6">
             {evaluationGroups.map((group, headingIdx) => (
-                <div key={headingIdx} className="rounded-lg border border-slate-100 bg-slate-50 p-3">
-                    <p className="font-semibold text-slate-700 mb-2">{group.heading}</p>
+                <div key={headingIdx} className="rounded-lg border border-slate-100 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-800 p-3">
+                    <p className="font-semibold text-slate-700 dark:text-slate-200 mb-2">{group.heading}</p>
                     <div className="flex flex-col gap-2 pl-3 w-fit">
                         {group.subEvaluations.map((sub, subIdx) => (
                             <UseCheckbox
@@ -48,12 +48,12 @@ function ProductEvaluation({ control, setValue, evaluationGroups }) {
                     </div>
                 </div>
             ))}
-            <div className="rounded-lg bg-orange-50 border border-orange-100 p-3">
+            <div className="rounded-lg bg-orange-50 dark:bg-orange-950/30 border border-orange-100 dark:border-orange-900 p-3">
                 <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium text-slate-600">คะแนนคุณภาพสินค้า</span>
+                    <span className="text-sm font-medium text-slate-600 dark:text-slate-300">คะแนนคุณภาพสินค้า</span>
                     <span className="text-sm font-bold text-orange-500">{qualityScore} / 100</span>
                 </div>
-                <div className="h-2 w-full rounded-full bg-orange-100 overflow-hidden">
+                <div className="h-2 w-full rounded-full bg-orange-100 dark:bg-orange-900/40 overflow-hidden">
                     <div
                         className="h-full rounded-full bg-orange-500 transition-all"
                         style={{ width: `${qualityScore}%` }}

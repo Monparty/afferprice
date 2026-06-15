@@ -48,6 +48,7 @@ function Form({ id, mode, onSubmit }) {
     const [categoryList, setCategoryList] = useState([]);
     const [feePayment, setFeePayment] = useState(null);
     const watchState = useWatch({ control, name: "state" });
+    const isFeePaid = feePayment?.payment_status === "success";
 
     useEffect(() => {
         const onGetParentCategories = async () => {
@@ -269,13 +270,14 @@ function Form({ id, mode, onSubmit }) {
                         </UseTooltip>
                     )}
                     {watchState === "pending_review" && (
-                        <UseTooltip title="อนุมัติ">
+                        <UseTooltip title={isFeePaid ? "อนุมัติ" : "ผู้ขายยังไม่ชำระค่าธรรมเนียม"}>
                             <UseButton
                                 shape="circle"
                                 icon={CheckCircleFilled}
-                                className="bg-green-500! text-white!"
+                                className="bg-green-500! text-white! disabled:bg-slate-300! disabled:text-white!"
                                 size="large"
                                 type="default"
+                                disabled={!isFeePaid}
                                 onClick={async () => {
                                     await submitForm(getValues(), "active");
                                     onGetProductById();

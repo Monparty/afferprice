@@ -145,10 +145,10 @@ function Page() {
         <>
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
                 <div className="flex flex-col gap-1">
-                    <h1 className="text-3xl font-bold leading-tight tracking-tight text-slate-900">
+                    <h1 className="text-3xl font-bold leading-tight tracking-tight text-slate-900 dark:text-white">
                         รายการสินค้าของฉัน
                     </h1>
-                    <p className="text-slate-500 text-base font-normal">
+                    <p className="text-slate-500 dark:text-slate-400 text-base font-normal">
                         จัดการและติดตามสถานะการประมูลสินค้าทั้งหมดของคุณ
                     </p>
                 </div>

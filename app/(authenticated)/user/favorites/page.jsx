@@ -33,8 +33,8 @@ function Page() {
         <>
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
                 <div className="flex flex-col gap-1">
-                    <h1 className="text-3xl font-bold leading-tight tracking-tight text-slate-900">สิ่งที่ฉันถูกใจ</h1>
-                    <p className="text-slate-500 text-base font-normal">
+                    <h1 className="text-3xl font-bold leading-tight tracking-tight text-slate-900 dark:text-white">สิ่งที่ฉันถูกใจ</h1>
+                    <p className="text-slate-500 dark:text-slate-400 text-base font-normal">
                         {loading ? "กำลังโหลด..." : `คุณมีสินค้าที่ถูกใจทั้งหมด ${products.length} รายการ`}
                     </p>
                 </div>

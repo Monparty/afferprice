@@ -35,7 +35,7 @@ function DetailSearchBox({ onSearch }) {
     };
 
     return (
-        <nav className="w-full grid gap-4 p-4 rounded-lg bg-white border shadow-lg border-slate-200">
+        <nav className="w-full grid gap-4 p-4 rounded-lg bg-white dark:bg-zinc-900 border shadow-lg border-slate-200 dark:border-zinc-700">
             <UseSelect
                 control={control}
                 options={[
@@ -48,7 +48,7 @@ function DetailSearchBox({ onSearch }) {
                 placeholder="เรียงโดย"
             />
             <div>
-                <h3 className="font-medium text-black mb-4 flex items-center gap-2">
+                <h3 className="font-medium text-black dark:text-slate-100 mb-4 flex items-center gap-2">
                     <div className="bg-orange-600 rounded-full h-5 w-5 flex items-center justify-center">
                         <ProductOutlined className="text-white! text-xs" />
                     </div>
@@ -61,7 +61,7 @@ function DetailSearchBox({ onSearch }) {
                 </div>
             </div>
             <div>
-                <h3 className="font-medium text-black mb-4 flex items-center gap-2">
+                <h3 className="font-medium text-black dark:text-slate-100 mb-4 flex items-center gap-2">
                     <div className="bg-orange-600 rounded-full h-5 w-5 flex items-center justify-center">
                         <SwapOutlined className="text-white! text-xs" />
                     </div>
@@ -69,12 +69,12 @@ function DetailSearchBox({ onSearch }) {
                 </h3>
                 <div className="flex justify-between items-center gap-2">
                     <InputNumber control={control} name="price1" placeholder="ราคาต่ำสุด" min={0} />
-                    <span className="text-black/40">-</span>
+                    <span className="text-black/40 dark:text-white/40">-</span>
                     <InputNumber control={control} name="price2" placeholder="ราคาสูงสุด" min={0} />
                 </div>
             </div>
             <div>
-                <h3 className="font-medium text-black mb-4 flex items-center gap-2">
+                <h3 className="font-medium text-black dark:text-slate-100 mb-4 flex items-center gap-2">
                     <div className="bg-orange-600 rounded-full h-5 w-5 flex items-center justify-center">
                         <CheckCircleOutlined className="text-white! text-xs" />
                     </div>
@@ -93,7 +93,7 @@ function DetailSearchBox({ onSearch }) {
                 </div>
             </div>
             <div>
-                <h3 className="font-medium text-black mb-4 flex items-center gap-2">
+                <h3 className="font-medium text-black dark:text-slate-100 mb-4 flex items-center gap-2">
                     <div className="bg-orange-600 rounded-full h-5 w-5 flex items-center justify-center">
                         <ClockCircleOutlined className="text-white! text-xs" />
                     </div>

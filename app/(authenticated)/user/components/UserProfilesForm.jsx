@@ -190,12 +190,12 @@ function UserProfilesForm({ setIsOpenModalProfile, kycMode = false, onKycSubmitt
                 <UseTag label={tag.label} color={tag.color} />
             </div>
             {kycStatus === "rejected" && kycRemark && (
-                <div className="bg-red-50 p-4 rounded-xl border border-red-300 border-l-4">
-                    <p className="text-sm font-semibold text-red-700 flex items-center gap-2 mb-1">
+                <div className="bg-red-50 dark:bg-red-950/40 p-4 rounded-xl border border-red-300 dark:border-red-900 border-l-4">
+                    <p className="text-sm font-semibold text-red-700 dark:text-red-400 flex items-center gap-2 mb-1">
                         <ExclamationCircleFilled />
                         เหตุผลที่ไม่ผ่านการตรวจสอบ
                     </p>
-                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{kycRemark}</p>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{kycRemark}</p>
                 </div>
             )}
 
@@ -241,7 +241,7 @@ function UserProfilesForm({ setIsOpenModalProfile, kycMode = false, onKycSubmitt
             )}
 
             {kycMode && (
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-slate-600 dark:text-slate-300">
                     กรุณาอัปโหลดรูปโปรไฟล์และสำเนาบัตรประชาชนเพื่อยืนยันตัวตนก่อนลงขายสินค้า
                 </p>
             )}

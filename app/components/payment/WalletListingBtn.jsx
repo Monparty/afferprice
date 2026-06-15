@@ -68,19 +68,19 @@ function WalletListingBtn({ productId, amount, onSuccess }) {
 
     if (paid) {
         return (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
-                <p className="text-green-700 font-semibold">ชำระค่าธรรมเนียมสำเร็จ</p>
+            <div className="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-900 rounded-xl p-4 text-center">
+                <p className="text-green-700 dark:text-green-400 font-semibold">ชำระค่าธรรมเนียมสำเร็จ</p>
             </div>
         );
     }
 
     return (
-        <div className="bg-white border border-slate-200 rounded-xl p-4">
+        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl p-4">
             <div className="flex items-center gap-3 mb-3">
                 <WalletFilled className="text-2xl! text-orange-500!" />
                 <div>
                     <p className="font-semibold">ชำระด้วย Wallet</p>
-                    <p className="text-xs text-slate-500">ยอดคงเหลือ ฿{balance.toLocaleString()}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">ยอดคงเหลือ ฿{balance.toLocaleString()}</p>
                 </div>
             </div>
             {insufficient && (

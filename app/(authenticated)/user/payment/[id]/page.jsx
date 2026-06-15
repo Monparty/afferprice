@@ -103,16 +103,16 @@ function Page() {
         <main className="grid place-items-center">
             <div className="w-fit space-y-6 text-center">
                 <div className="grid place-items-center space-y-4">
-                    <div className="flex items-center justify-center w-16 h-16 bg-green-100 rounded-full">
+                    <div className="flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full">
                         <CheckCircleFilled className="text-2xl! text-green-600!" />
                     </div>
-                    <p className="text-gray-500">ขอบคุณสำหรับการประมูล รายการของคุณกำลังดำเนินการ</p>
+                    <p className="text-gray-500 dark:text-slate-400">ขอบคุณสำหรับการประมูล รายการของคุณกำลังดำเนินการ</p>
                 </div>
 
                 {method === "promptpay" && (
-                    <div className="bg-white rounded-xl shadow-xl p-6 border border-gray-100">
+                    <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-xl p-6 border border-gray-100 dark:border-zinc-800">
                         <div className="flex flex-col items-center gap-4">
-                            <p className="text-sm font-medium text-gray-600">สแกนคิวอาร์โค้ดเพื่อชำระเงิน</p>
+                            <p className="text-sm font-medium text-gray-600 dark:text-slate-300">สแกนคิวอาร์โค้ดเพื่อชำระเงิน</p>
                             <div className="bg-white p-4 rounded-lg border-2 border-gray-100 shadow-inner">
                                 <div className="aspect-square w-48 bg-gray-50 flex items-center justify-center relative overflow-hidden">
                                     {qrData?.qrCodeUrl ? (
@@ -138,9 +138,9 @@ function Page() {
                 )}
 
                 {method === "linepay" && (
-                    <div className="bg-white rounded-xl shadow-xl p-6 border border-gray-100">
+                    <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-xl p-6 border border-gray-100 dark:border-zinc-800">
                         <div className="flex flex-col items-center gap-4">
-                            <div className="flex items-center justify-center w-20 h-20 bg-green-50 rounded-2xl">
+                            <div className="flex items-center justify-center w-20 h-20 bg-green-50 dark:bg-green-950/40 rounded-2xl">
                                 <MessageFilled className="text-4xl! text-green-500!" />
                             </div>
                             <div className="text-center space-y-1">
@@ -164,16 +164,16 @@ function Page() {
                 )}
 
                 {method === "wallet" && (
-                    <div className="bg-white rounded-xl shadow-xl p-6 border border-gray-100">
+                    <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-xl p-6 border border-gray-100 dark:border-zinc-800">
                         <div className="flex flex-col items-center gap-4">
-                            <div className="flex items-center justify-center w-20 h-20 bg-orange-50 rounded-2xl">
+                            <div className="flex items-center justify-center w-20 h-20 bg-orange-50 dark:bg-orange-950/40 rounded-2xl">
                                 <WalletFilled className="text-4xl! text-orange-500!" />
                             </div>
                             <div className="text-center space-y-1">
                                 <p className="text-lg font-bold">ชำระด้วย Wallet</p>
                                 <p className="text-xs text-gray-400">ตัดเงินจากยอดคงเหลือในบัญชี</p>
                             </div>
-                            <div className="w-full bg-gray-50 rounded-lg p-4 space-y-2">
+                            <div className="w-full bg-gray-50 dark:bg-zinc-800 rounded-lg p-4 space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span className="text-gray-500">ยอดคงเหลือ</span>
                                     <span className="font-semibold">{formatPrice(walletBalance)}</span>
@@ -198,39 +198,39 @@ function Page() {
                     </div>
                 )}
 
-                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 text-left">
-                    <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-zinc-800 text-left">
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-slate-100 mb-4 flex items-center gap-2">
                         <FileDoneOutlined className="text-xl! text-orange-600!" />
                         รายละเอียดการสั่งซื้อ
                     </h2>
                     <div className="space-y-3">
                         <div className="flex justify-between items-start gap-4">
                             <span className="text-gray-500 text-sm">ชื่อสินค้า</span>
-                            <span className="text-gray-900 text-sm font-semibold text-right">
+                            <span className="text-gray-900 dark:text-slate-100 text-sm font-semibold text-right">
                                 {product?.title || "—"}
                             </span>
                         </div>
                         <div className="flex justify-between items-center gap-4">
                             <span className="text-gray-500 text-sm">รหัสรายการ</span>
-                            <span className="text-gray-900 text-sm font-mono uppercase">
+                            <span className="text-gray-900 dark:text-slate-100 text-sm font-mono uppercase">
                                 {id ? `AR-${id.slice(0, 8).toUpperCase()}` : "—"}
                             </span>
                         </div>
                         <div className="flex justify-between items-center gap-4">
                             <span className="text-gray-500 text-sm">ช่องทางชำระเงิน</span>
-                            <span className="text-gray-900 text-sm font-semibold uppercase">{method}</span>
+                            <span className="text-gray-900 dark:text-slate-100 text-sm font-semibold uppercase">{method}</span>
                         </div>
                         <div className="flex justify-between items-center gap-4">
                             <span className="text-gray-500 text-sm">ราคาชนะประมูล</span>
-                            <span className="text-gray-900 text-sm font-semibold">{formatPrice(finalPrice)}</span>
+                            <span className="text-gray-900 dark:text-slate-100 text-sm font-semibold">{formatPrice(finalPrice)}</span>
                         </div>
                         <div className="flex justify-between items-center gap-4">
                             <span className="text-gray-500 text-sm">ค่าธรรมเนียม (5%)</span>
-                            <span className="text-gray-900 text-sm font-semibold">{formatPrice(fee)}</span>
+                            <span className="text-gray-900 dark:text-slate-100 text-sm font-semibold">{formatPrice(fee)}</span>
                         </div>
-                        <div className="pt-3 border-t border-gray-100 flex justify-between items-center gap-4">
-                            <span className="text-gray-900 font-bold">ยอดชำระสุทธิ</span>
-                            <span className="text-gray-900 font-bold text-lg">{formatPrice(total)}</span>
+                        <div className="pt-3 border-t border-gray-100 dark:border-zinc-800 flex justify-between items-center gap-4">
+                            <span className="text-gray-900 dark:text-slate-100 font-bold">ยอดชำระสุทธิ</span>
+                            <span className="text-gray-900 dark:text-slate-100 font-bold text-lg">{formatPrice(total)}</span>
                         </div>
                     </div>
                 </div>

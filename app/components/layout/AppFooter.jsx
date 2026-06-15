@@ -10,7 +10,7 @@ function AppFooter() {
     const { control } = useForm();
 
     return (
-        <footer className="mt-20 border-t border-slate-200 py-12 bg-slate-900 text-slate-400">
+        <footer className="mt-20 border-t border-slate-200 dark:border-zinc-800 py-12 bg-slate-900 dark:bg-zinc-950 text-slate-400">
             <div className="w-full max-w-360 mx-auto px-4 md:px-10">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
                     <div className="col-span-1 space-y-4">

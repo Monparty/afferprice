@@ -1553,6 +1553,47 @@ function LocalStyles() {
                 opacity: 0.35;
                 animation: ap-rotate 30s linear infinite;
             }
+
+            /* ---------- dark mode (scoped to .ap-root) ----------
+               Override the design's hardcoded light palette. Attribute
+               selectors match the arbitrary-value utility tokens and win
+               on specificity (.dark .ap-root […] = 0-3-0 > utility 0-1-0). */
+            .dark .ap-root {
+                color: #e4e4e7;
+            }
+            .dark .ap-root [class~="text-[#161412]"] {
+                color: #f4f4f5;
+            }
+            .dark .ap-root [class~="text-[#4A4641]"] {
+                color: #d4d4d8;
+            }
+            .dark .ap-root [class~="bg-white"] {
+                background-color: #18181b;
+            }
+            .dark .ap-root [class~="bg-white/95"] {
+                background-color: rgba(24, 24, 27, 0.9);
+            }
+            .dark .ap-root [class~="bg-[#F4F3EE]"] {
+                background-color: #27272a;
+            }
+            .dark .ap-root [class~="border-[#E8E5DE]"] {
+                border-color: #27272a;
+            }
+            .dark .ap-root [class~="hover:bg-[#F4F3EE]"]:hover {
+                background-color: #27272a;
+            }
+            .dark .ap-root .ap-card:hover {
+                border-color: #3f3f46;
+                box-shadow: 0 12px 32px -16px rgba(0, 0, 0, 0.55);
+            }
+            .dark .ap-root .ap-review:hover:not(.featured) {
+                border-color: #3f3f46;
+            }
+            .dark .ap-root .ap-trust-visual {
+                background:
+                    radial-gradient(ellipse at 30% 30%, rgba(255, 107, 26, 0.18), transparent 60%),
+                    linear-gradient(135deg, #1f1b17 0%, #15120e 100%);
+            }
         `}</style>
     );
 }

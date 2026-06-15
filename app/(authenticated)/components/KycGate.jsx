@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/app/lib/supabase/client";
 import { getProfileById } from "@/app/services/profile.service";
 import UseModal from "@/app/components/utils/UseModal";
-import UserProfilesForm from "../user/components/UserProfilesForm";
+import KycVerificationForm from "../user/components/KycVerificationForm";
 
 function KycGate() {
     const [open, setOpen] = useState(false);
@@ -23,8 +23,7 @@ function KycGate() {
 
     return (
         <UseModal open={open} onCancel={() => setOpen(false)} title="ยืนยันตัวตน (KYC)" isShowCancel={false}>
-            <UserProfilesForm
-                kycMode
+            <KycVerificationForm
                 setIsOpenModalProfile={setOpen}
                 onKycSubmitted={() => setOpen(false)}
                 onSubmitSaveProduct={() => {}}

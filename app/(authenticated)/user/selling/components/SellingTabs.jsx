@@ -12,7 +12,7 @@ function SellingTabs({ tabItems, setActiveTab, loading }) {
     }
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-slate-200 dark:border-zinc-800 overflow-hidden">
             <div className="px-6 pb-6 overflow-x-auto">
                 <UseTabs items={tabItems} size="large" onChange={(key) => setActiveTab(key)} />
             </div>

@@ -17,7 +17,7 @@ import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider
 const PRESET_AMOUNTS = [100, 500, 1000, 5000];
 
 const METHODS = [
-    { value: "promptpay", label: "PromptPay", icon: QrcodeOutlined, color: "text-black!" },
+    { value: "promptpay", label: "PromptPay", icon: QrcodeOutlined, color: "text-black! dark:text-white!" },
     { value: "linepay", label: "LINE Pay", icon: MessageFilled, color: "text-green-500!" },
     { value: "credit_card", label: "บัตรเครดิต", icon: CreditCardFilled, color: "text-blue-500!" },
 ];
@@ -110,7 +110,7 @@ function TopupModal({ open, onClose, userId }) {
                 </div>
             ) : linepayPending ? (
                 <div className="flex flex-col items-center gap-3 py-2">
-                    <div className="flex items-center justify-center w-20 h-20 bg-green-50 rounded-2xl">
+                    <div className="flex items-center justify-center w-20 h-20 bg-green-50 dark:bg-green-950/40 rounded-2xl">
                         <MessageFilled className="text-4xl! text-green-500!" />
                     </div>
                     <p className="text-2xl font-bold text-green-600">{formatPrice(amount)}</p>
@@ -136,8 +136,8 @@ function TopupModal({ open, onClose, userId }) {
                                     onClick={() => setAmount(p)}
                                     className={`py-2 rounded-lg border-2 text-sm font-semibold transition-colors ${
                                         amount === p
-                                            ? "border-orange-500 bg-orange-50 text-orange-600"
-                                            : "border-gray-200 hover:border-orange-300"
+                                            ? "border-orange-500 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400"
+                                            : "border-gray-200 dark:border-zinc-700 hover:border-orange-300"
                                     }`}
                                 >
                                     ฿{p.toLocaleString()}
@@ -150,7 +150,7 @@ function TopupModal({ open, onClose, userId }) {
                             onChange={(e) => setAmount(Number(e.target.value))}
                             min={1}
                             placeholder="ระบุจำนวนเอง"
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                            className="w-full border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
                         />
                     </div>
 
@@ -166,8 +166,8 @@ function TopupModal({ open, onClose, userId }) {
                                         onClick={() => setMethod(m.value)}
                                         className={`flex flex-col items-center justify-center gap-2 py-4 rounded-lg border-2 transition-colors ${
                                             selected
-                                                ? "border-orange-500 bg-orange-50"
-                                                : "border-gray-200 hover:border-orange-300"
+                                                ? "border-orange-500 bg-orange-50 dark:bg-orange-950/40"
+                                                : "border-gray-200 dark:border-zinc-700 hover:border-orange-300"
                                         }`}
                                     >
                                         <Icon className={`text-2xl! ${m.color}`} />
@@ -196,11 +196,11 @@ function TransactionRow({ tx }) {
     const isCredit = tx.amount > 0;
     const labelMap = { topup: "เติมเงิน", payment: "ชำระค่าประมูล", refund: "คืนเงิน" };
     return (
-        <div className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+        <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-zinc-800 last:border-0">
             <div className="flex flex-col gap-1">
-                <span className="text-sm font-semibold text-gray-900">{labelMap[tx.type] || tx.type}</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-slate-100">{labelMap[tx.type] || tx.type}</span>
                 <span className="text-xs text-gray-400">{formatDate(tx.created_at)}</span>
-                {tx.note && <span className="text-xs text-gray-500">{tx.note}</span>}
+                {tx.note && <span className="text-xs text-gray-500 dark:text-slate-400">{tx.note}</span>}
             </div>
             <div className="text-right">
                 <div className={`text-base font-bold ${isCredit ? "text-green-600" : "text-red-500"}`}>
@@ -245,7 +245,7 @@ function Page() {
 
     return (
         <main className="max-w-3xl mx-auto flex flex-col gap-6">
-            <div className="rounded-2xl p-6 bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg">
+            <div className="rounded-2xl p-6 bg-linear-to-br from-orange-500 to-orange-600 text-white shadow-lg">
                 <div className="flex justify-between items-start mb-6">
                     <div>
                         <p className="text-xs uppercase tracking-wider opacity-80">ยอดเงินคงเหลือ</p>
@@ -256,12 +256,14 @@ function Page() {
                 <UseButton
                     label="เติมเงิน"
                     icon={PlusOutlined}
-                    className="bg-white! text-orange-600! border-0! font-bold! h-11!"
+                    className="text-orange-600!"
+                    type="default"
+                    size="large"
                     onClick={() => setModalOpen(true)}
                 />
             </div>
 
-            <div className="rounded-xl bg-white border border-gray-100 shadow-sm p-6">
+            <div className="rounded-xl bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 shadow-sm p-6">
                 <h2 className="text-lg font-bold mb-2">ประวัติการทำรายการ</h2>
                 {loadingTx ? (
                     <div className="grid gap-3">

@@ -62,6 +62,21 @@ export const birthMonthList = [
     { label: "ธันวาคม ", value: "12" },
 ];
 
+export const bankList = [
+    { label: "ธนาคารกสิกรไทย", value: "KBANK" },
+    { label: "ธนาคารกรุงเทพ", value: "BBL" },
+    { label: "ธนาคารกรุงไทย", value: "KTB" },
+    { label: "ธนาคารไทยพาณิชย์", value: "SCB" },
+    { label: "ธนาคารกรุงศรีอยุธยา", value: "BAY" },
+    { label: "ธนาคารทหารไทยธนชาต (ttb)", value: "TTB" },
+    { label: "ธนาคารออมสิน", value: "GSB" },
+    { label: "ธนาคารเพื่อการเกษตรฯ (ธ.ก.ส.)", value: "BAAC" },
+    { label: "ธนาคารซีไอเอ็มบี ไทย", value: "CIMB" },
+    { label: "ธนาคารยูโอบี", value: "UOB" },
+    { label: "ธนาคารเกียรตินาคินภัทร", value: "KKP" },
+    { label: "ธนาคารแลนด์ แอนด์ เฮ้าส์", value: "LHB" },
+];
+
 export const birthYearList = (startYear = new Date().getFullYear(), endYear = 1966) => {
     const years = [];
 

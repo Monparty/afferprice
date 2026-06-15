@@ -19,30 +19,30 @@ function BidRow({ bid, index, currentUserId }) {
     const isLeader = index === 0;
     return (
         <div
-            className={`flex items-center justify-between py-2 border-b border-slate-100 ${
-                isMe ? "bg-blue-50 -mx-2 px-2 rounded-md border-blue-100" : ""
+            className={`flex items-center justify-between py-2 border-b border-slate-100 dark:border-zinc-800 ${
+                isMe ? "bg-blue-50 dark:bg-blue-950/40 -mx-2 px-2 rounded-md border-blue-100 dark:border-blue-900" : ""
             }`}
         >
             <div className="flex items-center gap-3">
                 <div
                     className={`size-8 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                        isMe ? "bg-blue-500 text-white" : "bg-slate-100 text-slate-600"
+                        isMe ? "bg-blue-500 text-white" : "bg-slate-100 dark:bg-zinc-700 text-slate-600 dark:text-slate-300"
                     }`}
                 >
                     {initials}
                 </div>
                 <div>
                     <div className="flex items-center gap-1">
-                        <p className={`text-sm font-bold ${isMe ? "text-blue-600" : ""}`}>{maskedId}</p>
+                        <p className={`text-sm font-bold ${isMe ? "text-blue-600 dark:text-blue-400" : ""}`}>{maskedId}</p>
                     </div>
                     <p className="text-[10px] text-slate-400 uppercase">{formatTimeAgo(bid.bid_time)}</p>
                 </div>
             </div>
             <div className="text-right">
-                <p className={`text-sm font-extrabold ${isLeader ? "text-emerald-600" : "text-slate-400"}`}>
+                <p className={`text-sm font-extrabold ${isLeader ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"}`}>
                     ฿{Number(bid.bid_price).toLocaleString("th-TH")}
                 </p>
-                <p className={`text-[10px] font-medium ${isLeader ? "text-emerald-600" : "text-slate-400"}`}>
+                <p className={`text-[10px] font-medium ${isLeader ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"}`}>
                     {isLeader ? "ผู้นำประมูล" : "ถูกประมูลแซง"}
                 </p>
             </div>
@@ -54,7 +54,7 @@ export default function BidHistory({ bids, currentUserId }) {
     const [open, setOpen] = useState(false);
 
     return (
-        <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-zinc-900 rounded-xl p-6 border border-slate-200 dark:border-zinc-700 shadow-sm space-y-4">
             <div className="flex justify-between items-center">
                 <h3 className="font-bold flex items-center gap-2">
                     <span className="w-2 h-2 bg-emerald-500 rounded-full"></span> ประวัติการประมูล

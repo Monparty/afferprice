@@ -9,7 +9,7 @@ function UseDrawer({ onClose, open, loading = false, onRead }) {
             title={
                 <div className="flex items-center gap-3">
                     <h2 className="text-xl font-bold text-primary tracking-tight">การแจ้งเตือนกิจกรรม</h2>
-                    <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-bold uppercase tracking-wider border border-green-100">
+                    <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 dark:bg-green-950/40 text-green-600 dark:text-green-400 text-[10px] font-bold uppercase tracking-wider border border-green-100 dark:border-green-900">
                         <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
                         เรียลไทม์
                     </span>
@@ -26,7 +26,7 @@ function UseDrawer({ onClose, open, loading = false, onRead }) {
             }}
             size={500}
             footer={
-                <div className="bg-white flex justify-center">
+                <div className="flex justify-center">
                     <UseButton label="ดูประวัติกิจกรรมทั้งหมด" icon={ArrowRightOutlined} type="default" iconPlacement />
                 </div>
             }

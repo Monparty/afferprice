@@ -16,10 +16,20 @@ const KYC_TAG = {
     unknown: { color: "default", label: "ยังไม่ยืนยัน" },
 };
 
+function Detail({ label, value, full }) {
+    return (
+        <div className={full ? "sm:col-span-2" : ""}>
+            <p className="text-xs text-slate-500">{label}</p>
+            <p className="text-sm text-slate-800 whitespace-pre-wrap">{value || "-"}</p>
+        </div>
+    );
+}
+
 function KycReviewModal({ open, userId, onClose, onSuccess }) {
     const [loading, setLoading] = useState(false);
     const [user, setUser] = useState(null);
     const [idCardUrl, setIdCardUrl] = useState(null);
+    const [selfieUrl, setSelfieUrl] = useState(null);
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [remark, setRemark] = useState("");
     const [submitting, setSubmitting] = useState(false);
@@ -28,6 +38,7 @@ function KycReviewModal({ open, userId, onClose, onSuccess }) {
         if (!open) {
             setUser(null);
             setIdCardUrl(null);
+            setSelfieUrl(null);
             setShowRejectModal(false);
             setRemark("");
             setSubmitting(false);
@@ -38,6 +49,7 @@ function KycReviewModal({ open, userId, onClose, onSuccess }) {
         setLoading(true);
         setUser(null);
         setIdCardUrl(null);
+        setSelfieUrl(null);
         (async () => {
             const { data, error } = await getUserById(userId);
             if (error) {
@@ -49,6 +61,10 @@ function KycReviewModal({ open, userId, onClose, onSuccess }) {
             if (data?.id_card_image) {
                 const { data: signed } = await getIdCardSignedUrlAdmin(data.id_card_image, 300);
                 if (signed?.signedUrl) setIdCardUrl(signed.signedUrl);
+            }
+            if (data?.selfie_image) {
+                const { data: signed } = await getIdCardSignedUrlAdmin(data.selfie_image, 300);
+                if (signed?.signedUrl) setSelfieUrl(signed.signedUrl);
             }
             setLoading(false);
         })();
@@ -108,14 +124,22 @@ function KycReviewModal({ open, userId, onClose, onSuccess }) {
                                 <p className="text-sm text-slate-700 whitespace-pre-wrap">{user.kyc_remark}</p>
                             </div>
                         )}
+                        <div className="grid sm:grid-cols-2 gap-x-4 gap-y-2 bg-slate-50 rounded-lg p-3">
+                            <Detail label="เลขประจำตัวประชาชน" value={user.national_id} />
+                            <Detail label="เบอร์โทรศัพท์" value={user.phone} />
+                            <Detail label="ที่อยู่ปัจจุบัน" value={user.address} full />
+                            <Detail label="ธนาคาร" value={user.bank_name} />
+                            <Detail label="เลขที่บัญชี" value={user.bank_account_no} />
+                            <Detail label="ชื่อบัญชี" value={user.bank_account_name} full />
+                        </div>
                         <div className="grid md:grid-cols-2 gap-4 items-start">
                             <div className="grid gap-2">
-                                <p className="text-sm font-semibold">รูปโปรไฟล์</p>
-                                {user.profile_image ? (
-                                    <a href={user.profile_image} target="_blank" rel="noreferrer">
+                                <p className="text-sm font-semibold">ภาพถ่ายหน้าบัตรประชาชน</p>
+                                {idCardUrl ? (
+                                    <a href={idCardUrl} target="_blank" rel="noreferrer">
                                         <img
-                                            src={user.profile_image}
-                                            alt="profile"
+                                            src={idCardUrl}
+                                            alt="id card"
                                             className="w-full max-h-64 object-contain rounded-lg border border-slate-200"
                                         />
                                     </a>
@@ -124,12 +148,12 @@ function KycReviewModal({ open, userId, onClose, onSuccess }) {
                                 )}
                             </div>
                             <div className="grid gap-2">
-                                <p className="text-sm font-semibold">สำเนาบัตรประชาชน</p>
-                                {idCardUrl ? (
-                                    <a href={idCardUrl} target="_blank" rel="noreferrer">
+                                <p className="text-sm font-semibold">ภาพเซลฟี่คู่กับบัตรประชาชน</p>
+                                {selfieUrl ? (
+                                    <a href={selfieUrl} target="_blank" rel="noreferrer">
                                         <img
-                                            src={idCardUrl}
-                                            alt="id card"
+                                            src={selfieUrl}
+                                            alt="selfie"
                                             className="w-full max-h-64 object-contain rounded-lg border border-slate-200"
                                         />
                                     </a>

@@ -39,8 +39,8 @@ function Form({ activeStep, control, categoryList, setValue, isKyc = "unknown", 
     return (
         <form className="flex flex-col gap-6">
             {watchState === "rejected" && (
-                <div className="bg-red-50 p-6 rounded-xl border border-red-400 border-l-4">
-                    <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2 mb-6">
+                <div className="bg-red-50 dark:bg-red-950/40 p-6 rounded-xl border border-red-400 border-l-4">
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-6">
                         <ExclamationCircleFilled className="text-orange-600!" />
                         สินค้าของคุณไม่ผ่านการอนุมัติเนื่องจาก
                     </h2>
@@ -50,13 +50,13 @@ function Form({ activeStep, control, categoryList, setValue, isKyc = "unknown", 
             {activeStep !== 3 && (
                 <>
                     <Activity mode={activeStep === 0 ? "visible" : "hidden"}>
-                        <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                        <section className="bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 p-6 shadow-sm">
                             <div className="mb-6">
-                                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                     <CameraFilled className="text-orange-600!" />
                                     อัปโหลดรูปภาพ
                                 </h2>
-                                <p className="text-slate-500 text-sm mt-1">
+                                <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
                                     รูปภาพคุณภาพสูงจะช่วยเพิ่มโอกาสในการขายได้ถึง 40%
                                 </p>
                             </div>
@@ -72,13 +72,13 @@ function Form({ activeStep, control, categoryList, setValue, isKyc = "unknown", 
                                 }
                             />
                         </section>
-                        <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                        <section className="bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 p-6 shadow-sm">
                             <div className="mb-6">
-                                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                     <VideoCameraFilled className="text-orange-600!" />
                                     อัปโหลด Video
                                 </h2>
-                                <p className="text-slate-500 text-sm mt-1">
+                                <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
                                     วิดีโอตัวอย่างสินค้าจริง จะเพิ่มความมั่นใจก่อนกดสั่งซื้อ
                                 </p>
                             </div>
@@ -97,13 +97,13 @@ function Form({ activeStep, control, categoryList, setValue, isKyc = "unknown", 
                         </section>
                     </Activity>
                     <Activity mode={activeStep === 1 ? "visible" : "hidden"}>
-                        <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                        <section className="bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 p-6 shadow-sm">
                             <div className="mb-6">
-                                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                     <EditFilled className="text-orange-600!" />
                                     ตั้งค่าการประมูล
                                 </h2>
-                                <p className="text-slate-500 text-sm mt-1">ระบุรายละเอียดเบื้องต้นของสินค้า</p>
+                                <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">ระบุรายละเอียดเบื้องต้นของสินค้า</p>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                 <InputText control={control} name="title" label="ชื่อสินค้า" size="large" />
@@ -128,13 +128,13 @@ function Form({ activeStep, control, categoryList, setValue, isKyc = "unknown", 
                                 ]}
                             />
                         </section>
-                        <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                        <section className="bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 p-6 shadow-sm">
                             <div className="mb-6">
-                                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                     <FileTextFilled className="text-orange-600!" />
                                     รายละเอียดสินค้า
                                 </h2>
-                                <p className="text-slate-500 text-sm mt-1">ระบุข้อมูลให้ครบถ้วนเพื่อดึงดูดผู้ประมูล</p>
+                                <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">ระบุข้อมูลให้ครบถ้วนเพื่อดึงดูดผู้ประมูล</p>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                 <UseSelect
@@ -176,30 +176,30 @@ function Form({ activeStep, control, categoryList, setValue, isKyc = "unknown", 
             )}
 
             <Activity mode={activeStep === 3 ? "visible" : "hidden"}>
-                <section className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                <section className="bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 p-6 shadow-sm">
                     <div className="mb-6">
-                        <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                             <CreditCardFilled className="text-orange-600!" />
                             ชำระค่าธรรมเนียม
                         </h2>
-                        <p className="text-slate-500 text-sm mt-1">
+                        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
                             ค่าธรรมเนียมการลงขาย 5% ของราคาเริ่มต้น = ฿{listingFee.toLocaleString()}
                         </p>
                     </div>
                     {isKyc !== "approved" ? (
-                        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm text-orange-700">
+                        <div className="bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-900 rounded-xl p-4 text-sm text-orange-700 dark:text-orange-300">
                             กรุณายืนยันตัวตน (KYC) และรอ admin อนุมัติก่อน จึงจะชำระค่าธรรมเนียมลงขายได้
                         </div>
                     ) : !watchProductId ? (
-                        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm text-orange-700">
+                        <div className="bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-900 rounded-xl p-4 text-sm text-orange-700 dark:text-orange-300">
                             กรุณาบันทึกและส่งตรวจสอบสินค้าก่อน จึงจะชำระค่าธรรมเนียมได้
                         </div>
                     ) : isFeePaid ? (
-                        <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
+                        <div className="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-900 rounded-xl p-4 flex items-center gap-3">
                             <CheckCircleFilled className="text-2xl! text-green-600!" />
                             <div>
-                                <p className="font-semibold text-green-700">ชำระค่าธรรมเนียมเรียบร้อยแล้ว</p>
-                                <p className="text-xs text-slate-600">
+                                <p className="font-semibold text-green-700 dark:text-green-400">ชำระค่าธรรมเนียมเรียบร้อยแล้ว</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-400">
                                     ฿{Number(feePayment.amount).toLocaleString()} •{" "}
                                     {feePayment.payment_method?.toUpperCase()}
                                 </p>
@@ -207,7 +207,7 @@ function Form({ activeStep, control, categoryList, setValue, isKyc = "unknown", 
                         </div>
                     ) : isFeePending ? (
                         <div className="grid gap-3">
-                            <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm text-orange-700">
+                            <div className="bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-900 rounded-xl p-4 text-sm text-orange-700 dark:text-orange-300">
                                 กำลังตรวจสอบการชำระเงิน หากชำระแล้วโปรดรอสักครู่หรือกดรีเฟรช
                             </div>
                             <UseButton label="รีเฟรชสถานะ" type="default" onClick={refreshFeePayment} />

@@ -38,15 +38,15 @@ function Page() {
             </h2>
             <form
                 onSubmit={handleSubmit(onSubmit)}
-                className="bg-white dark::bg-zinc-900 rounded-xl shadow-xl p-6 border border-gray-100 dark::border-gray-800 grid gap-4"
+                className="bg-white dark:bg-zinc-900 rounded-xl shadow-xl p-6 border border-gray-100 dark:border-zinc-800 grid gap-4"
             >
                 <InputText control={control} name="email" label="อีเมล" size="large" />
                 <UseInputPassword control={control} name="password" label="รหัสผ่าน" size="large" />
                 <UseButton label="เข้าสู่ระบบ" size="large" wFull htmlType="submit" disabled={!isValid} />
                 <div className="flex items-center gap-3 text-gray-400 text-xs">
-                    <div className="flex-1 border-b border-gray-200"></div>
+                    <div className="flex-1 border-b border-gray-200 dark:border-zinc-700"></div>
                     หรือ
-                    <div className="flex-1 border-b border-gray-200"></div>
+                    <div className="flex-1 border-b border-gray-200 dark:border-zinc-700"></div>
                 </div>
                 <LoginWithGoogleBtn />
                 <UseButton

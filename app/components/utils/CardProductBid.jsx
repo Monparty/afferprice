@@ -20,7 +20,7 @@ import { updateProductPrice } from "@/app/services/products.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import { fetchUser } from "@/app/features/user/userSlice";
 import UseModal from "./UseModal";
-import UserProfilesForm from "@/app/(authenticated)/user/components/UserProfilesForm";
+import KycVerificationForm from "@/app/(authenticated)/user/components/KycVerificationForm";
 
 function padTwo(n) {
     return String(n).padStart(2, "0");
@@ -145,13 +145,13 @@ function CardProductBid({ product, onBidSuccess }) {
     const needKyc = !!userData?.id && !isSeller && userData.is_kyc !== "approved";
 
     return (
-        <div className="bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
-            <div className="p-6 bg-slate-900 text-white">
+        <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-slate-200 dark:border-zinc-700 overflow-hidden">
+            <div className="p-6 bg-slate-900 dark:bg-zinc-950 text-white">
                 <div className="flex justify-between items-center mb-4">
                     <span className="text-slate-400 text-sm font-medium">เวลาที่เหลือ:</span>
                     <div className="flex items-center gap-2 text-orange-600">
                         <ClockCircleFilled />
-                        <span className="text-sm font-bold uppercase tracking-wider">
+                        <span className="text-sm font-bold tracking-wider">
                             {ended ? "ปิดแล้ว" : "กำลังประมูล"}
                         </span>
                     </div>
@@ -159,20 +159,20 @@ function CardProductBid({ product, onBidSuccess }) {
                 <div className="flex justify-between text-center gap-4">
                     <div className="flex-1 bg-white/10 rounded-lg py-2">
                         <span className="block text-2xl font-bold text-orange-600">{padTwo(timeLeft.hours)}</span>
-                        <span className="text-[10px] text-slate-400 uppercase">ชั่วโมง</span>
+                        <span className="text-[10px] text-slate-400">ชั่วโมง</span>
                     </div>
                     <div className="flex-1 bg-white/10 rounded-lg py-2">
                         <span className="block text-2xl font-bold text-orange-600">{padTwo(timeLeft.minutes)}</span>
-                        <span className="text-[10px] text-slate-400 uppercase">นาที</span>
+                        <span className="text-[10px] text-slate-400">นาที</span>
                     </div>
                     <div className="flex-1 bg-white/10 rounded-lg py-2">
                         <span className="block text-2xl font-bold text-orange-600">{padTwo(timeLeft.seconds)}</span>
-                        <span className="text-[10px] text-slate-400 uppercase">วินาที</span>
+                        <span className="text-[10px] text-slate-400">วินาที</span>
                     </div>
                 </div>
                 {timeLeft.days > 0 && (
                     <div className="flex justify-center">
-                        <div className="text-center text-lg mt-4 text-orange-600 bg-white/10 py-1 px-6 w-fit rounded-lg">
+                        <div className="text-center font-bold mt-4 text-orange-600 bg-white/10 py-1 px-6 w-fit rounded-lg">
                             จะหมดเวลาในอีก {timeLeft.days} วัน
                         </div>
                     </div>
@@ -180,7 +180,7 @@ function CardProductBid({ product, onBidSuccess }) {
             </div>
             <div className="p-6 space-y-6">
                 <div>
-                    <p className="text-slate-500 text-sm font-medium mb-1">ราคาปัจจุบัน</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">ราคาปัจจุบัน</p>
                     <div className="flex items-baseline gap-2">
                         <h2 className="text-4xl font-extrabold text-primary">{formatPrice(currentPrice)}</h2>
                         <span className="text-emerald-600 text-sm font-bold flex items-center">
@@ -195,7 +195,7 @@ function CardProductBid({ product, onBidSuccess }) {
                                 key={i}
                                 type="default"
                                 label={`+${formatPrice(step)}`}
-                                className="font-bold! bg-gray-100!"
+                                className="font-bold! bg-gray-100! dark:bg-zinc-700!"
                                 wFull
                                 onClick={() => onQuickBid(step)}
                                 disabled={ended}
@@ -255,8 +255,7 @@ function CardProductBid({ product, onBidSuccess }) {
                 title="ยืนยันตัวตน (KYC)"
                 isShowCancel={false}
             >
-                <UserProfilesForm
-                    kycMode
+                <KycVerificationForm
                     setIsOpenModalProfile={setKycModalOpen}
                     onKycSubmitted={() => setKycModalOpen(false)}
                     onSubmitSaveProduct={() => {}}

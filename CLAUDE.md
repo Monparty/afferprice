@@ -148,9 +148,9 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - `getBidsByProduct(productId)` ใน `bids.service.js` — ดึง bid history เรียงตาม `bid_time DESC`
 - **Validation**: `bidPrice` ต้องมากกว่า `currentPrice` เท่านั้น (ไม่อนุญาตเท่ากัน) — `isBelowMin` ใช้ `<=`
 - **🔒 KYC gate ก่อนประมูล**: `needKyc = login + ไม่ใช่ seller + userData.is_kyc !== 'approved'`
-  - `needKyc` → ปุ่มเปลี่ยนเป็น "ยืนยันตัวตนก่อนประมูล" (`SafetyCertificateFilled`) → เปิด `UseModal` ที่ render `<UserProfilesForm kycMode>` แทนปุ่มประมูล (ส่ง `onSubmitSaveProduct={() => {}}` no-op เพราะ form เรียกแบบไม่มี optional chaining)
+  - `needKyc` → ปุ่มเปลี่ยนเป็น "ยืนยันตัวตนก่อนประมูล" (`SafetyCertificateFilled`) → เปิด `UseModal` ที่ render `<KycVerificationForm>` แทนปุ่มประมูล (ส่ง `onSubmitSaveProduct={() => {}}` no-op)
   - `onSubmit` มี guard ซ้ำ: ถ้า `is_kyc !== 'approved'` → เด้ง modal ไม่ insert bid
-  - หลังส่ง KYC สถานะเป็น `pending` → ยังประมูลไม่ได้จนกว่า admin approve (`UserProfilesForm` dispatch `fetchUser` ให้ Redux อัปเดต)
+  - หลังส่ง KYC สถานะเป็น `pending` → ยังประมูลไม่ได้จนกว่า admin approve (`KycVerificationForm` dispatch `fetchUser` ให้ Redux อัปเดต)
 - **ห้าม bid ติดกัน 2 ครั้ง**: ผู้ที่เป็น highest bidder อยู่ตอนนี้กดประมูลซ้ำไม่ได้ ต้องรอ user คนอื่นมา bid ก่อน
   - state `highestBidderId` เก็บ user id ของผู้ bid สูงสุด — set จาก `getHighestBid()` ตอน mount + จาก broadcast payload `userId`
   - `isHighestBidder = userData.id === highestBidderId` → disable ปุ่ม + เปลี่ยน label เป็น "รอผู้อื่นเสนอราคา"
@@ -217,6 +217,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - **Form** (`app/admin/products/components/Form.jsx`) โหลด product ด้วย `getProductById` แล้ว `reset()` ค่าลงฟอร์ม
 - **⚠️ `seller_id` ต้องส่งใน payload เสมอ** — Supabase `upsert` ทำ full replace; ถ้าไม่ส่ง `seller_id` จะ error NOT NULL. Page component fetch `seller_id` จาก product ตอน mount แล้วเก็บใน state
 - **approve** → `state = 'active'` + set `auction_end_time` จาก `durationDays`; **reject** → `state = 'rejected'` + `rejected_remark`
+- **🔒 ปุ่มอนุมัติ gate ด้วยค่าธรรมเนียม** ([Form.jsx](app/admin/products/components/Form.jsx)) — `isFeePaid = feePayment?.payment_status === 'success'`; ถ้ายังไม่ชำระ → ปุ่มอนุมัติ `disabled` + tooltip "ผู้ขายยังไม่ชำระค่าธรรมเนียม" (UI gate ฝั่ง admin เท่านั้น — ยังไม่มี server-side check ใน `upsertProduct`)
 - **🔒 KYC gate ใน `upsertProduct`** ([app/services/admin/products.service.js](app/services/admin/products.service.js)) — ถ้า `data.state` ∈ `['pending_review', 'active']` → fetch `profiles.is_kyc` ของ seller; ถ้าไม่ใช่ `'approved'` → return `{ error: 'seller_kyc_not_approved' }` (มี Thai translation ใน [supabaseErrorMap.js](app/utils/supabaseErrorMap.js)) — **reject ไม่ติด gate** (admin reject ได้แม้ KYC ยังไม่ผ่าน)
 - **ค่าธรรมเนียมลงขาย (read-only)** — Form โหลด `getListingFeePayment(productId)` ([admin/products.service.js](app/services/admin/products.service.js) — `requireAdmin` + `supabaseAdmin` bypass RLS เพราะ payment เป็นของ seller) แล้วโชว์การ์ด: จำนวนเงิน, ช่องทาง, สถานะ (เขียว/ส้ม/แดง), วันที่ชำระ, `transaction_ref`; ไม่มี payment → "ยังไม่มีการชำระค่าธรรมเนียม"
 
@@ -315,28 +316,31 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - **Migrations** (`supabase/migrations/`):
   - `20260526000000_add_kyc_to_profiles.sql` — `profiles.is_kyc text NOT NULL DEFAULT 'unknown'` + CHECK `IN ('unknown','pending','approved','rejected')` + `profiles.kyc_remark text`
   - `20260526000001_kyc_rls_and_view.sql` — แก้ `"update own profile"` policy เพิ่ม `is_kyc` + `kyc_remark` ใน `WITH CHECK` (lock เหมือน role/status) + recreate `users_full` view เพิ่ม `id_card_image`, `is_kyc`, `kyc_remark` (REVOKE จาก anon/authenticated เหมือนเดิม)
-  - `20260526000002_submit_kyc_rpc.sql` — RPC `submit_kyc(p_user_id)` (SECURITY DEFINER, grant authenticated) — transition `unknown`/`rejected` → `pending`; guard: `auth.uid() = p_user_id` + ต้องมี `profile_image` + `id_card_image` ครบ + state ปัจจุบันต้อง ∈ `('unknown','rejected')`
+  - `20260526000002_submit_kyc_rpc.sql` — RPC `submit_kyc(p_user_id)` (SECURITY DEFINER, grant authenticated) — transition `unknown`/`rejected` → `pending` + state ปัจจุบันต้อง ∈ `('unknown','rejected')`; guard เดิมเช็ค `profile_image` + `id_card_image`
   - `20260526000004_notification_type_kyc.sql` — เพิ่ม `'kyc'` ใน `notifications_type_check`
+  - `20260615000000_kyc_full_fields.sql` — **KYC form เต็ม**: เพิ่ม `profiles.national_id` (CHECK 13 หลัก), `address`, `selfie_image` (path ใน bucket `id-cards`), `bank_name`, `bank_account_no`, `bank_account_name`, `pdpa_consent_at`; ขยาย `validate_profile_paths` trigger ให้ตรวจ `selfie_image` = `<uid>/...`; **`CREATE OR REPLACE submit_kyc`** — guard ใหม่บังคับ `id_card_image` + `selfie_image` + `national_id` + `first_name` + `address` + `phone` + `bank_*` + `pdpa_consent_at` ครบ (เลิกบังคับ `profile_image`); recreate `users_full` view เพิ่มฟิลด์ KYC ใหม่ทั้งหมด
 - **State transitions**:
-  - `unknown` → user upload profile + id_card → submit_kyc RPC → `pending`
+  - `unknown` → user กรอกฟอร์ม KYC ครบ (ข้อมูลส่วนตัว + บัตร + เซลฟี่ + บัญชีธนาคาร + PDPA) → submit_kyc RPC → `pending`
   - `pending` → admin approve → `approved` / admin reject + remark → `rejected`
-  - `rejected` → user re-upload → submit_kyc RPC → `pending` (วน loop ได้)
+  - `rejected` → user แก้ไข/re-upload → submit_kyc RPC → `pending` (วน loop ได้)
   - `approved` → terminal (เว้นแต่ admin จะ manual change ผ่าน supabaseAdmin)
-- **User UI** (`app/(authenticated)/user/components/UserProfilesForm.jsx`):
-  - แสดงแท็กสถานะด้านบนของฟอร์ม (`KYC_TAG` map: เขียว/ส้ม/แดง/เทา)
-  - ถ้า `is_kyc='rejected'` → กล่องแดงโชว์ `kyc_remark`
-  - รับ prop `kycMode` (default false) — เมื่อ `true`: ซ่อน fields อื่นเหลือเฉพาะ `profile_image` + `id_card_image`, ใช้ `kycSchema` (yup) บังคับ required ทั้งคู่, หลัง update สำเร็จเรียก `supabase.rpc("submit_kyc", { p_user_id })` แล้ว `dispatch(fetchUser())`
-- **Global KYC gate** (`app/(authenticated)/components/KycGate.jsx`) — mount ใน [(authenticated)/layout.jsx](app/(authenticated)/layout.jsx) ครอบทุกหน้าใน authenticated group; on mount `supabase.auth.getUser()` + `getProfileById` → ถ้า `is_kyc === 'unknown'` เด้ง `UseModal` (`<UserProfilesForm kycMode>`) อัตโนมัติให้บันทึก KYC (ปิดได้ผ่าน X, ไม่ block แบบ hard)
+- **User UI** — KYC ใช้ `app/(authenticated)/user/components/KycVerificationForm.jsx` (แยกออกจาก `UserProfilesForm` ที่ใช้แก้โปรไฟล์ทั่วไป); ทุกจุดที่เคยใช้ `<UserProfilesForm kycMode>` เปลี่ยนมาใช้ `<KycVerificationForm>` แล้ว
+  - แสดงแท็กสถานะด้านบน (`KYC_TAG`) + กล่องแดง `kyc_remark` เมื่อ `rejected`
+  - ฟอร์ม 5 ส่วนตามดีไซน์: ① ข้อมูลส่วนบุคคล (ชื่อ-นามสกุล/เลขบัตร 13 หลัก/วันเกิด/เพศ) ② การติดต่อ (โทร/อีเมล disabled/ที่อยู่) ③ อัปโหลด (ภาพหน้าบัตร = `id_card_image`, เซลฟี่คู่บัตร = `selfie_image` — ทั้งคู่เข้า bucket `id-cards`) ④ บัญชีธนาคาร (`bankList` ใน [dataSelect.js](app/utils/dataSelect.js)) ⑤ PDPA 2 checkbox (`oneOf([true])`)
+  - ใช้ `kycFullSchema` (yup) ใน [schema.js](app/(authenticated)/user/components/schema.js); `full_name` แตกเป็น `first_name`/`last_name` ตอน save (split ช่องว่างแรก) และ join กลับตอน reset; `birth_date` เก็บเป็น `YYYY-MM-DD`
+  - props: `setIsOpenModalProfile`, `onKycSubmitted`, `onSubmitSaveProduct`; หลัง update สำเร็จ → `supabase.rpc("submit_kyc")` → `dispatch(fetchUser())` → เรียก `onKycSubmitted?.()` + `onSubmitSaveProduct?.()`
+  - ปุ่ม disabled เมื่อ `is_kyc ∈ ('pending','approved')`
+- **Global KYC gate** (`app/(authenticated)/components/KycGate.jsx`) — mount ใน [(authenticated)/layout.jsx](app/(authenticated)/layout.jsx) ครอบทุกหน้าใน authenticated group; on mount `supabase.auth.getUser()` + `getProfileById` → ถ้า `is_kyc === 'unknown'` เด้ง `UseModal` (`<KycVerificationForm>`) อัตโนมัติให้บันทึก KYC (ปิดได้ผ่าน X, ไม่ block แบบ hard)
 - **Add product KYC gate / submit flow** (`app/(authenticated)/user/add-product/components/CardAddProductPreview.jsx`) — `isKyc` + `isFeePaid` รับจาก `AddProductLayout`:
-  - **ปุ่มหลัก step 3** แยกตาม `isKyc`: `approved` → `onSubmit("pending_review")` (ส่งตรวจสอบได้เลย); `unknown`/`rejected` → เปิด KYC modal (`<UserProfilesForm kycMode />`) — หลังส่ง KYC `onSubmitSaveProduct` save เป็น `draft` (เพราะ is_kyc ยังไม่ approved); `pending` → ปุ่ม disabled label "รอ admin ตรวจสอบ KYC"
+  - **ปุ่มหลัก step 3** แยกตาม `isKyc`: `approved` → `onSubmit("pending_review")` (ส่งตรวจสอบได้เลย); `unknown`/`rejected` → เปิด KYC modal (`<KycVerificationForm />`) — หลังส่ง KYC `onSubmitSaveProduct` save เป็น `draft` (เพราะ is_kyc ยังไม่ approved); `pending` → ปุ่ม disabled label "รอ admin ตรวจสอบ KYC"
   - **"บันทึกเป็นฉบับร่าง"** save `draft` ได้เสมอ (ไม่ block)
   - แสดง KYC banner เมื่อ `isKyc !== 'approved'` (`unknown`/`rejected` มีปุ่มเปิด modal; `pending` banner อย่างเดียว)
   - **🔒 จ่ายค่าธรรมเนียมได้เฉพาะ `approved`** — กล่องจ่ายใน `Form.jsx` gate ด้วย `isKyc === 'approved' && productId` (ดู [Add Product Listing Fee](#add-product-listing-fee)); server เช็คซ้ำอีกชั้น
   - **จ่ายค่าธรรมเนียมแล้ว (`isFeePaid`) → ล็อก**: ปุ่มหลัก + "บันทึกฉบับร่าง" disabled, ปุ่มหลัก label "รอ admin ตรวจสอบ" + banner เขียว "ชำระค่าธรรมเนียมแล้ว"; ปุ่ม "ย้อนกลับ" ยังกดได้
 - **Admin KYC review** (`app/admin/users/components/KycReviewModal.jsx`):
   - เปิดผ่านปุ่มไอคอน `SafetyCertificateFilled` สีส้มใน `BtnActionGroup` (prop ใหม่ `onViewKyc` — optional, render เฉพาะถ้ามี)
-  - โหลด user ผ่าน `getUserById(userId)` (admin service, ใช้ `users_full` view) + signed URL ของ `id_card_image` ผ่าน `getIdCardSignedUrlAdmin(path, 300)`
-  - แสดงรูป profile + id_card (anchor `target="_blank"` คลิกขยายได้)
+  - โหลด user ผ่าน `getUserById(userId)` (admin service, ใช้ `users_full` view) + signed URL ของ `id_card_image` + `selfie_image` ผ่าน `getIdCardSignedUrlAdmin(path, 300)`
+  - แสดงรายละเอียด KYC (national_id, phone, address, bank_*) + รูปภาพถ่ายหน้าบัตร + เซลฟี่คู่บัตร (anchor `target="_blank"` คลิกขยายได้)
   - ปุ่ม approve/reject แสดงเฉพาะ `is_kyc='pending'`
   - reject → sub-modal `<UseModal>` ขอ remark (`Input.TextArea`) → `rejectKyc(userId, remark)`
   - useEffect ล้าง state เมื่อ `open=false` หรือ `userId` เปลี่ยน (กันข้อมูลเก่าค้าง)
@@ -413,11 +417,11 @@ Schema defined in `db/00_schema.sql`. Key tables:
 | Bucket | Visibility | Use | Max size | Path scheme |
 |---|---|---|---|---|
 | `attachments` | public | product images/video, profile_image | 50 MB | `<uid>.<ext>` (uid = uuid v4) |
-| `id-cards` | **private** | id_card_image (PII) | 5 MB | `<user_id>/<uid>.<ext>` |
+| `id-cards` | **private** | id_card_image + selfie_image (PII) | 5 MB | `<user_id>/<uid>.<ext>` |
 
 - **RLS บน `id-cards`** ([20260524160000_*](supabase/migrations/20260524160000_id_cards_private_bucket.sql)): owner read/write/delete ผ่าน path prefix `<auth.uid()>/`; admin read all
 - **RLS บน `attachments`** ([20260524190000_*](supabase/migrations/20260524190000_attachments_storage_policies.sql)): public SELECT, auth only INSERT, owner-only UPDATE/DELETE (`owner_id = auth.uid()`), MIME whitelist + size limit
-- **id_card image flow**: เก็บ **path** (ไม่ใช่ full URL) ใน `profiles.id_card_image` → render ผ่าน `createIdCardSignedUrl(path, 300)` (TTL 5 นาที); helper อยู่ใน [upload.service.js](app/services/upload.service.js)
+- **id_card / selfie image flow**: เก็บ **path** (ไม่ใช่ full URL) ใน `profiles.id_card_image` + `profiles.selfie_image` → upload ผ่าน `uploadIdCard()` (bucket `id-cards`), render ผ่าน `createIdCardSignedUrl(path, 300)` (TTL 5 นาที); helper อยู่ใน [upload.service.js](app/services/upload.service.js)
 - **File validation client-side** ([app/utils/fileValidation.js](app/utils/fileValidation.js)) — MIME + size + magic bytes (กัน .exe ที่ rename เป็น .jpg); auto-wired ใน [storageHelper.js](app/utils/storageHelper.js) ทุก customRequest
 
 ### XSS Prevention

@@ -133,42 +133,42 @@ function Page() {
         <>
             <div className="flex flex-wrap justify-between items-end gap-4 mb-8">
                 <div className="flex flex-col gap-1">
-                    <h1 className="text-3xl font-bold leading-tight tracking-tight text-slate-900">
+                    <h1 className="text-3xl font-bold leading-tight tracking-tight text-slate-900 dark:text-white">
                         แดชบอร์ดผู้ใช้งาน
                     </h1>
-                    <p className="text-slate-500 text-base font-normal">
+                    <p className="text-slate-500 dark:text-slate-400 text-base font-normal">
                         ยินดีต้อนรับกลับมา {user?.first_name || ""} นี่คือสรุปภาพรวมการประมูลของคุณ
                     </p>
                 </div>
                 <UseButton label="ดาวน์โหลดรายงาน" icon={DownloadOutlined} />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
-                <div className="flex flex-col gap-2 rounded-xl p-6 bg-white shadow-sm border border-slate-200">
+                <div className="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-zinc-900 shadow-sm border border-slate-200 dark:border-zinc-800">
                     <div className="flex justify-between items-start">
-                        <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">
+                        <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">
                             การประมูลที่กำลังร่วม
                         </p>
                         <RiseOutlined className="text-2xl text-green-500!" />
                     </div>
                     <p className="text-3xl font-bold leading-tight">{stats.active}</p>
                 </div>
-                <div className="flex flex-col gap-2 rounded-xl p-6 bg-white shadow-sm border border-slate-200">
+                <div className="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-zinc-900 shadow-sm border border-slate-200 dark:border-zinc-800">
                     <div className="flex justify-between items-start">
-                        <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">สินค้าที่ชนะ</p>
+                        <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">สินค้าที่ชนะ</p>
                         <TrophyFilled className="text-2xl text-blue-500!" />
                     </div>
                     <p className="text-3xl font-bold leading-tight">{stats.won}</p>
                 </div>
-                <div className="flex flex-col gap-2 rounded-xl p-6 bg-white shadow-sm border border-slate-200">
+                <div className="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-zinc-900 shadow-sm border border-slate-200 dark:border-zinc-800">
                     <div className="flex justify-between items-start">
-                        <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">กำลังติดตาม</p>
+                        <p className="text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">กำลังติดตาม</p>
                         <EyeFilled className="text-2xl text-orange-600!" />
                     </div>
                     <p className="text-3xl font-bold leading-tight">{stats.favorites}</p>
                 </div>
             </div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="p-6 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-slate-200 dark:border-zinc-800 overflow-hidden">
+                <div className="p-6 border-b border-slate-200 dark:border-zinc-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <h2 className="text-xl font-bold">รายการประมูลปัจจุบันของคุณ</h2>
                     <UseSegmented
                         control={control}

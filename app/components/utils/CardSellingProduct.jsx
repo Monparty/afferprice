@@ -28,8 +28,8 @@ function formatCountdown(endTime) {
 function getPopoverAction(value) {
     const { stateName, isBuyer, isLost, paymentStatus, id } = value;
     const isPaid = paymentStatus === "paid";
-    const linkCls = "text-black! hover:bg-gray-100! p-1 rounded-sm text-sm";
-    const textCls = "text-slate-500 text-sm p-1";
+    const linkCls = "text-black! dark:text-slate-200! hover:bg-gray-100! dark:hover:bg-zinc-700! p-1 rounded-sm text-sm";
+    const textCls = "text-slate-500 dark:text-slate-400 text-sm p-1";
 
     if (["บันทึกร่าง", "รออนุมัติ", "ไม่อนุมัติ"].includes(stateName)) {
         return (
@@ -85,7 +85,7 @@ function CardSellingProduct({ value }) {
     }, [value.auction_end_time]);
 
     return (
-        <div className="group flex flex-col bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg hover:border-primary/20 transition-all">
+        <div className="group flex flex-col bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl overflow-hidden hover:shadow-lg hover:border-primary/20 transition-all">
             <div className="relative aspect-video overflow-hidden">
                 <div className="absolute top-3 left-3 z-10">
                     <UseTag label={value.stateName} color={value.stateColor} className="capitalize" />
@@ -105,7 +105,7 @@ function CardSellingProduct({ value }) {
                 />
             </div>
             <div className="p-4 flex flex-col flex-1">
-                <h3 className="text-blue-500 font-bold line-clamp-1 mb-1">{value.title}</h3>
+                <h3 className="text-blue-500 dark:text-blue-400 font-bold line-clamp-1 mb-1">{value.title}</h3>
                 <div className="flex justify-between items-end">
                     <div className="flex flex-col items-baseline gap-1 mt-auto">
                         <span className="text-[10px] text-slate-400 uppercase font-bold">ราคาปัจจุบัน</span>
@@ -115,7 +115,7 @@ function CardSellingProduct({ value }) {
                         <UseTag label="คุณได้ร่วมประมูล" color="blue" />
                     )}
                 </div>
-                <div className="grid grid-cols-2 gap-1 mt-4 pt-4 border-t border-slate-200">
+                <div className="grid grid-cols-2 gap-1 mt-4 pt-4 border-t border-slate-200 dark:border-zinc-700">
                     <span className="text-[10px] text-slate-400 font-bold uppercase">ผู้ประมูล</span>
                     <span className="text-[10px] text-slate-400 font-bold uppercase">เหลือเวลา</span>
                     <div className="flex flex-col">

@@ -5,11 +5,11 @@ import UseTag from "@/app/components/utils/UseTag";
 
 function CardUserAddress({ address, onEdit, onDelete, onSetDefault, readonly = false }) {
     return (
-        <div className="flex justify-between items-center gap-2 rounded-xl p-4 bg-white shadow-sm border border-slate-200">
-            <div className="grid text-slate-500 text-sm">
+        <div className="flex justify-between items-center gap-2 rounded-xl p-4 bg-white dark:bg-zinc-900 shadow-sm border border-slate-200 dark:border-zinc-800">
+            <div className="grid text-slate-500 dark:text-slate-400 text-sm">
                 <div className="flex items-end gap-2 mb-1">
-                    <h3 className="text-black text-base">{address.receiver_name}</h3>
-                    <div className="border-r border-slate-300 h-4"></div>
+                    <h3 className="text-black dark:text-white text-base">{address.receiver_name}</h3>
+                    <div className="border-r border-slate-300 dark:border-zinc-600 h-4"></div>
                     <p>{address.phone}</p>
                 </div>
                 <div>{address.address_line}</div>

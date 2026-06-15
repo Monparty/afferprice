@@ -15,7 +15,7 @@ import verifiedIcon from "../../../../../public/images/verifiedIcon.png";
 import imageNotFound from "../../../../../public/images/imageNotFound.png";
 import UseModal from "@/app/components/utils/UseModal";
 import UseTag from "@/app/components/utils/UseTag";
-import UserProfilesForm from "../../components/UserProfilesForm";
+import KycVerificationForm from "../../components/KycVerificationForm";
 
 const KYC_BANNER = {
     unknown: {
@@ -55,16 +55,19 @@ function CardAddProductPreview({
     });
     const imageUrl = image?.url || image?.thumbUrl;
     const banner = isKyc === "approved" ? null : (KYC_BANNER[isKyc] ?? KYC_BANNER.unknown);
-    const bannerStyle = banner?.tone === "red" ? "bg-red-50 border-red-300" : "bg-orange-50 border-orange-300";
+    const bannerStyle =
+        banner?.tone === "red"
+            ? "bg-red-50 dark:bg-red-950/40 border-red-300 dark:border-red-900"
+            : "bg-orange-50 dark:bg-orange-950/40 border-orange-300 dark:border-orange-900";
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-lg sticky top-12">
-                <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+            <div className="bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 overflow-hidden shadow-lg sticky top-12">
+                <div className="p-4 border-b border-slate-100 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-800/50 flex justify-between items-center">
                     <span className="text-xs font-bold uppercase tracking-wider text-slate-500">ตัวอย่างการแสดงผล</span>
                     <EyeFilled className="text-lg text-gray-500!" />
                 </div>
-                <div className="aspect-video w-full bg-slate-100 relative">
+                <div className="aspect-video w-full bg-slate-100 dark:bg-zinc-800 relative">
                     <Image
                         src={imageUrl || imageNotFound}
                         alt="Product preview"
@@ -81,7 +84,7 @@ function CardAddProductPreview({
                     </div>
                 </div>
                 <div className="p-5">
-                    <h3 className="text-lg mb-1 font-bold text-slate-900 truncate w-60">
+                    <h3 className="text-lg mb-1 font-bold text-slate-900 dark:text-white truncate w-60">
                         {watch("title") || "ชื่อสินค้าของคุณ..."}
                     </h3>
                     <div className={`${activeStep === 2 ? "" : "max-h-18 overflow-auto"}`}>
@@ -96,7 +99,7 @@ function CardAddProductPreview({
                         </div>
                         <div className="text-right">
                             <p className="text-[10px] text-slate-500 uppercase font-bold">เวลาที่เหลือ</p>
-                            <p className="text-sm font-bold text-slate-900">
+                            <p className="text-sm font-bold text-slate-900 dark:text-white">
                                 {{
                                     0: "10 นาที (TEST)",
                                     1: "1 วัน",
@@ -122,24 +125,24 @@ function CardAddProductPreview({
                             />
                             <UseTag label={banner.label} color={banner.tone} variant="filled" />
                         </div>
-                        <p className="text-xs text-slate-600 mb-2">{banner.desc}</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 mb-2">{banner.desc}</p>
                         {banner.cta && (
                             <UseButton label={banner.cta} type="default" onClick={() => setKycModalOpen(true)} />
                         )}
                     </div>
                 )}
                 {isFeePaid && (
-                    <div className="mx-5 mb-1 p-3 rounded-lg border bg-green-50 border-green-300">
+                    <div className="mx-5 mb-1 p-3 rounded-lg border bg-green-50 dark:bg-green-950/40 border-green-300 dark:border-green-900">
                         <div className="flex items-center gap-2 mb-1">
                             <CheckCircleFilled className="text-green-600!" />
-                            <span className="text-sm font-semibold text-green-700">ชำระค่าธรรมเนียมแล้ว</span>
+                            <span className="text-sm font-semibold text-green-700 dark:text-green-400">ชำระค่าธรรมเนียมแล้ว</span>
                         </div>
-                        <p className="text-xs text-slate-600">
+                        <p className="text-xs text-slate-600 dark:text-slate-300">
                             รอ admin ตรวจสอบและอนุมัติสินค้า ไม่สามารถแก้ไขหรือบันทึกเพิ่มได้
                         </p>
                     </div>
                 )}
-                <div className="p-5 flex flex-col gap-3 bg-slate-50">
+                <div className="p-5 flex flex-col gap-3 bg-slate-50 dark:bg-zinc-800/50">
                     <UseButton
                         label={
                             activeStep === 3
@@ -194,26 +197,26 @@ function CardAddProductPreview({
                     </p>
                 </div>
                 <div className="p-4">
-                    <div className="bg-orange-50 p-4 rounded-xl border border-orange-200">
+                    <div className="bg-orange-50 dark:bg-orange-950/30 p-4 rounded-xl border border-orange-200 dark:border-orange-900">
                         <h4 className="text-sm font-bold text-orange-600 flex items-center gap-2 mb-3">
                             Afferprice การันตีความปลอดภัย
                         </h4>
                         <ul className="flex flex-col gap-3">
                             <li className="flex items-start gap-2">
                                 <CheckCircleFilled className="text-lg text text-orange-600!" />
-                                <span className="text-[12px] text-slate-600">
+                                <span className="text-[12px] text-slate-600 dark:text-slate-300">
                                     ระบบ Escrow คุ้มครองการชำระเงินสำหรับสินค้ามูลค่าสูง
                                 </span>
                             </li>
                             <li className="flex items-start gap-2">
                                 <CheckCircleFilled className="text-lg text text-orange-600!" />
-                                <span className="text-[12px] text-slate-600">
+                                <span className="text-[12px] text-slate-600 dark:text-slate-300">
                                     สร้างใบปะหน้าพัสดุอัตโนมัติเมื่อมีการชำระเงิน
                                 </span>
                             </li>
                             <li className="flex items-start gap-2">
                                 <CheckCircleFilled className="text-lg text text-orange-600!" />
-                                <span className="text-[12px] text-slate-600">
+                                <span className="text-[12px] text-slate-600 dark:text-slate-300">
                                     ทีมงานสนับสนุนข้อพิพาทโดยเฉพาะตลอด 24 ชม.
                                 </span>
                             </li>
@@ -228,8 +231,7 @@ function CardAddProductPreview({
                 title="ยืนยันตัวตน (KYC)"
                 isShowCancel={false}
             >
-                <UserProfilesForm
-                    kycMode
+                <KycVerificationForm
                     setIsOpenModalProfile={setKycModalOpen}
                     onKycSubmitted={() => setKycModalOpen(false)}
                     onSubmitSaveProduct={() => onSubmit(isKyc === "approved" ? "pending_review" : "draft")}
