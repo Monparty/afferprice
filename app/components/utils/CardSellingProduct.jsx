@@ -1,12 +1,13 @@
 "use client";
 import UseButton from "@/app/components/inputs/UseButton";
 import UseTag from "@/app/components/utils/UseTag";
-import { FieldTimeOutlined, MoreOutlined, TeamOutlined } from "@ant-design/icons";
+import { FieldTimeOutlined, MoreOutlined, TeamOutlined, WalletOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import imageNotFound from "../../../public/images/imageNotFound.png";
 import UsePopover from "./UsePopover";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 function padTwo(n) {
     return String(n).padStart(2, "0");
@@ -54,11 +55,7 @@ function getPopoverAction(value) {
     }
     if (isBuyer) {
         if (isPaid) return <span className={textCls}>รอจัดส่งสินค้า</span>;
-        return (
-            <Link href={`/user/checkout/${id}`} className={linkCls}>
-                ตรวจสอบ
-            </Link>
-        );
+        return null; // แสดงเป็นปุ่ม "ชำระเงิน" ใน body แทน
     }
     if (stateName === "มีผู้ชนะ") {
         if (isPaid)
@@ -67,14 +64,20 @@ function getPopoverAction(value) {
                     ระบุข้อมูลการจัดส่ง
                 </Link>
             );
-        return <span className={textCls}>รอชำระเงิน</span>;
+        return null; // แสดงเป็น UseTag "รอผู้ซื้อชำระเงิน" ใน body แทน
     }
     return null;
 }
 
 function CardSellingProduct({ value }) {
+    const router = useRouter();
     const action = getPopoverAction(value);
     const [countdown, setCountdown] = useState(() => formatCountdown(value.auction_end_time));
+
+    // ประมูลมีผู้ชนะแต่ยังไม่ชำระเงิน
+    const isPendingPayment = value.paymentStatus !== "paid";
+    const sellerWaitingPay = value.stateName === "มีผู้ชนะ" && isPendingPayment;
+    const buyerNeedPay = value.isBuyer && isPendingPayment;
 
     useEffect(() => {
         if (!value.auction_end_time) return;
@@ -90,11 +93,13 @@ function CardSellingProduct({ value }) {
                 <div className="absolute top-3 left-3 z-10">
                     <UseTag label={value.stateName} color={value.stateColor} className="capitalize" />
                 </div>
-                <div className="absolute top-3 right-3 z-10">
-                    <UsePopover placement="bottomRight" content={<div className="grid gap-1 w-30">{action}</div>}>
-                        <UseButton shape="circle" type="default" icon={MoreOutlined} />
-                    </UsePopover>
-                </div>
+                {action && (
+                    <div className="absolute top-3 right-3 z-10">
+                        <UsePopover placement="bottomRight" content={<div className="grid gap-1 w-30">{action}</div>}>
+                            <UseButton shape="circle" type="default" icon={MoreOutlined} />
+                        </UsePopover>
+                    </div>
+                )}
                 <Image
                     src={value.images_url?.[0].url || imageNotFound}
                     alt={value.title}
@@ -135,6 +140,21 @@ function CardSellingProduct({ value }) {
                         </div>
                     </div>
                 </div>
+                {sellerWaitingPay && (
+                    <div className="mt-4">
+                        <UseTag label="รอผู้ซื้อชำระเงิน" color="orange" icon={WalletOutlined} />
+                    </div>
+                )}
+                {buyerNeedPay && (
+                    <div className="mt-4">
+                        <UseButton
+                            label="ชำระเงิน"
+                            icon={WalletOutlined}
+                            wFull
+                            onClick={() => router.push(`/user/checkout/${value.id}`)}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );

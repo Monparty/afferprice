@@ -357,8 +357,13 @@ function Page() {
                             className="h-12! text-lg! font-bold!"
                             onClick={() => router.push(`/user/payment/${id}?method=${paymentMethod}`)}
                             wFull
-                            disabled={!result}
+                            disabled={!result || !selectedAddressId}
                         />
+                        {!selectedAddressId && (
+                            <p className="mt-2 text-xs text-red-500 text-center">
+                                กรุณาเลือกที่อยู่จัดส่งก่อนยืนยันการชำระเงิน
+                            </p>
+                        )}
                         <div className="mt-4 text-xs text-gray-400 text-center">
                             <LockFilled />
                             <p className="flex items-center justify-center gap-1">
