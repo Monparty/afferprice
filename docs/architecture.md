@@ -94,7 +94,11 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - **ยอดรวม**: `final_price` + ค่าธรรมเนียม 5% + ค่าจัดส่ง (เลือกได้)
 - **ช่องทางชำระเงิน**: เลือกที่ checkout ก่อน — 3 ตัวเลือก `promptpay` | `linepay` | `wallet` (state `paymentMethod`, default `promptpay`)
   - UI ใช้ `<div onClick>` + conditional className ตาม state (ไม่ใช่ `<label>` + radio `has-checked:`) เพราะ Tailwind 4 + `sr-only` ทำให้ visual state ไม่ทำงาน — pattern เดียวกับ address card ในหน้าเดียวกัน
-- **ปุ่มชำระ** → route ไป `/user/payment/[auctionResultId]?method={paymentMethod}`
+- **ปุ่มชำระ** → route ไป `/user/payment/${result.id}?method={paymentMethod}` (**`result.id` = auction_result.id ไม่ใช่ `id` ที่เป็น product.id** — หน้า payment เรียก `getAuctionResultById` ที่ query ด้วย auction_result.id)
+- **Seller ship mode** (`sellerShipMode = isSeller && payment_status==='paid'`): ผู้ขายเปิด checkout เดียวกันแต่เห็นมุมผู้ขาย
+  - section 2 แสดง **ที่อยู่ของผู้ซื้อ** (`getBuyerShippingAddress` ใน `checkout.service.js`) แบบ read-only; section 3 (รูปแบบจัดส่ง) + 4 (ช่องทางชำระ) `pointer-events-none` (ดูได้อย่างเดียว)
+  - ปุ่มสรุปยอดเปลี่ยนเป็น "ระบุเลขใบเสร็จการจัดส่ง" → `setShowShipmentForm(true)` (state) → เปิดฟอร์มจัดส่ง (ไม่ route ไป payment)
+  - `getBuyerShippingAddress(auctionResultId)` = `"use server"` action: `requireUser()` + verify seller ownership + `supabaseAdmin` bypass RLS ดึง default address ของ winner (RLS `"user manage own address"` บล็อก seller อ่าน address คนอื่น)
 
 ## Payment Page (`/user/payment/[auctionResultId]`)
 
@@ -211,7 +215,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
 ## Shipment Flow
 
 - **Trigger**: seller กดลิงก์ "ระบุข้อมูลการจัดส่ง" → `/user/checkout/[productId]`
-- **Checkout page** ตรวจ role: ถ้า `product.seller_id === currentUser.id` **และ** `payment_status = 'paid'` → แสดง shipment form แทน checkout flow
+- **Checkout page** ตรวจ role: ถ้า `product.seller_id === currentUser.id` **และ** `payment_status = 'paid'` (`sellerShipMode`) → แสดง checkout ปกติ (ที่อยู่ผู้ซื้อ read-only + section จัดส่ง/ชำระเงิน disabled) ปุ่มเป็น "ระบุเลขใบเสร็จการจัดส่ง" → กดแล้ว `setShowShipmentForm(true)` ค่อยแสดง shipment form (ดู [Checkout Flow](#checkout-flow))
 - **Form fields**: shipping_company, tracking_number
 - **Service**: `app/services/shipment.service.js` — `createShipment({ auctionResultId, shippingCompany, trackingNumber })`
 - **หลัง submit**: INSERT `shipments` → UPDATE `products.state = 'order'` → redirect `/user/selling`

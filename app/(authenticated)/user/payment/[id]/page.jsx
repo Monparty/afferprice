@@ -11,8 +11,10 @@ import {
 import Link from "next/link";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
+import { supabase } from "@/app/lib/supabase/client";
 import { getAuctionResultById, createMockPayment } from "@/app/services/payment.service";
+import { getMyWalletBalance } from "@/app/services/wallet.service";
 import { setWalletBalance } from "@/app/features/user/userSlice";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 
@@ -27,13 +29,26 @@ function Page() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const method = searchParams.get("method") || "promptpay";
-    const user = useSelector((state) => state.user.data);
-    const walletBalance = Number(user?.wallet_balance ?? 0);
     const dispatch = useDispatch();
+    const [userId, setUserId] = useState(null);
+    const [walletBalance, setWalletBalanceLocal] = useState(0);
     const [result, setResult] = useState(null);
     const [qrData, setQrData] = useState(null);
     const [mockSubmitting, setMockSubmitting] = useState(false);
     const [walletSubmitting, setWalletSubmitting] = useState(false);
+
+    // fetchUser ไม่ได้ถูก dispatch ทุกหน้า → โหลด user + balance ตรงจาก Supabase (pattern เดียวกับ checkout/wallet)
+    useEffect(() => {
+        supabase.auth.getUser().then(({ data: { user } }) => {
+            if (!user) return;
+            setUserId(user.id);
+            getMyWalletBalance().then(({ data }) => {
+                const bal = Number(data?.wallet_balance ?? 0);
+                setWalletBalanceLocal(bal);
+                dispatch(setWalletBalance(bal));
+            });
+        });
+    }, [dispatch]);
 
     useEffect(() => {
         if (!id) return;
@@ -45,7 +60,7 @@ function Page() {
 
     useEffect(() => {
         if (method !== "promptpay") return;
-        if (!result || !user?.id) return;
+        if (!result || !userId) return;
         const finalPrice = Number(result.final_price ?? 0);
         const total = Math.round(finalPrice + finalPrice * AUCTION_FEE_RATE);
         fetch("/api/payment/promptpay", {
@@ -56,7 +71,7 @@ function Page() {
             .then((r) => r.json())
             .then(setQrData)
             .catch(() => {});
-    }, [result, user?.id, method, id]);
+    }, [result, userId, method, id]);
 
     const product = result?.products;
     const finalPrice = Number(result?.final_price ?? 0);
@@ -64,7 +79,7 @@ function Page() {
     const total = finalPrice + fee;
 
     const handleWalletPay = async () => {
-        if (!user?.id || !result) return;
+        if (!userId || !result) return;
         if (walletBalance < total) return router.push("/user/wallet");
         setWalletSubmitting(true);
         const r = await fetch("/api/payment/wallet/charge", {
@@ -77,17 +92,18 @@ function Page() {
             setWalletSubmitting(false);
             return notifyError(d.error);
         }
+        setWalletBalanceLocal(d.balance_after);
         dispatch(setWalletBalance(d.balance_after));
         notifySuccess("ชำระเงินสำเร็จ");
         router.push("/user/selling");
     };
 
     const handleMockPay = async () => {
-        if (!user?.id || !result) return;
+        if (!userId || !result) return;
         setMockSubmitting(true);
         const { error } = await createMockPayment({
             auctionResultId: id,
-            userId: user.id,
+            userId,
             amount: total,
             method,
         });
@@ -106,13 +122,17 @@ function Page() {
                     <div className="flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full">
                         <CheckCircleFilled className="text-2xl! text-green-600!" />
                     </div>
-                    <p className="text-gray-500 dark:text-slate-400">ขอบคุณสำหรับการประมูล รายการของคุณกำลังดำเนินการ</p>
+                    <p className="text-gray-500 dark:text-slate-400">
+                        ขอบคุณสำหรับการประมูล รายการของคุณกำลังดำเนินการ
+                    </p>
                 </div>
 
                 {method === "promptpay" && (
                     <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-xl p-6 border border-gray-100 dark:border-zinc-800">
                         <div className="flex flex-col items-center gap-4">
-                            <p className="text-sm font-medium text-gray-600 dark:text-slate-300">สแกนคิวอาร์โค้ดเพื่อชำระเงิน</p>
+                            <p className="text-sm font-medium text-gray-600 dark:text-slate-300">
+                                สแกนคิวอาร์โค้ดเพื่อชำระเงิน
+                            </p>
                             <div className="bg-white p-4 rounded-lg border-2 border-gray-100 shadow-inner">
                                 <div className="aspect-square w-48 bg-gray-50 flex items-center justify-center relative overflow-hidden">
                                     {qrData?.qrCodeUrl ? (
@@ -218,19 +238,27 @@ function Page() {
                         </div>
                         <div className="flex justify-between items-center gap-4">
                             <span className="text-gray-500 text-sm">ช่องทางชำระเงิน</span>
-                            <span className="text-gray-900 dark:text-slate-100 text-sm font-semibold uppercase">{method}</span>
+                            <span className="text-gray-900 dark:text-slate-100 text-sm font-semibold uppercase">
+                                {method}
+                            </span>
                         </div>
                         <div className="flex justify-between items-center gap-4">
                             <span className="text-gray-500 text-sm">ราคาชนะประมูล</span>
-                            <span className="text-gray-900 dark:text-slate-100 text-sm font-semibold">{formatPrice(finalPrice)}</span>
+                            <span className="text-gray-900 dark:text-slate-100 text-sm font-semibold">
+                                {formatPrice(finalPrice)}
+                            </span>
                         </div>
                         <div className="flex justify-between items-center gap-4">
                             <span className="text-gray-500 text-sm">ค่าธรรมเนียม (5%)</span>
-                            <span className="text-gray-900 dark:text-slate-100 text-sm font-semibold">{formatPrice(fee)}</span>
+                            <span className="text-gray-900 dark:text-slate-100 text-sm font-semibold">
+                                {formatPrice(fee)}
+                            </span>
                         </div>
                         <div className="pt-3 border-t border-gray-100 dark:border-zinc-800 flex justify-between items-center gap-4">
                             <span className="text-gray-900 dark:text-slate-100 font-bold">ยอดชำระสุทธิ</span>
-                            <span className="text-gray-900 dark:text-slate-100 font-bold text-lg">{formatPrice(total)}</span>
+                            <span className="text-gray-900 dark:text-slate-100 font-bold text-lg">
+                                {formatPrice(total)}
+                            </span>
                         </div>
                     </div>
                 </div>

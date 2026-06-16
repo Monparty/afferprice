@@ -6,12 +6,38 @@ import UseButton from "@/app/components/inputs/UseButton";
 import UseTooltip from "@/app/components/utils/UseTooltip";
 import { useColumnSearch } from "@/app/hooks/useColumnSearch";
 import { notifyError } from "@/app/providers/NotificationProvider";
-import { getBidsByProductId } from "@/app/services/admin/bids.service";
+import { getBidsByProductId, getSoldOrderDetail } from "@/app/services/admin/bids.service";
 import { formatDateTime } from "@/app/utils/dateUtils";
-import { LeftOutlined } from "@ant-design/icons";
+import {
+    LeftOutlined,
+    ShopOutlined,
+    UserOutlined,
+    EnvironmentOutlined,
+    PhoneOutlined,
+    MailOutlined,
+    BankOutlined,
+    CarOutlined,
+} from "@ant-design/icons";
 import { useParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
+
+function fullName(u) {
+    if (!u) return "—";
+    return `${u.first_name ?? ""} ${u.last_name ?? ""}`.trim() || u.email || "—";
+}
+
+function InfoRow({ icon: Icon, label, value }) {
+    return (
+        <div className="flex gap-2 text-sm">
+            <Icon className="text-slate-400! mt-0.5" />
+            <div className="grid">
+                <span className="text-slate-400 text-xs">{label}</span>
+                <span className="text-slate-700">{value || "—"}</span>
+            </div>
+        </div>
+    );
+}
 
 function Page() {
     const { id } = useParams();
@@ -19,10 +45,15 @@ function Page() {
     const { control, setValue } = useForm();
     const [dataSource, setDataSource] = useState([]);
     const [product, setProduct] = useState(null);
+    const [orderDetail, setOrderDetail] = useState(null);
     const { columnSearch } = useColumnSearch();
 
     useEffect(() => {
         if (!id) return;
+        getSoldOrderDetail(id).then(({ data, error }) => {
+            if (error) return notifyError(error);
+            setOrderDetail(data);
+        });
         getBidsByProductId(id).then(({ data, error }) => {
             if (error) return notifyError(error);
             if (data?.[0]?.products) setProduct(data[0].products);
@@ -102,6 +133,85 @@ function Page() {
                             ราคาเริ่มต้น ฿{product.start_price?.toLocaleString()}
                         </div>
                         <div className="text-sm text-slate-500">จำนวนการประมูล {dataSource.length} ครั้ง</div>
+                    </div>
+                </div>
+            )}
+            {orderDetail && (
+                <div className="grid gap-4 md:grid-cols-2">
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4 grid gap-3 content-start">
+                        <div className="flex items-center gap-2 font-medium text-orange-600">
+                            <ShopOutlined />
+                            <span>ข้อมูลผู้ขาย</span>
+                        </div>
+                        <InfoRow icon={UserOutlined} label="ชื่อ" value={fullName(orderDetail.seller)} />
+                        <InfoRow icon={MailOutlined} label="อีเมล" value={orderDetail.seller?.email} />
+                        <InfoRow icon={PhoneOutlined} label="เบอร์โทร" value={orderDetail.seller?.phone} />
+                        <InfoRow icon={EnvironmentOutlined} label="ที่อยู่" value={orderDetail.seller?.address} />
+                        <InfoRow
+                            icon={BankOutlined}
+                            label="บัญชีรับเงิน"
+                            value={
+                                orderDetail.seller?.bank_name
+                                    ? `${orderDetail.seller.bank_name} · ${orderDetail.seller.bank_account_no ?? ""} (${orderDetail.seller.bank_account_name ?? ""})`
+                                    : null
+                            }
+                        />
+                    </div>
+
+                    <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4 grid gap-3 content-start">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 font-medium text-blue-600">
+                                <UserOutlined />
+                                <span>ข้อมูลผู้ซื้อ (ผู้ชนะประมูล)</span>
+                            </div>
+                            {orderDetail.result &&
+                                (orderDetail.result.payment_status === "paid" ? (
+                                    <UseTag label="ชำระเงินแล้ว" color="green" variant="filled" />
+                                ) : (
+                                    <UseTag label="รอชำระเงิน" color="orange" />
+                                ))}
+                        </div>
+                        <InfoRow icon={UserOutlined} label="ชื่อ" value={fullName(orderDetail.buyer)} />
+                        <InfoRow icon={MailOutlined} label="อีเมล" value={orderDetail.buyer?.email} />
+                        <InfoRow icon={PhoneOutlined} label="เบอร์โทร" value={orderDetail.buyer?.phone} />
+                        {orderDetail.result && (
+                            <InfoRow
+                                icon={ShopOutlined}
+                                label="ราคาปิดประมูล"
+                                value={`฿${Number(orderDetail.result.final_price ?? 0).toLocaleString()}`}
+                            />
+                        )}
+                        <div className="border-t border-slate-100 pt-3 grid gap-2">
+                            <span className="text-slate-400 text-xs">ที่อยู่จัดส่ง</span>
+                            {orderDetail.buyerAddress ? (
+                                <div className="text-sm text-slate-700 grid gap-0.5">
+                                    <span>
+                                        {orderDetail.buyerAddress.receiver_name} · {orderDetail.buyerAddress.phone}
+                                    </span>
+                                    <span>{orderDetail.buyerAddress.address_line}</span>
+                                    <span>
+                                        {[
+                                            orderDetail.buyerAddress.district,
+                                            orderDetail.buyerAddress.province,
+                                            orderDetail.buyerAddress.postal_code,
+                                        ]
+                                            .filter(Boolean)
+                                            .join(", ")}
+                                    </span>
+                                </div>
+                            ) : (
+                                <span className="text-sm text-slate-400">ยังไม่มีที่อยู่จัดส่ง</span>
+                            )}
+                        </div>
+                        {orderDetail.shipment && (
+                            <div className="border-t border-slate-100 pt-3">
+                                <InfoRow
+                                    icon={CarOutlined}
+                                    label="การจัดส่ง"
+                                    value={`${orderDetail.shipment.shipping_company} · ${orderDetail.shipment.tracking_number}`}
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

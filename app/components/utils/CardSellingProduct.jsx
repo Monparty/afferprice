@@ -1,30 +1,14 @@
 "use client";
 import UseButton from "@/app/components/inputs/UseButton";
 import UseTag from "@/app/components/utils/UseTag";
-import { FieldTimeOutlined, MoreOutlined, TeamOutlined, WalletOutlined } from "@ant-design/icons";
+import { CarOutlined, FieldTimeOutlined, MoreOutlined, TeamOutlined, WalletOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import imageNotFound from "../../../public/images/imageNotFound.png";
 import UsePopover from "./UsePopover";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
-function padTwo(n) {
-    return String(n).padStart(2, "0");
-}
-
-function formatCountdown(endTime) {
-    if (!endTime) return null;
-    const diff = new Date(endTime) - new Date();
-    if (diff <= 0) return { ended: true, text: "หมดเวลา" };
-    const total = Math.floor(diff / 1000);
-    const days = Math.floor(total / 86400);
-    const hours = Math.floor((total % 86400) / 3600);
-    const minutes = Math.floor((total % 3600) / 60);
-    const seconds = total % 60;
-    if (days > 0) return { ended: false, text: `${days} วัน ${padTwo(hours)} ชม.` };
-    return { ended: false, text: `${padTwo(hours)}:${padTwo(minutes)}:${padTwo(seconds)}` };
-}
+import { formatCountdown } from "@/app/utils/dateUtils";
 
 function getPopoverAction(value) {
     const { stateName, isBuyer, isLost, paymentStatus, id } = value;
@@ -54,17 +38,10 @@ function getPopoverAction(value) {
         );
     }
     if (isBuyer) {
-        if (isPaid) return <span className={textCls}>รอจัดส่งสินค้า</span>;
-        return null; // แสดงเป็นปุ่ม "ชำระเงิน" ใน body แทน
+        return null; // paid → UseTag "รอจัดส่งสินค้า" ใน body; pending → ปุ่ม "ชำระเงิน" ใน body
     }
     if (stateName === "มีผู้ชนะ") {
-        if (isPaid)
-            return (
-                <Link href={`/user/checkout/${id}`} className={linkCls}>
-                    ระบุข้อมูลการจัดส่ง
-                </Link>
-            );
-        return null; // แสดงเป็น UseTag "รอผู้ซื้อชำระเงิน" ใน body แทน
+        return null; // paid → ปุ่ม "ระบุข้อมูลการจัดส่ง" ใน body; pending → UseTag "รอผู้ซื้อชำระเงิน" ใน body
     }
     return null;
 }
@@ -74,10 +51,13 @@ function CardSellingProduct({ value }) {
     const action = getPopoverAction(value);
     const [countdown, setCountdown] = useState(() => formatCountdown(value.auction_end_time));
 
-    // ประมูลมีผู้ชนะแต่ยังไม่ชำระเงิน
-    const isPendingPayment = value.paymentStatus !== "paid";
+    // ประมูลมีผู้ชนะ — แยก UI ตามฝั่ง (ผู้ขาย/ผู้ซื้อ) + สถานะชำระเงิน
+    const isPaid = value.paymentStatus === "paid";
+    const isPendingPayment = !isPaid;
     const sellerWaitingPay = value.stateName === "มีผู้ชนะ" && isPendingPayment;
+    const sellerNeedShip = value.stateName === "มีผู้ชนะ" && isPaid;
     const buyerNeedPay = value.isBuyer && isPendingPayment;
+    const buyerWaitingShip = value.isBuyer && isPaid;
 
     useEffect(() => {
         if (!value.auction_end_time) return;
@@ -145,6 +125,16 @@ function CardSellingProduct({ value }) {
                         <UseTag label="รอผู้ซื้อชำระเงิน" color="orange" icon={WalletOutlined} />
                     </div>
                 )}
+                {sellerNeedShip && (
+                    <div className="mt-4">
+                        <UseButton
+                            label="ระบุข้อมูลการจัดส่ง"
+                            icon={CarOutlined}
+                            wFull
+                            onClick={() => router.push(`/user/checkout/${value.id}`)}
+                        />
+                    </div>
+                )}
                 {buyerNeedPay && (
                     <div className="mt-4">
                         <UseButton
@@ -153,6 +143,11 @@ function CardSellingProduct({ value }) {
                             wFull
                             onClick={() => router.push(`/user/checkout/${value.id}`)}
                         />
+                    </div>
+                )}
+                {buyerWaitingShip && (
+                    <div className="mt-4">
+                        <UseTag label="รอจัดส่งสินค้า" color="blue" icon={CarOutlined} />
                     </div>
                 )}
             </div>

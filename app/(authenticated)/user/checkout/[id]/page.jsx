@@ -19,6 +19,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getAuctionResultByProduct } from "@/app/services/payment.service";
 import { createShipment } from "@/app/services/shipment.service";
+import { getBuyerShippingAddress } from "@/app/services/checkout.service";
 import { getMyAddresses } from "@/app/services/address.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import { supabase } from "@/app/lib/supabase/client";
@@ -55,6 +56,8 @@ function Page() {
     const [shippingCompany, setShippingCompany] = useState("");
     const [trackingNumber, setTrackingNumber] = useState("");
     const [submitting, setSubmitting] = useState(false);
+    const [showShipmentForm, setShowShipmentForm] = useState(false);
+    const [buyerAddress, setBuyerAddress] = useState(null);
 
     const fetchAddresses = async () => {
         const { data, error } = await getMyAddresses();
@@ -79,7 +82,17 @@ function Page() {
 
     const isSeller = currentUserId && result?.products?.seller_id === currentUserId;
     const isPaid = result?.payment_status === "paid";
-    const showShipmentForm = isSeller && isPaid;
+    // ผู้ขาย + ชำระแล้ว → checkout ปกติก่อน, ปุ่มเปลี่ยนเป็น "ระบุเลขใบเสร็จการจัดส่ง" แล้วค่อยเปิดฟอร์มจัดส่ง
+    const sellerShipMode = isSeller && isPaid;
+
+    // โหมดผู้ขาย → ดึงที่อยู่จัดส่งของผู้ซื้อ (winner) มาแสดง (read-only)
+    useEffect(() => {
+        if (!sellerShipMode || !result?.id) return;
+        getBuyerShippingAddress(result.id).then(({ data, error }) => {
+            if (error) return notifyError(error);
+            setBuyerAddress(data ?? null);
+        });
+    }, [sellerShipMode, result?.id]);
 
     const handleShipmentSubmit = async () => {
         if (!shippingCompany || !trackingNumber) return notifyError("กรุณากรอกข้อมูลให้ครบ");
@@ -208,35 +221,51 @@ function Page() {
                             <span className="flex items-center bg-orange-600 justify-center w-8 h-8 rounded-full text-white text-sm font-bold">
                                 2
                             </span>
-                            <h2 className="text-xl font-bold">ที่อยู่จัดส่ง</h2>
+                            <h2 className="text-xl font-bold">
+                                {sellerShipMode ? "ที่อยู่จัดส่งของผู้ซื้อ" : "ที่อยู่จัดส่ง"}
+                            </h2>
                         </div>
-                        <UseButton
-                            label="เพิ่มที่อยู่ใหม่"
-                            type="default"
-                            icon={PlusOutlined}
-                            onClick={() => setModalOpen(true)}
-                        />
-                    </div>
-                    <div className="grid gap-4">
-                        {addresses.length === 0 && (
-                            <p className="text-sm text-gray-400">ยังไม่มีที่อยู่ กรุณาเพิ่มที่อยู่ก่อนชำระเงิน</p>
+                        {!sellerShipMode && (
+                            <UseButton
+                                label="เพิ่มที่อยู่ใหม่"
+                                type="default"
+                                icon={PlusOutlined}
+                                onClick={() => setModalOpen(true)}
+                            />
                         )}
-                        {addresses.map((addr) => {
-                            const isSelected = selectedAddressId === addr.id;
-                            return (
-                                <div
-                                    key={addr.id}
-                                    onClick={() => setSelectedAddressId(addr.id)}
-                                    className={`rounded-xl cursor-pointer relative ${isSelected ? "border-2 border-orange-400 shadow-md" : "border-2 border-slate-50 dark:border-zinc-700"}`}
-                                >
-                                    <CardUserAddress address={addr} readonly />
-                                    {isSelected && (
-                                        <CheckCircleFilled className="text-xl text-orange-500! absolute top-2 right-2" />
-                                    )}
-                                </div>
-                            );
-                        })}
                     </div>
+                    {sellerShipMode ? (
+                        <div className="grid gap-4">
+                            {buyerAddress ? (
+                                <div className="rounded-xl border-2 border-orange-400 shadow-md">
+                                    <CardUserAddress address={buyerAddress} readonly />
+                                </div>
+                            ) : (
+                                <p className="text-sm text-gray-400">ผู้ซื้อยังไม่ได้ระบุที่อยู่จัดส่ง</p>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="grid gap-4">
+                            {addresses.length === 0 && (
+                                <p className="text-sm text-gray-400">ยังไม่มีที่อยู่ กรุณาเพิ่มที่อยู่ก่อนชำระเงิน</p>
+                            )}
+                            {addresses.map((addr) => {
+                                const isSelected = selectedAddressId === addr.id;
+                                return (
+                                    <div
+                                        key={addr.id}
+                                        onClick={() => setSelectedAddressId(addr.id)}
+                                        className={`rounded-xl cursor-pointer relative ${isSelected ? "border-2 border-orange-400 shadow-md" : "border-2 border-slate-50 dark:border-zinc-700"}`}
+                                    >
+                                        <CardUserAddress address={addr} readonly />
+                                        {isSelected && (
+                                            <CheckCircleFilled className="text-xl text-orange-500! absolute top-2 right-2" />
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </section>
                 <UseModal
                     title="ที่อยู่ใหม่"
@@ -254,7 +283,9 @@ function Page() {
                     />
                 </UseModal>
 
-                <section className="bg-white dark:bg-zinc-900 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-zinc-800">
+                <section
+                    className={`bg-white dark:bg-zinc-900 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-zinc-800 ${sellerShipMode ? "pointer-events-none opacity-60 select-none" : ""}`}
+                >
                     <div className="flex items-center gap-2 mb-6">
                         <span className="flex items-center justify-center bg-orange-600 w-8 h-8 rounded-full text-white text-sm font-bold">
                             3
@@ -286,7 +317,9 @@ function Page() {
                     </div>
                 </section>
 
-                <section className="bg-white dark:bg-zinc-900 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-zinc-800">
+                <section
+                    className={`bg-white dark:bg-zinc-900 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-zinc-800 ${sellerShipMode ? "pointer-events-none opacity-60 select-none" : ""}`}
+                >
                     <div className="flex items-center gap-2 mb-6">
                         <span className="flex items-center justify-center bg-orange-600 w-8 h-8 rounded-full text-white text-sm font-bold">
                             4
@@ -353,13 +386,18 @@ function Page() {
                             </div>
                         </div>
                         <UseButton
-                            label="ยืนยันการชำระเงิน"
+                            label={sellerShipMode ? "ระบุเลขใบเสร็จการจัดส่ง" : "ยืนยันการชำระเงิน"}
+                            icon={sellerShipMode ? CarOutlined : undefined}
                             className="h-12! text-lg! font-bold!"
-                            onClick={() => router.push(`/user/payment/${id}?method=${paymentMethod}`)}
+                            onClick={
+                                sellerShipMode
+                                    ? () => setShowShipmentForm(true)
+                                    : () => router.push(`/user/payment/${result.id}?method=${paymentMethod}`)
+                            }
                             wFull
-                            disabled={!result || !selectedAddressId}
+                            disabled={!result || (!sellerShipMode && !selectedAddressId)}
                         />
-                        {!selectedAddressId && (
+                        {!sellerShipMode && !selectedAddressId && (
                             <p className="mt-2 text-xs text-red-500 text-center">
                                 กรุณาเลือกที่อยู่จัดส่งก่อนยืนยันการชำระเงิน
                             </p>

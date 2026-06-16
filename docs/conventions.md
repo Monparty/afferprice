@@ -30,6 +30,12 @@ Project-specific coding style and reusable patterns. Standard library behavior i
 - All admin pages use a service from `app/services/admin/*.service.js` (`"use server"`) — queries go through `supabaseAdmin` + manual join with the `users_full` view (no FK join because `auth.users` is untouchable).
 - `UseTable` (`app/components/utils/UseTable.jsx`) supports the `onRow` prop (Ant Design pass-through) for row event handlers.
 
+## Server actions (non-admin)
+
+- เมื่อ client ต้องอ่านข้อมูลที่ RLS บล็อก แต่ผู้เรียก**ไม่ใช่ admin** (เช่น seller อ่านที่อยู่ของ buyer) → server action ใน `app/services/*.service.js` (`"use server"`) ที่ `requireUser()` + **verify ownership เอง** จาก DB + `supabaseAdmin` bypass RLS. ห้าม trust id จาก argument โดยไม่เช็ค (action ถูก expose เป็น POST endpoint อัตโนมัติ).
+- ตัวอย่าง: `getBuyerShippingAddress()` ใน `app/services/checkout.service.js` — verify `auction_results.products.seller_id === user.id` ก่อนคืน address ของ winner.
+- ต่างจาก `app/services/admin/*` ที่ใช้ `requireAdmin()` (role-gated); อันนี้ user-gated ตาม ownership.
+
 ## Notifications
 
 - Use `notifyError()` / `notifySuccess()` from `NotificationProvider.jsx`.

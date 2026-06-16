@@ -7,13 +7,30 @@ import UseTooltip from "@/app/components/utils/UseTooltip";
 import { useColumnSearch } from "@/app/hooks/useColumnSearch";
 import { notifyError } from "@/app/providers/NotificationProvider";
 import { getBidsGroupedByProduct } from "@/app/services/admin/bids.service";
-import { formatDateTime } from "@/app/utils/dateUtils";
+import { formatCountdown, formatDateTime } from "@/app/utils/dateUtils";
 import { mapProductState } from "@/app/utils/mapProductState";
 import { EyeFilled } from "@ant-design/icons";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { ROUTES } from "../constants/routes";
+
+function CountdownCell({ endTime }) {
+    const [countdown, setCountdown] = useState(() => formatCountdown(endTime));
+
+    useEffect(() => {
+        if (!endTime) return;
+        const tick = () => setCountdown(formatCountdown(endTime));
+        tick();
+        const id = setInterval(tick, 1000);
+        return () => clearInterval(id);
+    }, [endTime]);
+
+    if (!countdown) return <span className="text-slate-400">—</span>;
+    return (
+        <span className={`font-bold ${countdown.ended ? "text-slate-400" : "text-red-500"}`}>{countdown.text}</span>
+    );
+}
 
 function Page() {
     const { control, setValue } = useForm();
@@ -30,6 +47,7 @@ function Page() {
                     productTitle: item.product?.title || "—",
                     imageUrl: item.product?.images_url?.[0]?.url || null,
                     state: item.product?.state,
+                    auctionEndTime: item.product?.auction_end_time,
                     latestBidTime: formatDateTime(item.latest_bid_time),
                 })),
             );
@@ -82,6 +100,18 @@ function Page() {
                 const { color } = mapProductState(record.state);
                 return <UseTag label={record.state} variant="filled" color={color} className="capitalize" />;
             },
+        },
+        {
+            title: "เวลาที่เหลือ",
+            dataIndex: "auctionEndTime",
+            key: "auctionEndTime",
+            align: "center",
+            render: (_, record) =>
+                record.state === "active" ? (
+                    <CountdownCell endTime={record.auctionEndTime} />
+                ) : (
+                    <span className="text-slate-400">—</span>
+                ),
         },
         {
             title: "ประมูลล่าสุด",
