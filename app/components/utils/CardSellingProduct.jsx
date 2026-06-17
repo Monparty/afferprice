@@ -1,7 +1,7 @@
 "use client";
 import UseButton from "@/app/components/inputs/UseButton";
 import UseTag from "@/app/components/utils/UseTag";
-import { CarOutlined, FieldTimeOutlined, MoreOutlined, TeamOutlined, WalletOutlined } from "@ant-design/icons";
+import { CarOutlined, FieldTimeOutlined, InboxOutlined, MoreOutlined, TeamOutlined, WalletOutlined } from "@ant-design/icons";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import imageNotFound from "../../../public/images/imageNotFound.png";
@@ -54,10 +54,12 @@ function CardSellingProduct({ value }) {
     // ประมูลมีผู้ชนะ — แยก UI ตามฝั่ง (ผู้ขาย/ผู้ซื้อ) + สถานะชำระเงิน
     const isPaid = value.paymentStatus === "paid";
     const isPendingPayment = !isPaid;
+    // state='order' — ผู้ขายจัดส่งแล้ว: แสดงปุ่มติดตามสถานะทั้งฝั่งผู้ขายและผู้ซื้อ
+    const isShipping = value.stateName === "การจัดส่ง";
     const sellerWaitingPay = value.stateName === "มีผู้ชนะ" && isPendingPayment;
     const sellerNeedShip = value.stateName === "มีผู้ชนะ" && isPaid;
-    const buyerNeedPay = value.isBuyer && isPendingPayment;
-    const buyerWaitingShip = value.isBuyer && isPaid;
+    const buyerNeedPay = value.isBuyer && isPendingPayment && !isShipping;
+    const buyerWaitingShip = value.isBuyer && isPaid && !isShipping;
 
     useEffect(() => {
         if (!value.auction_end_time) return;
@@ -148,6 +150,16 @@ function CardSellingProduct({ value }) {
                 {buyerWaitingShip && (
                     <div className="mt-4">
                         <UseTag label="รอจัดส่งสินค้า" color="blue" icon={CarOutlined} />
+                    </div>
+                )}
+                {isShipping && (
+                    <div className="mt-4">
+                        <UseButton
+                            label="ตรวจสอบสถานะการจัดส่ง"
+                            icon={InboxOutlined}
+                            wFull
+                            onClick={() => router.push(`/user/order?product=${value.id}`)}
+                        />
                     </div>
                 )}
             </div>

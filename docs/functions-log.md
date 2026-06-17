@@ -74,3 +74,24 @@ Append-only log of completed features/functions. Newest entries at the bottom.
   - **ที่อยู่ผู้ซื้อไม่ได้ persist ตอน checkout** — `auction_results` ไม่มี `address_id` → แสดง default ของ winner (อาจไม่ตรงตัวที่เลือกถ้ามีหลายที่อยู่)
   - `sellerShipMode` ปลด requirement เลือก address ของผู้ขาย (`disabled={!result || (!sellerShipMode && !selectedAddressId)}`)
   - `sellerNeedShip`/`buyerWaitingShip` exclusive (won tab stateName ≠ "มีผู้ชนะ"; seller sold tab `isBuyer` = false)
+
+## Order tracking + ย้ายสินค้า order ไป tab การจัดส่งทั้ง 2 ฝั่ง — 2026-06-17
+- **Purpose:** หลังผู้ขายระบุข้อมูลการจัดส่ง (`state`→`order`) ให้สินค้าหายจาก tab "สินค้าที่ฉันชนะ" ของผู้ซื้อ → ไปโผล่ที่ tab "การจัดส่ง" ทั้งฝั่งผู้ซื้อและผู้ขาย พร้อมปุ่ม "ตรวจสอบสถานะการจัดส่ง" → หน้า `/user/order` (ดึงข้อมูลจริง, mock timeline)
+- **Location:**
+  - Service: `app/services/products.service.js` — `getWonProductsByUser`/`getWonProductCountByUser` (กรอง `sold`), `getOrderProductsWonByUser` (ใหม่)
+  - UI: `app/(authenticated)/user/selling/page.jsx` (tab `order` merge + render `isBuyerShape`), `app/components/utils/CardSellingProduct.jsx` (`isShipping` + ปุ่ม), `app/(authenticated)/user/order/page.jsx` (เขียนใหม่ดึงข้อมูลจริง)
+- **Inputs/Outputs:**
+  - `getWonProductsByUser()`/`getWonProductCountByUser()` เพิ่ม `products!inner(...)` + `.eq("products.state","sold")` → คืนเฉพาะสินค้าชนะที่ **ยังไม่จัดส่ง**
+  - `getOrderProductsWonByUser()` — `auction_results` ของ winner ปัจจุบัน join `products!inner` `.eq("products.state","order")` → สินค้าที่ชนะและจัดส่งแล้ว (shape เดียวกับ won: `{ id, payment_status, final_price, products }`)
+  - selling tab `order`: `Promise.all([getProductsByState("order") (ฝั่งผู้ขาย), getOrderProductsWonByUser() (ฝั่งผู้ซื้อ tag `_isBuyerOrder:true`)])` แล้ว dedupe ด้วย product id (buyer key = `ar.products.id`)
+  - render: `isBuyerShape = isWonTab || item._isBuyerOrder` → ใช้ `item.products`/`item` เป็น auctionResult เหมือน won tab; `isBuyer` ส่งตาม `isBuyerShape`
+  - `CardSellingProduct`: `isShipping = stateName === "การจัดส่ง"` → ปุ่ม "ตรวจสอบสถานะการจัดส่ง" (`InboxOutlined`) → `router.push('/user/order?product={value.id}')`
+  - `/user/order?product={productId}`: `getAuctionResultByProduct(productId)` + `getShipmentByAuctionResult(result.id)` → แสดง ชื่อ/รูป/ราคาปิด/บริษัทขนส่ง/tracking/สถานะ; `current` ของ `UseSteps` map จาก `shipping_status` (`preparing`=0, `shipped`=2, `delivered`=3)
+- **Gotchas:**
+  - **count `order` รวม 2 ฝั่ง** — count effect บวก `getOrderProductsWonByUser()?.length` เข้า `counts["order"]` (เหมือน pattern `active`/`cancelled`); ถ้าลืม badge จะนับแค่ฝั่งผู้ขาย
+  - **won tab ตอนนี้ = `sold` เท่านั้น** — เดิม `getWonProductsByUser` คืนทุก state ของ winner (รวม `order`); เปลี่ยนเป็น inner-join filter `sold` เพื่อไม่ให้ค้างใน won tab หลังจัดส่ง
+  - `buyerNeedPay`/`buyerWaitingShip` ใน card เพิ่ม guard `&& !isShipping` (buyer order item มี `isBuyer=true`+`paid` → ถ้าไม่ guard จะโชว์ tag "รอจัดส่งสินค้า" แทนปุ่ม)
+  - **order page ไม่มี per-step event ใน DB** — timeline (เวลา/สถานที่แต่ละขั้น) เป็น mock คงที่; ดึงจริงเฉพาะ field ที่มีใน `shipments`/`auction_results`; ไม่มี `?product=` หรือดึงไม่ได้ → fallback `MOCK` ทั้งก้อน
+  - **`useSearchParams` ต้องอยู่ใน `<Suspense>`** — แยก `OrderContent` แล้วครอบ Suspense ใน `Page` (กัน build error prerender)
+  - ปุ่มส่ง **product id** (ไม่ใช่ auction_result id) เพราะ `getAuctionResultByProduct` query ด้วย `product_id`
+  - RLS รองรับอยู่แล้ว: `auction_results` `"winner or seller read result"`, `shipments` `"buyer or seller read shipment"`

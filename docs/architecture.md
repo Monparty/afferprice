@@ -197,16 +197,19 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - **Auto-reconcile สถานะค้าง**: on mount เรียก `endExpiredActiveAuctions()` ปิดประมูลที่หมดเวลาแต่ค้างที่ `active` (ดู [Auction End Flow](#auction-end-flow)); ถ้ามีการเปลี่ยนสถานะ bump `refreshKey` → effect fetch products + counts re-run (ทั้ง 2 effect depend on `refreshKey`)
 - `getProductsByState(state)` join `auction_results(id, payment_status, winner_id)` + `bids(id, bid_price, user_id)` (user_id ใช้คำนวณจำนวนผู้ประมูล distinct)
 - Tab พิเศษ:
-  - `won` (สินค้าที่ฉันชนะ) → `getWonProductsByUser()` query จาก `auction_results` ด้วย `winner_id`
+  - `won` (สินค้าที่ฉันชนะ) → `getWonProductsByUser()` query `auction_results` ด้วย `winner_id` + **`products!inner` filter `state='sold'`** (เฉพาะที่ผู้ขายยังไม่จัดส่ง — จัดส่งแล้วย้ายไป tab `order`)
+  - `order` (การจัดส่ง) merge สินค้าตัวเองที่จัดส่งแล้ว (`getProductsByState("order")`) + สินค้าที่ user ชนะและผู้ขายจัดส่งแล้ว (`getOrderProductsWonByUser()` query `winner_id` + `state='order'`) — tag `_isBuyerOrder: true` ฝั่งผู้ซื้อ, dedupe ด้วย product id; **count `order` บวกทั้ง 2 ฝั่ง** (เหมือน `active`/`cancelled`)
   - `active` merge สินค้าที่เป็นเจ้าของ + สินค้าที่ user เคย bid (ไม่ใช่เจ้าของ) ผ่าน `getActiveProductsBidByUser()` — tag `_isBidder: true` สำหรับ bid product → การ์ดแสดงป้าย "คุณได้ร่วมประมูล" สีน้ำเงิน
   - `cancelled` merge สินค้าที่ยกเลิกของเจ้าของ + สินค้าที่ user bid แต่ไม่ชนะ ผ่าน `getLostBidProductsByUser()` — tag `_isLost: true` → การ์ดแสดงป้าย "ประมูลไม่ชนะ" สีแดง
+- **render shape**: `isBuyerShape = isWonTab || item._isBuyerOrder` → ใช้ `item.products` เป็น product, `item` เป็น auction_result (เหมือนกันทั้ง won tab และ buyer order item)
 - **`getLostBidProductsByUser`** คำนวณ lost = `bid product ids` − `won product ids` (2 query แยก) แล้ว query products `state='sold'` `seller_id != user.id` — ไม่ join `auction_results` เพราะ RLS บล็อก
 - **`CardSellingProduct`** (`"use client"`) รับ props:
   - `isBuyer`, `paymentStatus`:
     - seller + `sold` + payment `pending` → ข้อความ "รอชำระเงิน"
     - seller + `sold` + payment `paid` → ลิงก์ "ระบุข้อมูลการจัดส่ง" → `/user/checkout/[productId]`
     - buyer (`isBuyer=true`) + payment `pending` → ปุ่ม "ตรวจสอบ" → `/user/checkout/[productId]`
-    - buyer + payment `paid` → ข้อความ "รอจัดส่งสินค้า"
+    - buyer + payment `paid` → ข้อความ "รอจัดส่งสินค้า" (เฉพาะ `state='sold'`; gate ด้วย `!isShipping`)
+    - **`isShipping = stateName === "การจัดส่ง"`** (state `order` — ทั้งผู้ขาย/ผู้ซื้อ) → ปุ่ม "ตรวจสอบสถานะการจัดส่ง" → `/user/order?product={id}`
   - `isBidder` → ป้าย "คุณได้ร่วมประมูล"
   - `isLost` → stateName "ประมูลไม่ชนะ" + popover "ดูสินค้า"
   - `bidders_count` → จำนวนผู้ประมูลแบบ distinct (`new Set(bids.map(b => b.user_id))`)
@@ -220,6 +223,11 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - **Service**: `app/services/shipment.service.js` — `createShipment({ auctionResultId, shippingCompany, trackingNumber })`
 - **หลัง submit**: INSERT `shipments` → UPDATE `products.state = 'order'` → redirect `/user/selling`
 - **`shipments.address_id`** เป็น nullable (migration แก้แล้ว)
+- **Order tracking page** (`/user/order?product={productId}`): เปิดจากปุ่ม "ตรวจสอบสถานะการจัดส่ง" ใน `CardSellingProduct` (tab การจัดส่ง ทั้งผู้ซื้อ/ผู้ขาย)
+  - `getAuctionResultByProduct(productId)` + `getShipmentByAuctionResult(result.id)` → ดึง ชื่อ/รูป/ราคาปิด/บริษัทขนส่ง/tracking/`shipping_status` จริง
+  - `UseSteps` 4 ขั้น (เตรียมจัดส่ง → ขนส่งรับพัสดุ → กำลังนำจ่าย → จัดส่งสำเร็จ); `current` map จาก `shipping_status`: `preparing`=0, `shipped`=2, `delivered`=3
+  - **timeline (เวลา/สถานที่แต่ละขั้น) เป็น mock คงที่** — `shipments` ไม่มี per-step event; ไม่มี `?product=` หรือดึงไม่ได้ → fallback `MOCK` ทั้งก้อน
+  - `useSearchParams` ต้องอยู่ใน `<Suspense>` (แยก `OrderContent`) กัน build error prerender
 
 ## Payment (Omise)
 

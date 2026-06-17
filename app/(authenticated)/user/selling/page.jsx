@@ -11,6 +11,7 @@ import {
     getWonProductCountByUser,
     getActiveProductsBidByUser,
     getLostBidProductsByUser,
+    getOrderProductsWonByUser,
     endExpiredActiveAuctions,
 } from "@/app/services/products.service";
 import { AppstoreOutlined, BarsOutlined } from "@ant-design/icons";
@@ -70,6 +71,17 @@ function Page() {
                 const map = new Map();
                 [...ownTagged, ...lostTagged].forEach((p) => map.set(p.id, p));
                 setProducts([...map.values()]);
+            } else if (activeTab === "order") {
+                // ผู้ขายที่จัดส่งแล้ว (สินค้าตัวเอง state='order') + ผู้ซื้อที่ผู้ขายจัดส่งแล้ว (สินค้าที่ชนะ state='order')
+                const [own, won] = await Promise.all([getProductsByState("order"), getOrderProductsWonByUser()]);
+                if (own.error) return notifyError(own.error);
+                if (won.error) return notifyError(won.error);
+                const ownItems = own.data ?? [];
+                const buyerItems = (won.data ?? []).map((ar) => ({ ...ar, _isBuyerOrder: true }));
+                const map = new Map();
+                ownItems.forEach((p) => map.set(p.id, p));
+                buyerItems.forEach((ar) => map.set(ar.products?.id, ar));
+                setProducts([...map.values()]);
             } else {
                 const { data, error } = await getProductsByState(activeTab);
                 if (error) return notifyError(error);
@@ -90,6 +102,8 @@ function Page() {
             counts["active"] = (counts["active"] ?? 0) + (bidActive?.length ?? 0);
             const { data: lostBid } = await getLostBidProductsByUser();
             counts["cancelled"] = (counts["cancelled"] ?? 0) + (lostBid?.length ?? 0);
+            const { data: orderWon } = await getOrderProductsWonByUser();
+            counts["order"] = (counts["order"] ?? 0) + (orderWon?.length ?? 0);
             const { count: wonCount } = await getWonProductCountByUser();
             counts["won"] = wonCount;
             setCountState(counts);
@@ -104,10 +118,12 @@ function Page() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.map((item) => {
                     const isWonTab = activeTab === "won";
-                    const productData = isWonTab ? item.products : item;
-                    const auctionResult = isWonTab ? item : item.auction_results?.[0];
+                    // buyer-shaped = auction_results row พร้อม products ซ้อน (won tab + buyer order tab)
+                    const isBuyerShape = isWonTab || item._isBuyerOrder;
+                    const productData = isBuyerShape ? item.products : item;
+                    const auctionResult = isBuyerShape ? item : item.auction_results?.[0];
                     const { name, color } = mapProductState(productData?.state);
-                    const currentPrice = isWonTab
+                    const currentPrice = isBuyerShape
                         ? auctionResult?.final_price
                         : productData?.bids?.length
                           ? Math.max(...productData.bids.map((b) => b.bid_price))
@@ -128,7 +144,7 @@ function Page() {
                                 bidders_count: biddersCount,
                                 images_url: productData?.images_url,
                                 paymentStatus: auctionResult?.payment_status,
-                                isBuyer: isWonTab,
+                                isBuyer: isBuyerShape,
                                 isBidder: productData?._isBidder,
                                 isLost,
                             }}

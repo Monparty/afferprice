@@ -64,20 +64,33 @@ export async function getLostBidProductsByUser() {
         .neq("seller_id", user.id);
 }
 
+// สินค้าที่ user ชนะแต่ผู้ขายยังไม่จัดส่ง (state='sold') — ถ้า seller จัดส่งแล้ว (state='order') จะย้ายไป tab การจัดส่ง
 export async function getWonProductsByUser() {
     const { data: { user } } = await supabase.auth.getUser();
     return supabase
         .from("auction_results")
-        .select("id, payment_status, winner_id, final_price, products(*, bids(id, user_id))")
-        .eq("winner_id", user.id);
+        .select("id, payment_status, winner_id, final_price, products!inner(*, bids(id, user_id))")
+        .eq("winner_id", user.id)
+        .eq("products.state", "sold");
 }
 
 export async function getWonProductCountByUser() {
     const { data: { user } } = await supabase.auth.getUser();
     return supabase
         .from("auction_results")
-        .select("*", { count: "exact", head: true })
-        .eq("winner_id", user.id);
+        .select("id, products!inner(state)", { count: "exact", head: true })
+        .eq("winner_id", user.id)
+        .eq("products.state", "sold");
+}
+
+// สินค้าที่ user ชนะและผู้ขายจัดส่งแล้ว (state='order') — แสดงใน tab การจัดส่งฝั่งผู้ซื้อ
+export async function getOrderProductsWonByUser() {
+    const { data: { user } } = await supabase.auth.getUser();
+    return supabase
+        .from("auction_results")
+        .select("id, payment_status, winner_id, final_price, products!inner(*, bids(id, user_id))")
+        .eq("winner_id", user.id)
+        .eq("products.state", "order");
 }
 
 // ปิดประมูลที่หมดเวลาแล้วแต่ state ยังค้างที่ 'active'

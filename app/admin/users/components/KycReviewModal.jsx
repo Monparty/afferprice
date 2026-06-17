@@ -8,6 +8,7 @@ import UseTag from "@/app/components/utils/UseTag";
 import { approveKyc, getUserById, rejectKyc, getIdCardSignedUrlAdmin } from "@/app/services/admin/users.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import UseSkeleton from "@/app/components/utils/UseSkeleton";
+import UseImage from "@/app/components/utils/UseImage";
 
 const KYC_TAG = {
     approved: { color: "green", label: "ยืนยันแล้ว" },
@@ -136,13 +137,11 @@ function KycReviewModal({ open, userId, onClose, onSuccess }) {
                             <div className="grid gap-2">
                                 <p className="text-sm font-semibold">ภาพถ่ายหน้าบัตรประชาชน</p>
                                 {idCardUrl ? (
-                                    <a href={idCardUrl} target="_blank" rel="noreferrer">
-                                        <img
-                                            src={idCardUrl}
-                                            alt="id card"
-                                            className="w-full max-h-64 object-contain rounded-lg border border-slate-200"
-                                        />
-                                    </a>
+                                    <UseImage
+                                        src={idCardUrl}
+                                        alt="id card"
+                                        className="w-full max-h-64 object-contain"
+                                    />
                                 ) : (
                                     <p className="text-sm text-slate-400">ยังไม่ได้อัปโหลด</p>
                                 )}
@@ -150,13 +149,11 @@ function KycReviewModal({ open, userId, onClose, onSuccess }) {
                             <div className="grid gap-2">
                                 <p className="text-sm font-semibold">ภาพเซลฟี่คู่กับบัตรประชาชน</p>
                                 {selfieUrl ? (
-                                    <a href={selfieUrl} target="_blank" rel="noreferrer">
-                                        <img
-                                            src={selfieUrl}
-                                            alt="selfie"
-                                            className="w-full max-h-64 object-contain rounded-lg border border-slate-200"
-                                        />
-                                    </a>
+                                    <UseImage
+                                        src={selfieUrl}
+                                        alt="selfie"
+                                        className="w-full max-h-64 object-contain"
+                                    />
                                 ) : (
                                     <p className="text-sm text-slate-400">ยังไม่ได้อัปโหลด</p>
                                 )}
