@@ -3,7 +3,7 @@ import { requireUser, AuthError } from "@/app/lib/auth";
 import { rateLimit, clientKey } from "@/app/lib/rateLimit";
 import { NextResponse } from "next/server";
 
-const ALLOWED_GENDERS = new Set(["male", "female", "other"]);
+const ALLOWED_GENDERS = new Set(["M", "F", "O"]);
 const PHONE_RE = /^0[0-9]{9}$/;
 const NAME_MAX = 80;
 
