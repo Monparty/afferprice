@@ -52,7 +52,7 @@ function SectionHeading({ no, children }) {
 
 function KycVerificationForm({ setIsOpenModalProfile, onKycSubmitted, onSubmitSaveProduct }) {
     const dispatch = useDispatch();
-    const { handleSubmit, control, reset, setValue } = useForm({
+    const { handleSubmit, control, reset, setValue, watch } = useForm({
         resolver: yupResolver(kycFullSchema),
         mode: "onBlur",
         defaultValues: { id_card_image: [], selfie_image: [], pdpa_consent: false, pdpa_accuracy: false },
@@ -204,6 +204,8 @@ function KycVerificationForm({ setIsOpenModalProfile, onKycSubmitted, onSubmitSa
 
     const tag = KYC_TAG[kycStatus] ?? KYC_TAG.unknown;
     const locked = kycStatus === "pending" || kycStatus === "approved";
+    // ปุ่มกดได้เมื่อกรอกครบทุกช่อง + ติ๊ก PDPA ครบ 2 ข้อ (validate ตาม kycFullSchema)
+    const isFormValid = kycFullSchema.isValidSync(watch());
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
@@ -368,7 +370,7 @@ function KycVerificationForm({ setIsOpenModalProfile, onKycSubmitted, onSubmitSa
                 wFull
                 size="large"
                 loading={submitting}
-                disabled={locked}
+                disabled={locked || !isFormValid}
             />
         </form>
     );

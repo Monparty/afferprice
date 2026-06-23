@@ -41,3 +41,17 @@ body {
     color: white;
     background: oklch(75% 0.183 55.934);
 }
+
+.ant-picker-now-btn {
+    padding: 4px 20px;
+    border-radius: 6px;
+    color: rgba(0, 0, 0, 0.88);
+    border: 1px solid rgb(217, 217, 217);
+    background-color: rgb(255, 255, 255);
+    transition: 0.2s;
+
+    &:hover {
+        color: #ff7a45;
+        border: 1px solid #ff7a45;
+    }
+}
