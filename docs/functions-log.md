@@ -95,3 +95,18 @@ Append-only log of completed features/functions. Newest entries at the bottom.
   - **`useSearchParams` ต้องอยู่ใน `<Suspense>`** — แยก `OrderContent` แล้วครอบ Suspense ใน `Page` (กัน build error prerender)
   - ปุ่มส่ง **product id** (ไม่ใช่ auction_result id) เพราะ `getAuctionResultByProduct` query ด้วย `product_id`
   - RLS รองรับอยู่แล้ว: `auction_results` `"winner or seller read result"`, `shipments` `"buyer or seller read shipment"`
+
+## Admin menu badge counts — งานที่ admin ต้องตรวจสอบ — 2026-06-23
+- **Purpose:** แสดง badge ตัวเลขบนเมนู sidebar admin บอกจำนวนงานค้างที่ต้องตรวจสอบ — ตอนนี้ 2 ตัว: สินค้ารอตรวจ (`products.state='pending_review'`) บนเมนู "จัดการสินค้าประมูล" และ KYC รอตรวจ (`profiles.is_kyc='pending'`) บนเมนู "จัดการผู้ใช้งาน"
+- **Location:**
+  - Service: `app/services/admin/badges.service.js` (ใหม่) — `getAdminBadgeCounts()`
+  - UI: `app/admin/components/AdminLayout.jsx` — state `badgeCounts` + `useEffect` fetch + render badge ใน `menus.map`
+- **Inputs/Outputs:**
+  - `getAdminBadgeCounts()` (`requireAdmin` + `supabaseAdmin`) คืน object keyed by route → count เช่น `{ "/admin/products": 3, "/admin/users": 5 }`
+  - นับทุก source พร้อมกันด้วย `Promise.all` (`count: "exact", head: true` — ไม่ดึง row จริง)
+  - layout: `badgeCounts[menu.url] > 0` → render `<span>` ส้ม (`> 99` แสดง `99+`); refetch ทุกครั้งที่ `pathname` เปลี่ยน
+- **Gotchas:**
+  - **Scale ได้ง่าย:** เพิ่ม badge ใหม่ = เพิ่ม 1 entry ใน `BADGE_SOURCES` (`{ key: ROUTES.X, count: () => supabaseAdmin... }`) — ไม่ต้องแตะ layout เลย
+  - **key ต้องตรงกับ `menu.url`** (ใช้ `ROUTES.*` ทั้ง 2 ฝั่ง) ไม่งั้น badge ไม่ขึ้น
+  - refetch ผูกกับ `pathname` (ไม่มี polling/realtime) — badge อัปเดตเมื่อ admin เปลี่ยนหน้าเท่านั้น
+  - fetch error เงียบ (`.catch(() => {})`) — ไม่ให้พังทั้ง layout

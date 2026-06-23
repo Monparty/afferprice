@@ -154,6 +154,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
 ## Admin Menu & Pages
 
 - **Menu config**: `app/admin/components/AdminLayout.jsx` (array `menus`) — แต่ละรายการ `{ url, label, icon }`; highlight active ผ่าน `pathname.split("/")[2]` เทียบกับ `menu.url.split("/")[2]`
+- **Menu badge counts**: `app/services/admin/badges.service.js` — `getAdminBadgeCounts()` คืน object keyed by route → count งานค้างที่ admin ต้องตรวจสอบ (ปัจจุบัน: `pending_review` products บน `/admin/products`, `is_kyc='pending'` profiles บน `/admin/users`); AdminLayout fetch ใน `useEffect([pathname])` แล้ว render badge เมื่อ `badgeCounts[menu.url] > 0`. **เพิ่ม badge ใหม่ = เพิ่ม entry ใน `BADGE_SOURCES`** (`{ key: ROUTES.X, count }`) ไม่ต้องแตะ layout
 - **Routes**: `app/admin/constants/routes.js` — เพิ่ม route ใหม่ที่นี่ก่อนใช้ใน menu/page
 - **Pages ที่มีอยู่**:
   - `/admin` — แดชบอร์ด (stats + recent products + recent bids)

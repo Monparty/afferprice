@@ -24,8 +24,10 @@ import UseAvatar from "@/app/components/utils/UseAvatar";
 import UsePopover from "@/app/components/utils/UsePopover";
 import UseButton from "@/app/components/inputs/UseButton";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { ROUTES } from "../constants/routes";
 import { logout } from "@/app/services/auth.service";
+import { getAdminBadgeCounts } from "@/app/services/admin/badges.service";
 
 const menus = [
     { url: ROUTES.ADMIN, label: "แดชบอร์ด", icon: <BarChartOutlined className="text-lg!" /> },
@@ -47,6 +49,14 @@ function AdminLayout({ children }) {
     const router = useRouter();
     const pathname = usePathname();
     const headerName = menus.find((item) => item.url.split("/")[2] === pathname.split("/")[2])?.label || "";
+
+    // จำนวน badge ต่อเมนู (keyed by route) — refetch เมื่อเปลี่ยนหน้าเพื่อให้ค่าอัปเดตหลัง admin จัดการ
+    const [badgeCounts, setBadgeCounts] = useState({});
+    useEffect(() => {
+        getAdminBadgeCounts()
+            .then(setBadgeCounts)
+            .catch(() => {});
+    }, [pathname]);
 
     // logout
     const handleLogout = async () => {
@@ -72,6 +82,11 @@ function AdminLayout({ children }) {
                                 >
                                     {menu.icon}
                                     {menu.label}
+                                    {badgeCounts[menu.url] > 0 && (
+                                        <span className="ml-auto text-white bg-orange-600 h-4 min-w-4 px-1.5 text-[10px] font-medium flex items-center justify-center rounded-full">
+                                            {badgeCounts[menu.url] > 99 ? "99+" : badgeCounts[menu.url]}
+                                        </span>
+                                    )}
                                 </Link>
                             ))}
                         </div>
