@@ -8,8 +8,8 @@ import { useMemo, useState } from "react";
 
 function VideoPreviewItem({ file, onRemove }) {
     const src = useMemo(
-        () => file.thumbUrl || file.url || (file.originFileObj ? URL.createObjectURL(file.originFileObj) : null),
-        [file.thumbUrl, file.url, file.originFileObj]
+        () => file.url || (file.originFileObj ? URL.createObjectURL(file.originFileObj) : null),
+        [file.url, file.originFileObj]
     );
     return (
         <div className="group relative w-full h-full overflow-hidden rounded-lg border border-slate-200 bg-black">
