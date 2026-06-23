@@ -111,7 +111,7 @@ function AdminLayout({ children }) {
                                     {menu.icon}
                                     {menu.label}
                                     {badgeCounts[menu.url] > 0 && (
-                                        <span className="ml-auto text-white bg-orange-600 h-4 min-w-4 px-1.5 text-[10px] font-medium flex items-center justify-center rounded-full">
+                                        <span className="ml-auto text-white bg-orange-600 h-5 min-w-5 p-1 text-[10px] font-medium flex items-center justify-center rounded-sm leading-4">
                                             {badgeCounts[menu.url] > 99 ? "99+" : badgeCounts[menu.url]}
                                         </span>
                                     )}
