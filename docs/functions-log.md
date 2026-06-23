@@ -171,3 +171,18 @@ Append-only log of completed features/functions. Newest entries at the bottom.
   - **resolver ยังไม่ย้าย promptpay มาใช้** — promptpay เก็บ logic inline เดิม (ลดความเสี่ยง path หลักที่ใช้บ่อยสุด); ใช้ resolver เฉพาะ credit-card + omise route → ถ้าแก้กติกาคิดเงินต้องแก้ทั้ง resolver **และ** promptpay route
   - **ต้องเปิดใช้ TrueMoney Wallet + Rabbit LINE Pay ใน Omise Dashboard** ก่อน ไม่งั้น source creation error
   - checkout picker เป็น 5 ตัวเลือก (`grid-cols-3` wrap 2 แถว); topup modal เป็น 4 (`grid-cols-4`)
+
+## Claude Code subagents — scribe + security-guard (dev tooling) — 2026-06-23
+- **Purpose:** เพิ่ม subagent ให้ Claude Code ช่วยงาน dev — `scribe` ทำ workflow "จด" อัตโนมัติ (บันทึก feature ลง docs), `security-guard` ตรวจโค้ดกับกฎเหล็กความปลอดภัยก่อน commit
+- **Location:**
+  - `.claude/agents/scribe.md` (ใหม่)
+  - `.claude/agents/security-guard.md` (ใหม่)
+- **Inputs/Outputs:**
+  - **scribe** — frontmatter `name/description/tools: Read,Edit,Grep,Glob,Bash/model: sonnet`; system prompt สั่งให้ อ่าน `git diff` + format เดิมใน `functions-log.md` → append entry ตาม format CLAUDE.md (append-only, ภาษาไทย) → อัปเดต `conventions.md`/`architecture.md` ถ้าจำเป็น; auto-delegate เมื่อผู้ใช้พิมพ์ "จด" หรือบอกว่าทำ feature เสร็จ
+  - **security-guard** — frontmatter `tools: Read,Grep,Glob,Bash/model: sonnet`; read-only auditor: อ่าน `docs/security.md` + `git diff` → ตรวจ checklist (requireAdmin/requireUser, ห้าม trust userId จาก body, payment server-side, rateLimit, RLS `WITH CHECK`, jsonLdSafe, PII bucket ฯลฯ) → รายงาน ✅/❌ พร้อม `file:line` + fix จัดลำดับ 🔴/🟡; auto-delegate เมื่อแก้ route/server action/admin service/migration RLS/payment flow
+- **Gotchas:**
+  - **agent ที่สร้างใหม่ไม่ถูกโหลดในเซสชันที่กำลังรันอยู่** — ต้อง restart Claude Code ก่อน `scribe`/`security-guard` ถึงจะขึ้นใน available agents (เซสชันที่สร้างจะ spawn ไม่ได้ → "agent type not found")
+  - **auto-delegate ไม่การันตี 100%** — ขึ้นกับว่า `description` match งานแค่ไหน; ถ้าอยากชัวร์เรียกชื่อตรง ๆ (`ใช้ scribe จด...`)
+  - **subagent เริ่ม context เปล่าทุกครั้ง** — ไม่เห็นบทสนทนาก่อนหน้า เลยสั่ง prompt ให้อ่าน `git diff` + docs เองก่อนทำงาน
+  - `security-guard` เป็น **read-only** — เสนอ fix เท่านั้น ไม่แก้โค้ดเองเว้นแต่ผู้ใช้สั่ง (กันแก้พลาดในขั้นตรวจ)
+  - `model: sonnet` ทั้งคู่ (งาน docs/audit ไม่ต้อง opus) — ปรับได้ใน frontmatter
