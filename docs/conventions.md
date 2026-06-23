@@ -23,6 +23,12 @@ Project-specific coding style and reusable patterns. Standard library behavior i
 - Max-width container: `360px` base with responsive padding
 - **⚠️ Tailwind 4 + `sr-only` gotcha**: hidden radio/checkbox visual states (`has-checked:`) don't work. For selectable cards use `<div onClick>` + conditional className driven by state (see checkout payment-method picker and address card).
 
+## Payment-method card shell
+
+- เปลือกการ์ดของช่องทางชำระเงินอยู่ที่ `app/components/payment/PaymentMethodCard.jsx` (`{ icon, title, subtitle, children }`) — single source ของดีไซน์ (border/padding/header). `icon` ส่งเป็น **component type** (`icon={WalletFilled}`) ไม่ใช่ element; การ์ดเป็นคนใส่ className ขนาด/สี เพื่อคุมที่เดียว.
+- แต่ละ method = component `XxxListingBtn.jsx` ที่ wrap `PaymentMethodCard` (เช่น `PromptPayListingBtn`, `WalletListingBtn`) แล้วประกอบรวมใน `ListingFeePayment.jsx`.
+- **เพิ่ม method ใหม่**: สร้าง `XxxListingBtn.jsx` ใช้ `PaymentMethodCard` เป็นเปลือก + ใส่เนื้อหาปุ่มของตัวเอง แล้วเพิ่มลง `ListingFeePayment` — **ห้าม copy markup การ์ด** (จะหลุด single source).
+
 ## Admin list page pattern
 
 `"use client"` → `useEffect` fetch service → map → `UseTable` inside wrapper `bg-white rounded-xl shadow-sm border border-slate-100`.

@@ -6,7 +6,7 @@ import UseButton from "../inputs/UseButton";
 import UseSkeleton from "../utils/UseSkeleton";
 import { notifyError } from "@/app/providers/NotificationProvider";
 
-function PromptPayQR({ amount, purpose = "topup", productId, auctionResultId, label = "ชำระด้วย PromptPay" }) {
+function PromptPayQR({ amount, purpose = "topup", productId, auctionResultId, label = "ชำระด้วย PromptPay", wFull = false }) {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [qrData, setQrData] = useState(null);
@@ -46,7 +46,7 @@ function PromptPayQR({ amount, purpose = "topup", productId, auctionResultId, la
 
     return (
         <>
-            <UseButton label={label} onClick={handleOpen} />
+            <UseButton label={label} onClick={handleOpen} wFull={wFull} />
 
             <UseModal open={open} onCancel={() => setOpen(false)} title="ข้อมูลการชำระเงิน">
                 {loading ? (

@@ -18,8 +18,7 @@ import { Activity } from "react";
 import UseTextArea from "@/app/components/inputs/UseTextArea";
 import { handleLocalPreview } from "@/app/utils/storageHelper";
 import { useWatch } from "react-hook-form";
-import PromptPayQR from "@/app/components/payment/PromptPayQR";
-import WalletListingBtn from "@/app/components/payment/WalletListingBtn";
+import ListingFeePayment from "@/app/components/payment/ListingFeePayment";
 import ProductEvaluation from "./ProductEvaluation";
 import UseButton from "@/app/components/inputs/UseButton";
 
@@ -213,19 +212,11 @@ function AddProductForm({ activeStep, control, categoryList, setValue, isKyc = "
                             <UseButton label="รีเฟรชสถานะ" type="default" onClick={refreshFeePayment} />
                         </div>
                     ) : (
-                        <div className="grid gap-3">
-                            <PromptPayQR
-                                amount={listingFee}
-                                purpose="listing_fee"
-                                productId={watchProductId}
-                                label={`ชำระด้วย PromptPay (฿${listingFee.toLocaleString()})`}
-                            />
-                            <WalletListingBtn
-                                productId={watchProductId}
-                                amount={listingFee}
-                                onSuccess={refreshFeePayment}
-                            />
-                        </div>
+                        <ListingFeePayment
+                            amount={listingFee}
+                            productId={watchProductId}
+                            onSuccess={refreshFeePayment}
+                        />
                     )}
                 </section>
             </Activity>

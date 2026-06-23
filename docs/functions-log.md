@@ -110,3 +110,23 @@ Append-only log of completed features/functions. Newest entries at the bottom.
   - **key ต้องตรงกับ `menu.url`** (ใช้ `ROUTES.*` ทั้ง 2 ฝั่ง) ไม่งั้น badge ไม่ขึ้น
   - refetch ผูกกับ `pathname` (ไม่มี polling/realtime) — badge อัปเดตเมื่อ admin เปลี่ยนหน้าเท่านั้น
   - fetch error เงียบ (`.catch(() => {})`) — ไม่ให้พังทั้ง layout
+
+## Listing fee payment — reusable payment-method components — 2026-06-23
+- **Purpose:** รวม UI ช่องทางชำระค่าธรรมเนียมลงขาย (PromptPay + Wallet) ให้เป็น component ที่ reuse ได้ + แชร์เปลือกการ์ดเดียวกัน เพื่อให้แก้ดีไซน์ที่เดียวมีผลทุก method
+- **Location:**
+  - `app/components/payment/PaymentMethodCard.jsx` (ใหม่) — เปลือกการ์ดร่วม
+  - `app/components/payment/PromptPayListingBtn.jsx` (ใหม่) — การ์ด PromptPay (wrap `PromptPayQR`)
+  - `app/components/payment/WalletListingBtn.jsx` — refactor ใช้ `PaymentMethodCard`
+  - `app/components/payment/ListingFeePayment.jsx` (ใหม่) — ประกอบ 2 ปุ่มเข้าด้วยกัน
+  - `app/components/payment/PromptPayQR.jsx` — เพิ่ม prop `wFull` (ส่งต่อให้ `UseButton`)
+  - ใช้งานใน `app/(authenticated)/user/add-product/components/AddProductForm.jsx` (step 3) → `<ListingFeePayment amount={listingFee} productId={watchProductId} onSuccess={refreshFeePayment} />`
+- **Inputs/Outputs:**
+  - `PaymentMethodCard({ icon, title, subtitle, children })` — `icon` เป็น **component type** (เช่น `WalletFilled`) render เป็น `<Icon className="text-2xl! text-orange-500!" />`; การ์ด `bg-white border rounded-xl p-4` + header `flex gap-3 mb-3`
+  - `PromptPayListingBtn({ productId, amount })` → `<PaymentMethodCard icon={QrcodeOutlined} ...>` + `<PromptPayQR purpose="listing_fee" wFull />`
+  - `WalletListingBtn({ productId, amount, onSuccess })` — subtitle = `ยอดคงเหลือ` (dynamic), children = warning ยอดไม่พอ + `UseButton wFull` (logic wallet เดิมไม่เปลี่ยน)
+  - `ListingFeePayment({ amount, productId, onSuccess })` → `grid gap-3` ครอบ 2 ปุ่ม
+- **Gotchas:**
+  - **เพิ่ม method ใหม่ (เช่น บัตรเครดิต/LinePay):** สร้าง `XxxListingBtn.jsx` ที่ใช้ `PaymentMethodCard` เป็นเปลือก (icon/title/subtitle + เนื้อหาปุ่มของตัวเอง) แล้วเพิ่มลงใน `ListingFeePayment` — **ห้าม copy markup การ์ด** (จะหลุด single source)
+  - **`paid` state ของ `WalletListingBtn` ไม่ได้ใช้ `PaymentMethodCard`** — เป็นการ์ดเขียวสำเร็จคนละแบบ (ตั้งใจ); การ์ดมาตรฐานคือเคสยังไม่จ่าย
+  - `wFull` ของ `PromptPayQR` default `false` — ที่อื่น (topup/auction) ปุ่มยังเป็นขนาดปกติเหมือนเดิม ไม่กระทบ
+  - `icon` ส่งเป็น type ไม่ใช่ element (`icon={WalletFilled}` ไม่ใช่ `icon={<WalletFilled/>}`) — `PaymentMethodCard` เป็นคนใส่ className ขนาด/สี เพื่อให้คุมที่เดียว

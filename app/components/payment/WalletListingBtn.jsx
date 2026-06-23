@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import { WalletFilled } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import UseButton from "../inputs/UseButton";
+import PaymentMethodCard from "./PaymentMethodCard";
 import { getMyWalletBalance, subscribeWallet } from "@/app/services/wallet.service";
 import { setWalletBalance as setWalletBalanceAction } from "@/app/features/user/userSlice";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
@@ -75,14 +76,11 @@ function WalletListingBtn({ productId, amount, onSuccess }) {
     }
 
     return (
-        <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl p-4">
-            <div className="flex items-center gap-3 mb-3">
-                <WalletFilled className="text-2xl! text-orange-500!" />
-                <div>
-                    <p className="font-semibold">ชำระด้วย Wallet</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">ยอดคงเหลือ ฿{balance.toLocaleString()}</p>
-                </div>
-            </div>
+        <PaymentMethodCard
+            icon={WalletFilled}
+            title="ชำระด้วย Wallet"
+            subtitle={`ยอดคงเหลือ ฿${balance.toLocaleString()}`}
+        >
             {insufficient && (
                 <p className="text-xs text-red-500 mb-2">ยอดคงเหลือไม่เพียงพอ กรุณาเติมเงินก่อน</p>
             )}
@@ -93,7 +91,7 @@ function WalletListingBtn({ productId, amount, onSuccess }) {
                 disabled={submitting || !productId || !amount}
                 wFull
             />
-        </div>
+        </PaymentMethodCard>
     );
 }
 
