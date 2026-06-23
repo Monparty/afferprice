@@ -2,21 +2,24 @@
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { ExclamationCircleFilled, SafetyCertificateFilled } from "@ant-design/icons";
+import { CheckCircleFilled, ExclamationCircleFilled, PlusOutlined, SafetyCertificateFilled } from "@ant-design/icons";
 
 import InputText from "@/app/components/inputs/InputText";
 import UseSelect from "@/app/components/inputs/UseSelect";
 import UseDatePicker from "@/app/components/inputs/UseDatePicker";
-import UseTextArea from "@/app/components/inputs/UseTextArea";
 import UseUpload from "@/app/components/inputs/UseUpload";
 import UseCheckbox from "@/app/components/inputs/UseCheckbox";
 import UseButton from "@/app/components/inputs/UseButton";
 import UseTag from "@/app/components/utils/UseTag";
+import UseModal from "@/app/components/utils/UseModal";
+import CardUserAddress from "./CardUserAddress";
+import UserAddressForm from "./UserAddressForm";
 
 import { genderList, bankList } from "@/app/utils/dataSelect";
 import { handleLocalPreview } from "@/app/utils/storageHelper";
 import { validateImageFile, fileErrorMessage } from "@/app/utils/fileValidation";
 import { getProfileById, updateProfileById } from "@/app/services/profile.service";
+import { getMyAddresses } from "@/app/services/address.service";
 import { getCurrentUser } from "@/app/services/auth.service";
 import { uploadIdCard, removeIdCard, createIdCardSignedUrl } from "@/app/services/upload.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
@@ -31,6 +34,10 @@ const KYC_TAG = {
     rejected: { color: "red", label: "ไม่ผ่านการตรวจสอบ" },
     unknown: { color: "default", label: "ยังไม่ได้ยืนยันตัวตน" },
 };
+
+// แปลง row ใน user_addresses → ข้อความที่อยู่ (เก็บลง profiles.address ที่ submit_kyc บังคับ)
+const composeAddress = (a) =>
+    [a?.address_line, a?.district, a?.province, a?.postal_code].filter(Boolean).join(" ");
 
 function SectionHeading({ no, children }) {
     return (
@@ -54,10 +61,30 @@ function KycVerificationForm({ setIsOpenModalProfile, onKycSubmitted, onSubmitSa
     const [kycStatus, setKycStatus] = useState("unknown");
     const [kycRemark, setKycRemark] = useState(null);
     const [submitting, setSubmitting] = useState(false);
+    const [addresses, setAddresses] = useState([]);
+    const [selectedAddressId, setSelectedAddressId] = useState(null);
+    const [addrModalOpen, setAddrModalOpen] = useState(false);
 
     useEffect(() => {
-        fetchUserAndProfile();
+        (async () => {
+            await fetchUserAndProfile();
+            await fetchAddresses();
+        })();
     }, [reset]);
+
+    const fetchAddresses = async () => {
+        const { data, error } = await getMyAddresses();
+        if (error) return notifyError(error);
+        const list = data ?? [];
+        setAddresses(list);
+        const def = list.find((a) => a.is_default) ?? list[0];
+        if (def && !selectedAddressId) selectAddress(def);
+    };
+
+    const selectAddress = (addr) => {
+        setSelectedAddressId(addr.id);
+        setValue("address", composeAddress(addr), { shouldValidate: true });
+    };
 
     const fetchUserAndProfile = async () => {
         const { data: currentUserData, error: userError } = await getCurrentUser();
@@ -83,7 +110,6 @@ function KycVerificationForm({ setIsOpenModalProfile, onKycSubmitted, onSubmitSa
             birth_date: p.birth_date ?? null,
             gender: p.gender ?? undefined,
             phone: p.phone ?? "",
-            address: p.address ?? "",
             bank_name: p.bank_name ?? undefined,
             bank_account_no: p.bank_account_no ?? "",
             bank_account_name: p.bank_account_name ?? "",
@@ -231,12 +257,55 @@ function KycVerificationForm({ setIsOpenModalProfile, onKycSubmitted, onSubmitSa
                 />
                 <InputText control={control} name="email" label="อีเมล" size="large" disabled />
             </div>
-            <UseTextArea
-                control={control}
-                name="address"
-                label="ที่อยู่ปัจจุบัน (สำหรับจัดส่งเอกสาร/สินค้า)"
-                size="large"
-            />
+            <div className="grid gap-2">
+                <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-slate-600 dark:text-slate-300">
+                        ที่อยู่ปัจจุบัน (สำหรับจัดส่งเอกสาร/สินค้า)
+                    </span>
+                    <UseButton
+                        label="เพิ่มที่อยู่ใหม่"
+                        type="default"
+                        icon={PlusOutlined}
+                        onClick={() => setAddrModalOpen(true)}
+                    />
+                </div>
+                {addresses.length === 0 ? (
+                    <p className="text-sm text-gray-400">ยังไม่มีที่อยู่ กรุณาเพิ่มที่อยู่</p>
+                ) : (
+                    <div className="grid gap-3">
+                        {addresses.map((addr) => {
+                            const isSelected = selectedAddressId === addr.id;
+                            return (
+                                <div
+                                    key={addr.id}
+                                    onClick={() => selectAddress(addr)}
+                                    className={`rounded-xl cursor-pointer relative ${isSelected ? "border-2 border-orange-400 shadow-md" : "border-2 border-slate-50 dark:border-zinc-700"}`}
+                                >
+                                    <CardUserAddress address={addr} readonly />
+                                    {isSelected && (
+                                        <CheckCircleFilled className="text-xl text-orange-500! absolute top-2 right-2" />
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+            <UseModal
+                title="ที่อยู่ใหม่"
+                open={addrModalOpen}
+                onCancel={() => setAddrModalOpen(false)}
+                isShowCancel={false}
+            >
+                <UserAddressForm
+                    editData={null}
+                    onSuccess={() => {
+                        fetchAddresses();
+                        setAddrModalOpen(false);
+                    }}
+                    onClose={() => setAddrModalOpen(false)}
+                />
+            </UseModal>
 
             {/* 3. อัปโหลดเอกสารยืนยันตัวตน */}
             <SectionHeading no={3}>อัปโหลดเอกสารยืนยันตัวตน</SectionHeading>

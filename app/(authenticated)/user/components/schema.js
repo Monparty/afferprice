@@ -34,7 +34,7 @@ export const kycFullSchema = yup.object({
         .string()
         .required("กรุณากรอกเบอร์โทรศัพท์")
         .matches(/^0[0-9]{8,9}$/, "เบอร์โทรศัพท์ไม่ถูกต้อง"),
-    address: yup.string().trim().required("กรุณากรอกที่อยู่ปัจจุบัน"),
+    address: yup.string().trim().required("กรุณาเลือกที่อยู่ปัจจุบัน"),
     id_card_image: yup
         .array()
         .of(yup.object())
