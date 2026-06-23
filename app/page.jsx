@@ -8,7 +8,7 @@ function Page() {
 
     return (
         <div className="w-full max-w-360 mx-auto py-6 px-4 md:px-10">
-            <div className="ฝhidden">
+            <div className="hidden">
                 <button
                     onClick={() => setShowDev(!showDev)}
                     className="h-fit w-fit bg-blue-400 p-4 fixed z-100 m-4 right-0 rounded-lg  text-white flex opacity-50 cursor-pointer"
@@ -24,7 +24,6 @@ function Page() {
                         <ul className="ps-4 list-decimal">
                             <li>ทำ flow สร้างสินค้า ตรวจสอบ แจ้งเตือน ประมูล [ชำระเงิน จัดส่ง]</li>
                             <li>ตัวเลขเวลานับถอยหลังใน Card ต้องนับถอยหลังแบบ realtime</li>
-                            <li>สินค้าที่ user คนอื่นมี action ต้องขึ้นที่ state กำลังประมูล (รอตรวจสอบ)</li>
                             <li>ทำระบบเติมเงินไว้ให้ user เก็บเงินในเว็บผ่าน Omise (ทำแล้วยังไม่ผูกกับ Omise)</li>
                             <li>ทำ db ทดสอบ กับ bd จริง</li>
                             <li>แก้เงื่อนไขการแสดงผล content หน้าแรก</li>

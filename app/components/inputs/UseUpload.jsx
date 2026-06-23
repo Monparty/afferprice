@@ -1,17 +1,35 @@
 "use client";
 import Dragger from "antd/es/upload/Dragger";
 import UseButton from "./UseButton";
-import { CloudUploadOutlined, UploadOutlined } from "@ant-design/icons";
+import { CloudUploadOutlined, DeleteOutlined, UploadOutlined } from "@ant-design/icons";
 import { Controller } from "react-hook-form";
 import UseHelperText from "./UseHelperText";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
+function VideoPreviewItem({ file, onRemove }) {
+    const src = useMemo(
+        () => file.thumbUrl || file.url || (file.originFileObj ? URL.createObjectURL(file.originFileObj) : null),
+        [file.thumbUrl, file.url, file.originFileObj]
+    );
+    return (
+        <div className="group relative w-full h-full overflow-hidden rounded-lg border border-slate-200 bg-black">
+            <video src={src} className="w-full h-full object-cover" preload="metadata" muted controls />
+            <button
+                type="button"
+                onClick={onRemove}
+                className="absolute top-1 right-1 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition group-hover:opacity-100"
+            >
+                <DeleteOutlined className="text-xs" />
+            </button>
+        </div>
+    );
+}
 
 function UseUpload({
     control,
     name,
     customRequest,
     onRemove,
-    fileList,
     multiple = false,
     maxCount = 1,
     label,
@@ -50,6 +68,13 @@ function UseUpload({
                             }}
                             onChange={({ fileList }) => setFileListData(fileList)}
                             accept={acceptVideo ? "video/*" : "image/*"}
+                            itemRender={
+                                acceptVideo
+                                    ? (originNode, file, fileList, { remove }) => (
+                                          <VideoPreviewItem file={file} onRemove={remove} />
+                                      )
+                                    : undefined
+                            }
                             disabled={disabled}
                         >
                             {isDrag ? (

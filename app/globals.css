@@ -25,6 +25,13 @@ body {
     padding: 0 !important;
 }
 
+/* video upload: let the preview cell expand to full width instead of the fixed picture-card square */
+.upload-video-list .ant-upload-list-item-container {
+    width: 100% !important;
+    height: auto !important;
+    display: block !important;
+}
+
 ::selection {
     color: white;
     background: oklch(75% 0.183 55.934);

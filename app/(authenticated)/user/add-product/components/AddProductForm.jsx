@@ -23,7 +23,7 @@ import WalletListingBtn from "@/app/components/payment/WalletListingBtn";
 import ProductEvaluation from "./ProductEvaluation";
 import UseButton from "@/app/components/inputs/UseButton";
 
-function Form({ activeStep, control, categoryList, setValue, isKyc = "unknown", feePayment = null, refreshFeePayment }) {
+function AddProductForm({ activeStep, control, categoryList, setValue, isKyc = "unknown", feePayment = null, refreshFeePayment }) {
     const watchState = useWatch({ control, name: "state" });
     const watchCategoryId = useWatch({ control, name: "categoryId" });
     const watchStartPrice = useWatch({ control, name: "startPrice" });
@@ -233,4 +233,4 @@ function Form({ activeStep, control, categoryList, setValue, isKyc = "unknown", 
     );
 }
 
-export default Form;
+export default AddProductForm;

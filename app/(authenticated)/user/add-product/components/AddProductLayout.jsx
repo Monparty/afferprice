@@ -9,7 +9,7 @@ import { getListingFeePayment } from "@/app/services/payment.service";
 import { uploadPendingFiles, removeDeletedFiles } from "@/app/utils/storageHelper";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUser } from "@/app/features/user/userSlice";
-import Form from "./Form";
+import AddProductForm from "./AddProductForm";
 import AddProductSteps from "./AddProductSteps";
 import UseSkeleton from "@/app/components/utils/UseSkeleton";
 
@@ -141,7 +141,7 @@ function AddProductLayout({ productId }) {
             <AddProductSteps activeStep={activeStep} />
             <div className="flex justify-center gap-6">
                 <div className={`flex-2 ${activeStep === 2 ? "hidden" : ""}`}>
-                    <Form
+                    <AddProductForm
                         activeStep={activeStep}
                         control={control}
                         categoryList={categoryList}

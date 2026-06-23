@@ -6,6 +6,7 @@ const csp = [
     `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.omise.co`,
     "style-src 'self' 'unsafe-inline'",
     `img-src 'self' data: blob: ${SUPABASE_HOST} https://picsum.photos`,
+    `media-src 'self' blob: data: ${SUPABASE_HOST}`,
     "font-src 'self' data:",
     `connect-src 'self' ${SUPABASE_HOST} ${SUPABASE_WS} https://api.omise.co`,
     "frame-src 'self' https://*.omise.co",
