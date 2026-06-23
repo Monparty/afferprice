@@ -28,6 +28,17 @@ Project-specific coding style and reusable patterns. Standard library behavior i
 - เปลือกการ์ดของช่องทางชำระเงินอยู่ที่ `app/components/payment/PaymentMethodCard.jsx` (`{ icon, title, subtitle, children }`) — single source ของดีไซน์ (border/padding/header). `icon` ส่งเป็น **component type** (`icon={WalletFilled}`) ไม่ใช่ element; การ์ดเป็นคนใส่ className ขนาด/สี เพื่อคุมที่เดียว.
 - แต่ละ method = component `XxxListingBtn.jsx` ที่ wrap `PaymentMethodCard` (เช่น `PromptPayListingBtn`, `WalletListingBtn`) แล้วประกอบรวมใน `ListingFeePayment.jsx`.
 - **เพิ่ม method ใหม่**: สร้าง `XxxListingBtn.jsx` ใช้ `PaymentMethodCard` เป็นเปลือก + ใส่เนื้อหาปุ่มของตัวเอง แล้วเพิ่มลง `ListingFeePayment` — **ห้าม copy markup การ์ด** (จะหลุด single source).
+- **ช่องทางที่มี (listing fee):** `PromptPayListingBtn`, `WalletListingBtn`, `CreditCardListingBtn`, `TrueMoneyListingBtn`, `RabbitLinePayListingBtn`.
+- **method ครอบ 3 flow:** ช่องทางเดียวควรเสียบได้ทั้ง `listing_fee` (ListingFeePayment), `auction` (checkout picker → payment page `[id]`), `topup` (wallet TopupModal) — ต่างกันแค่ `purpose` + id ที่ส่งเข้า route
+
+## Client payment helpers (Omise)
+
+- **บัตรเครดิต/เดบิต** → `app/components/payment/OmiseCardForm.jsx` — โหลด Omise.js ผ่าน `next/script`, `createToken('card', …)` ฝั่ง client (PAN ไม่เข้า server) แล้ว callback `onToken(tokenId)`; **parent เป็นคนยิง `/api/payment/credit-card`** เอง (คุม `purpose`/ids). ต้องมี env `NEXT_PUBLIC_OMISE_PUBLIC_KEY` + CSP `connect-src https://*.omise.co` (vault).
+- **redirect methods (TrueMoney / Rabbit LINE Pay)** → `startOmiseRedirect(body)` ใน `app/components/payment/redirectPay.js` — POST `/api/payment/omise` แล้ว `window.location.href = authorizeUri`. Omise ส่งกลับมาที่ `/user/payment/return` (redirect ตาม `purpose`); **งานปิดจริงที่ webhook `charge.complete`** ไม่ใช่หน้า return.
+
+## Payment amount resolver (server)
+
+- คำนวณยอด + verify (ownership/KYC/already-paid/clamp topup) ฝั่ง server รวมที่ `app/lib/payment/resolveAmount.js` → `resolvePaymentAmount({ user, purpose, … })` คืน `{ amount, auctionResultId, productId }` หรือ throw `PaymentError(code, status)`. ใช้ใน `credit-card` + `omise` route. **`promptpay` route ยังมี logic inline เดิม** (ยังไม่ย้าย) — แก้กติกาคิดเงินต้องแก้ทั้ง 2 ที่. `omiseFetch`/`omiseGet` อยู่ที่ `app/lib/payment/omise.js` (อย่า copy ลง route ใหม่).
 
 ## Admin list page pattern
 

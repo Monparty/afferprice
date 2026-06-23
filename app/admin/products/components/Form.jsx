@@ -182,19 +182,19 @@ function Form({ id, mode, onSubmit }) {
                     <UseTextArea {...inputProps} name="rejectedRemark" label="เหตุผลที่ไม่อนุมัติ" />
                 )}
             </div>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                <p className="text-sm font-semibold text-slate-700 mb-2">ค่าธรรมเนียมลงขาย (5%)</p>
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-4">
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">ค่าธรรมเนียมลงขาย (5%)</p>
                 {feePayment ? (
                     <div className="grid sm:grid-cols-2 gap-2 text-sm">
                         <div>
                             <span className="text-slate-400">จำนวนเงิน:</span>{" "}
-                            <span className="font-semibold text-slate-800">
+                            <span className="font-semibold text-slate-800 dark:text-slate-100">
                                 ฿{Number(feePayment.amount).toLocaleString()}
                             </span>
                         </div>
                         <div>
                             <span className="text-slate-400">ช่องทาง:</span>{" "}
-                            <span className="font-semibold text-slate-800">
+                            <span className="font-semibold text-slate-800 dark:text-slate-100">
                                 {feePayment.payment_method?.toUpperCase() || "-"}
                             </span>
                         </div>
@@ -216,14 +216,14 @@ function Form({ id, mode, onSubmit }) {
                         </div>
                         <div>
                             <span className="text-slate-400">วันที่ชำระ:</span>{" "}
-                            <span className="font-semibold text-slate-800">
+                            <span className="font-semibold text-slate-800 dark:text-slate-100">
                                 {feePayment.paid_at ? dayjs(feePayment.paid_at).format("DD/MM/YYYY HH:mm") : "-"}
                             </span>
                         </div>
                         {feePayment.transaction_ref && (
                             <div className="sm:col-span-2 break-all">
                                 <span className="text-slate-400">อ้างอิง:</span>{" "}
-                                <span className="font-mono text-xs text-slate-600">{feePayment.transaction_ref}</span>
+                                <span className="font-mono text-xs text-slate-600 dark:text-slate-300">{feePayment.transaction_ref}</span>
                             </div>
                         )}
                     </div>

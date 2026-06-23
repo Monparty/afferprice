@@ -9,6 +9,7 @@ import UsePopover from "./UsePopover";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatCountdown } from "@/app/utils/dateUtils";
+import dayjs from "dayjs";
 
 function getPopoverAction(value) {
     const { stateName, isBuyer, isLost, paymentStatus, id } = value;
@@ -93,6 +94,11 @@ function CardSellingProduct({ value }) {
             </div>
             <div className="p-4 flex flex-col flex-1">
                 <h3 className="text-blue-500 dark:text-blue-400 font-bold line-clamp-1 mb-1">{value.title}</h3>
+                {value.created_at && (
+                    <span className="text-[10px] text-slate-400 mb-1">
+                        สร้างเมื่อ {dayjs(value.created_at).format("DD/MM/YYYY")}
+                    </span>
+                )}
                 <div className="flex justify-between items-end">
                     <div className="flex flex-col items-baseline gap-1 mt-auto">
                         <span className="text-[10px] text-slate-400 uppercase font-bold">ราคาปัจจุบัน</span>

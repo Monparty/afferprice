@@ -8,7 +8,7 @@ const csp = [
     `img-src 'self' data: blob: ${SUPABASE_HOST} https://picsum.photos`,
     `media-src 'self' blob: data: ${SUPABASE_HOST}`,
     "font-src 'self' data:",
-    `connect-src 'self' ${SUPABASE_HOST} ${SUPABASE_WS} https://api.omise.co`,
+    `connect-src 'self' ${SUPABASE_HOST} ${SUPABASE_WS} https://*.omise.co`,
     "frame-src 'self' https://*.omise.co",
     "frame-ancestors 'none'",
     "base-uri 'self'",

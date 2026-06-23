@@ -20,8 +20,8 @@ const KYC_TAG = {
 function Detail({ label, value, full }) {
     return (
         <div className={full ? "sm:col-span-2" : ""}>
-            <p className="text-xs text-slate-500">{label}</p>
-            <p className="text-sm text-slate-800 whitespace-pre-wrap">{value || "-"}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{label}</p>
+            <p className="text-sm text-slate-800 dark:text-slate-100 whitespace-pre-wrap">{value || "-"}</p>
         </div>
     );
 }
@@ -109,23 +109,23 @@ function KycReviewModal({ open, userId, onClose, onSuccess }) {
                 ) : (
                     <div className="grid gap-4">
                         <div className="grid gap-1">
-                            <p className="text-sm text-slate-500">ผู้ใช้</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">ผู้ใช้</p>
                             <p className="font-semibold">
                                 {user.first_name || "-"} {user.last_name || ""}
                             </p>
-                            <p className="text-sm text-slate-500">{user.email}</p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">{user.email}</p>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="text-sm text-slate-500">สถานะ:</span>
+                            <span className="text-sm text-slate-500 dark:text-slate-400">สถานะ:</span>
                             <UseTag label={tag.label} color={tag.color} />
                         </div>
                         {status === "rejected" && user.kyc_remark && (
                             <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                                 <p className="text-xs font-semibold text-red-700 mb-1">เหตุผลครั้งล่าสุด</p>
-                                <p className="text-sm text-slate-700 whitespace-pre-wrap">{user.kyc_remark}</p>
+                                <p className="text-sm text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{user.kyc_remark}</p>
                             </div>
                         )}
-                        <div className="grid sm:grid-cols-2 gap-x-4 gap-y-2 bg-slate-50 rounded-lg p-3">
+                        <div className="grid sm:grid-cols-2 gap-x-4 gap-y-2 bg-slate-50 dark:bg-slate-700/40 rounded-lg p-3">
                             <Detail label="เลขประจำตัวประชาชน" value={user.national_id} />
                             <Detail label="เบอร์โทรศัพท์" value={user.phone} />
                             <Detail label="ที่อยู่ปัจจุบัน" value={user.address} full />
@@ -160,7 +160,7 @@ function KycReviewModal({ open, userId, onClose, onSuccess }) {
                             </div>
                         </div>
                         {isPending && (
-                            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-700">
                                 <UseButton type="default" label="ปิด" onClick={() => onClose?.()} />
                                 <UseButton
                                     label="ไม่อนุมัติ"
@@ -194,7 +194,7 @@ function KycReviewModal({ open, userId, onClose, onSuccess }) {
                 okText="ยืนยันไม่อนุมัติ"
             >
                 <div className="grid gap-2">
-                    <label className="text-sm text-slate-600">ระบุเหตุผลให้ผู้ใช้ทราบ</label>
+                    <label className="text-sm text-slate-600 dark:text-slate-300">ระบุเหตุผลให้ผู้ใช้ทราบ</label>
                     <Input.TextArea
                         value={remark}
                         onChange={(e) => setRemark(e.target.value)}

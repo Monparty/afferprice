@@ -141,6 +141,7 @@ function Page() {
                                 title: productData?.title,
                                 duration_days: productData?.duration_days,
                                 auction_end_time: productData?.auction_end_time,
+                                created_at: productData?.created_at,
                                 bidders_count: biddersCount,
                                 images_url: productData?.images_url,
                                 paymentStatus: auctionResult?.payment_status,

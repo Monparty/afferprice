@@ -33,7 +33,7 @@ function InfoRow({ icon: Icon, label, value }) {
             <Icon className="text-slate-400! mt-0.5" />
             <div className="grid">
                 <span className="text-slate-400 text-xs">{label}</span>
-                <span className="text-slate-700">{value || "—"}</span>
+                <span className="text-slate-700 dark:text-slate-200">{value || "—"}</span>
             </div>
         </div>
     );
@@ -125,20 +125,20 @@ function Page() {
                 </UseTooltip>
             </div>
             {product && (
-                <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex gap-4 items-center">
+                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 p-4 flex gap-4 items-center">
                     <UseImage width={80} height={80} alt="product" src={product.images_url?.[0]?.url || null} />
                     <div className="grid gap-1">
                         <div className="text-lg font-medium">{product.title}</div>
-                        <div className="text-sm text-slate-500">
+                        <div className="text-sm text-slate-500 dark:text-slate-400">
                             ราคาเริ่มต้น ฿{product.start_price?.toLocaleString()}
                         </div>
-                        <div className="text-sm text-slate-500">จำนวนการประมูล {dataSource.length} ครั้ง</div>
+                        <div className="text-sm text-slate-500 dark:text-slate-400">จำนวนการประมูล {dataSource.length} ครั้ง</div>
                     </div>
                 </div>
             )}
             {orderDetail && (
                 <div className="grid gap-4 md:grid-cols-2">
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4 grid gap-3 content-start">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 p-4 grid gap-3 content-start">
                         <div className="flex items-center gap-2 font-medium text-orange-600">
                             <ShopOutlined />
                             <span>ข้อมูลผู้ขาย</span>
@@ -158,7 +158,7 @@ function Page() {
                         />
                     </div>
 
-                    <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4 grid gap-3 content-start">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 p-4 grid gap-3 content-start">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2 font-medium text-blue-600">
                                 <UserOutlined />
@@ -181,10 +181,10 @@ function Page() {
                                 value={`฿${Number(orderDetail.result.final_price ?? 0).toLocaleString()}`}
                             />
                         )}
-                        <div className="border-t border-slate-100 pt-3 grid gap-2">
+                        <div className="border-t border-slate-100 dark:border-slate-700 pt-3 grid gap-2">
                             <span className="text-slate-400 text-xs">ที่อยู่จัดส่ง</span>
                             {orderDetail.buyerAddress ? (
-                                <div className="text-sm text-slate-700 grid gap-0.5">
+                                <div className="text-sm text-slate-700 dark:text-slate-200 grid gap-0.5">
                                     <span>
                                         {orderDetail.buyerAddress.receiver_name} · {orderDetail.buyerAddress.phone}
                                     </span>
@@ -204,7 +204,7 @@ function Page() {
                             )}
                         </div>
                         {orderDetail.shipment && (
-                            <div className="border-t border-slate-100 pt-3">
+                            <div className="border-t border-slate-100 dark:border-slate-700 pt-3">
                                 <InfoRow
                                     icon={CarOutlined}
                                     label="การจัดส่ง"
@@ -215,7 +215,7 @@ function Page() {
                     </div>
                 </div>
             )}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
                 <UseTable columns={columns} dataSource={dataSource} />
             </div>
         </main>

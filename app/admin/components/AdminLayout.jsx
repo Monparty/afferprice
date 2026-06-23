@@ -12,9 +12,11 @@ import {
     HistoryOutlined,
     InboxOutlined,
     LogoutOutlined,
+    MoonOutlined,
     NotificationOutlined,
     QuestionCircleOutlined,
     SettingOutlined,
+    SunOutlined,
     ShopOutlined,
     ShoppingCartOutlined,
     UserOutlined,
@@ -28,6 +30,10 @@ import { useEffect, useState } from "react";
 import { ROUTES } from "../constants/routes";
 import { logout } from "@/app/services/auth.service";
 import { getAdminBadgeCounts } from "@/app/services/admin/badges.service";
+import { getProfileById } from "@/app/services/profile.service";
+import { supabase } from "@/app/lib/supabase/client";
+import { useTheme } from "@/app/providers/ThemeProvider";
+import AdminNotificationDrawer from "./AdminNotificationDrawer";
 
 const menus = [
     { url: ROUTES.ADMIN, label: "แดชบอร์ด", icon: <BarChartOutlined className="text-lg!" /> },
@@ -57,6 +63,28 @@ function AdminLayout({ children }) {
             .then(setBadgeCounts)
             .catch(() => {});
     }, [pathname]);
+
+    // ผู้ใช้ที่ login อยู่ (admin) — fetchUser ไม่ได้ dispatch ทุกหน้า จึงอ่านตรงจาก Supabase
+    const [profile, setProfile] = useState(null);
+    useEffect(() => {
+        (async () => {
+            const {
+                data: { user },
+            } = await supabase.auth.getUser();
+            if (!user) return;
+            const { data } = await getProfileById(user.id);
+            if (data) setProfile(data);
+        })();
+    }, []);
+
+    const adminName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || "ผู้ดูแลระบบ";
+    const adminRole = profile?.role === "admin" ? "Admin" : profile?.role || "";
+
+    // drawer การแจ้งเตือนระบบ
+    const [openNoti, setOpenNoti] = useState(false);
+
+    // สลับโหมดสว่าง/มืด (theme เก็บใน localStorage ผ่าน ThemeProvider)
+    const { isDark, toggleTheme } = useTheme();
 
     // logout
     const handleLogout = async () => {
@@ -117,10 +145,10 @@ function AdminLayout({ children }) {
                             }
                         >
                             <div className="flex gap-3 items-center p-2 rounded-lg transition-all hover:bg-slate-700 ">
-                                <UseAvatar src="https://picsum.photos/30/30" />
+                                <UseAvatar src={profile?.profile_image || undefined} icon={UserOutlined} />
                                 <div className="grid">
-                                    <p className="text-sm">นายสมชาย ควายธนู</p>
-                                    <p className="text-xs text-slate-400">Super Admin</p>
+                                    <p className="text-sm">{adminName}</p>
+                                    <p className="text-xs text-slate-400">{adminRole}</p>
                                 </div>
                             </div>
                         </UsePopover>
@@ -128,15 +156,26 @@ function AdminLayout({ children }) {
                 </nav>
             </div>
             <div className="w-5/6">
-                <header className="px-6 h-12 flex items-center justify-between bg-slate-100">
-                    <h2 className="text-xl font-bold">{headerName}</h2>
-                    <div className="flex gap-6">
-                        <BellOutlined className="text-lg!" />
+                <header className="px-6 h-12 flex items-center justify-between bg-slate-100 dark:bg-slate-900 dark:border-b dark:border-slate-700">
+                    <h2 className="text-xl font-bold dark:text-slate-100">{headerName}</h2>
+                    <div className="flex items-center gap-6">
+                        <button
+                            onClick={toggleTheme}
+                            className="flex items-center cursor-pointer hover:text-orange-500"
+                            title={isDark ? "สลับโหมดสว่าง" : "สลับโหมดมืด"}
+                        >
+                            {isDark ? <SunOutlined className="text-lg!" /> : <MoonOutlined className="text-lg!" />}
+                        </button>
+                        <BellOutlined
+                            className="text-lg! cursor-pointer hover:text-orange-500"
+                            onClick={() => setOpenNoti(true)}
+                        />
                         <QuestionCircleOutlined className="text-lg!" />
                     </div>
                 </header>
                 <div className="p-6">{children}</div>
             </div>
+            <AdminNotificationDrawer open={openNoti} onClose={() => setOpenNoti(false)} />
         </div>
     );
 }

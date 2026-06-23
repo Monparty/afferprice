@@ -100,43 +100,43 @@ function Page() {
     return (
         <div className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-2">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col gap-2">
                     <div className="flex justify-between items-start">
-                        <p className="text-slate-500 text-sm font-medium">รายได้ทั้งหมด</p>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">รายได้ทั้งหมด</p>
                     </div>
-                    <h3 className="text-2xl font-bold text-black tracking-tight">
+                    <h3 className="text-2xl font-bold text-black dark:text-slate-100 tracking-tight">
                         ฿{stats.totalRevenue.toLocaleString()}
                     </h3>
                     <p className="text-slate-400 text-xs">จากการชำระเงินสำเร็จ</p>
                 </div>
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-2">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col gap-2">
                     <div className="flex justify-between items-start">
-                        <p className="text-slate-500 text-sm font-medium">การประมูลที่ใช้งานอยู่</p>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">การประมูลที่ใช้งานอยู่</p>
                         <NotificationOutlined />
                     </div>
-                    <h3 className="text-2xl font-bold text-black tracking-tight">{stats.activeCount}</h3>
+                    <h3 className="text-2xl font-bold text-black dark:text-slate-100 tracking-tight">{stats.activeCount}</h3>
                     <p className="text-slate-400 text-xs">สินค้ากำลังประมูลอยู่</p>
                 </div>
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-2">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col gap-2">
                     <div className="flex justify-between items-start">
-                        <p className="text-slate-500 text-sm font-medium">รอการอนุมัติ</p>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">รอการอนุมัติ</p>
                         <ContainerOutlined />
                     </div>
                     <h3 className="text-2xl font-bold tracking-tight text-amber-500">{stats.pendingCount}</h3>
                     <p className="text-slate-400 text-xs">ต้องดำเนินการเร่งด่วน</p>
                 </div>
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-2">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col gap-2">
                     <div className="flex justify-between items-start">
-                        <p className="text-slate-500 text-sm font-medium">ผู้ใช้งานใหม่</p>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">ผู้ใช้งานใหม่</p>
                     </div>
-                    <h3 className="text-2xl font-bold text-black tracking-tight">{stats.newUsersCount}</h3>
+                    <h3 className="text-2xl font-bold text-black dark:text-slate-100 tracking-tight">{stats.newUsersCount}</h3>
                     <p className="text-slate-400 text-xs">ใน 7 วันล่าสุด</p>
                 </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                    <h3 className="text-lg font-bold text-black">สินค้าล่าสุด</h3>
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+                <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-black dark:text-slate-100">สินค้าล่าสุด</h3>
                     <Link href={ROUTES.ADMIN_PRODUCT}>
                         <span className="text-sm text-primary hover:underline cursor-pointer">ดูทั้งหมด</span>
                     </Link>
@@ -145,8 +145,8 @@ function Page() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                    <h4 className="font-bold text-black mb-4">การประมูลล่าสุด</h4>
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+                    <h4 className="font-bold text-black dark:text-slate-100 mb-4">การประมูลล่าสุด</h4>
                     {loading ? (
                         <p className="text-slate-400 text-sm">กำลังโหลด...</p>
                     ) : recentBids.length === 0 ? (
@@ -157,7 +157,7 @@ function Page() {
                                 <div key={bid.id} className="flex gap-4">
                                     <div className="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0"></div>
                                     <div>
-                                        <p className="text-sm text-black">
+                                        <p className="text-sm text-black dark:text-slate-100">
                                             <span className="font-bold">
                                                 {[bid.profile?.first_name, bid.profile?.last_name]
                                                     .filter(Boolean)
@@ -174,7 +174,7 @@ function Page() {
                         </div>
                     )}
                 </div>
-                <div className="p-6 rounded-xl shadow-lg relative overflow-hidden">
+                <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-6 rounded-xl shadow-lg relative overflow-hidden">
                     <div className="relative z-10 h-full flex flex-col justify-between gap-4">
                         <div>
                             <h4 className="font-bold text-xl mb-2">จัดการสินค้ารออนุมัติ</h4>

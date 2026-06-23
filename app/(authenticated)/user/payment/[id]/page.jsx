@@ -3,9 +3,11 @@ import UseButton from "@/app/components/inputs/UseButton";
 import {
     ArrowLeftOutlined,
     CheckCircleFilled,
+    CreditCardFilled,
     DownloadOutlined,
     FileDoneOutlined,
     MessageFilled,
+    MobileOutlined,
     WalletFilled,
 } from "@ant-design/icons";
 import Link from "next/link";
@@ -13,8 +15,10 @@ import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { supabase } from "@/app/lib/supabase/client";
-import { getAuctionResultById, createMockPayment } from "@/app/services/payment.service";
+import { getAuctionResultById } from "@/app/services/payment.service";
 import { getMyWalletBalance } from "@/app/services/wallet.service";
+import OmiseCardForm from "@/app/components/payment/OmiseCardForm";
+import { startOmiseRedirect } from "@/app/components/payment/redirectPay";
 import { setWalletBalance } from "@/app/features/user/userSlice";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 
@@ -34,7 +38,8 @@ function Page() {
     const [walletBalance, setWalletBalanceLocal] = useState(0);
     const [result, setResult] = useState(null);
     const [qrData, setQrData] = useState(null);
-    const [mockSubmitting, setMockSubmitting] = useState(false);
+    const [phone, setPhone] = useState("");
+    const [redirecting, setRedirecting] = useState(false);
     const [walletSubmitting, setWalletSubmitting] = useState(false);
 
     // fetchUser ไม่ได้ถูก dispatch ทุกหน้า → โหลด user + balance ตรงจาก Supabase (pattern เดียวกับ checkout/wallet)
@@ -98,21 +103,33 @@ function Page() {
         router.push("/user/selling");
     };
 
-    const handleMockPay = async () => {
-        if (!userId || !result) return;
-        setMockSubmitting(true);
-        const { error } = await createMockPayment({
-            auctionResultId: id,
-            userId,
-            amount: total,
-            method,
+    const handleCardToken = async (token) => {
+        const res = await fetch("/api/payment/credit-card", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ omiseToken: token, purpose: "auction", auctionResultId: id }),
         });
-        if (error) {
-            setMockSubmitting(false);
-            return notifyError(error);
+        const data = await res.json();
+        if (!res.ok) {
+            notifyError(new Error(data?.error || "ชำระเงินไม่สำเร็จ"));
+            return;
         }
-        notifySuccess("บันทึกคำสั่งชำระเงินสำเร็จ (mockup)");
+        notifySuccess("ส่งคำสั่งชำระเงินแล้ว กำลังตรวจสอบสถานะ");
         router.push("/user/selling");
+    };
+
+    // truemoney / rabbit_linepay → redirect ออกไป Omise (ไม่ reset redirecting ในเคสสำเร็จ)
+    const handleRedirectPay = async (sourceType) => {
+        if (sourceType === "truemoney" && !/^0\d{9}$/.test(phone)) {
+            return notifyError("กรุณากรอกเบอร์ที่ผูกกับ TrueMoney (10 หลัก)");
+        }
+        setRedirecting(true);
+        try {
+            await startOmiseRedirect({ sourceType, purpose: "auction", auctionResultId: id, phoneNumber: phone });
+        } catch (err) {
+            notifyError(err);
+            setRedirecting(false);
+        }
     };
 
     return (
@@ -157,6 +174,57 @@ function Page() {
                     </div>
                 )}
 
+                {method === "credit_card" && (
+                    <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-xl p-6 border border-gray-100 dark:border-zinc-800">
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="flex items-center justify-center w-20 h-20 bg-blue-50 dark:bg-blue-950/40 rounded-2xl">
+                                <CreditCardFilled className="text-4xl! text-blue-500!" />
+                            </div>
+                            <div className="text-center space-y-1">
+                                <p className="text-lg font-bold">บัตรเครดิต/เดบิต</p>
+                                <p className="text-xs text-gray-400">ยอดชำระทั้งหมด {formatPrice(total)}</p>
+                            </div>
+                            <div className="w-full">
+                                <OmiseCardForm
+                                    amount={total}
+                                    onToken={handleCardToken}
+                                    submitLabel={`ชำระด้วยบัตร (${formatPrice(total)})`}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {method === "truemoney" && (
+                    <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-xl p-6 border border-gray-100 dark:border-zinc-800">
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="flex items-center justify-center w-20 h-20 bg-red-50 dark:bg-red-950/40 rounded-2xl">
+                                <MobileOutlined className="text-4xl! text-red-500!" />
+                            </div>
+                            <div className="text-center space-y-1">
+                                <p className="text-lg font-bold">TrueMoney Wallet</p>
+                                <p className="text-xs text-gray-400">ยอดชำระทั้งหมด {formatPrice(total)}</p>
+                            </div>
+                            <input
+                                className="w-full border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                                placeholder="เบอร์โทร TrueMoney (เช่น 0812345678)"
+                                inputMode="numeric"
+                                maxLength={10}
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                            />
+                            <UseButton
+                                label="ชำระผ่าน TrueMoney"
+                                className="h-12! text-base! font-bold!"
+                                onClick={() => handleRedirectPay("truemoney")}
+                                loading={redirecting}
+                                disabled={redirecting || !result}
+                                wFull
+                            />
+                        </div>
+                    </div>
+                )}
+
                 {method === "linepay" && (
                     <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-xl p-6 border border-gray-100 dark:border-zinc-800">
                         <div className="flex flex-col items-center gap-4">
@@ -164,8 +232,8 @@ function Page() {
                                 <MessageFilled className="text-4xl! text-green-500!" />
                             </div>
                             <div className="text-center space-y-1">
-                                <p className="text-lg font-bold">ชำระผ่าน LINE Pay</p>
-                                <p className="text-xs text-gray-400">เปิดแอป LINE เพื่อยืนยันการชำระเงิน</p>
+                                <p className="text-lg font-bold">ชำระผ่าน Rabbit LINE Pay</p>
+                                <p className="text-xs text-gray-400">กดปุ่มเพื่อไปยืนยันการชำระเงินในแอป LINE</p>
                             </div>
                             <div className="w-full text-center space-y-1 pt-2">
                                 <p className="text-sm text-gray-500">ยอดชำระทั้งหมด</p>
@@ -174,9 +242,9 @@ function Page() {
                             <UseButton
                                 label="เปิดแอป LINE เพื่อชำระเงิน"
                                 className="h-12! text-base! font-bold! bg-green-500! border-green-500!"
-                                onClick={handleMockPay}
-                                loading={mockSubmitting}
-                                disabled={mockSubmitting || !result}
+                                onClick={() => handleRedirectPay("rabbit_linepay")}
+                                loading={redirecting}
+                                disabled={redirecting || !result}
                                 wFull
                             />
                         </div>

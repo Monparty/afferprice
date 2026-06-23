@@ -1,12 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import {
-    BellOutlined,
-    CheckCircleOutlined,
-    CloseCircleOutlined,
+    BellOutlined, CloseCircleOutlined,
     SmileOutlined,
     FrownOutlined,
-    CreditCardOutlined,
+    CreditCardOutlined
 } from "@ant-design/icons";
 import { getMyNotifications, markAllNotificationsRead } from "@/app/services/notifications.service";
 import { getSellerProducts } from "@/app/services/products.service";

@@ -95,31 +95,31 @@ function Page() {
     return (
         <main className="grid gap-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                    <p className="text-slate-500 text-sm">ยอดเงินรวมในระบบ</p>
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">ยอดเงินรวมในระบบ</p>
                     <h3 className="text-2xl font-bold mt-2">฿{totalLiability.toLocaleString()}</h3>
                 </div>
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                    <p className="text-slate-500 text-sm">จำนวนผู้ใช้ที่มียอด</p>
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">จำนวนผู้ใช้ที่มียอด</p>
                     <h3 className="text-2xl font-bold mt-2">
                         {balances.filter((b) => Number(b.wallet_balance || 0) > 0).length}
                     </h3>
                 </div>
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                    <p className="text-slate-500 text-sm">รายการล่าสุด</p>
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">รายการล่าสุด</p>
                     <h3 className="text-2xl font-bold mt-2">{transactions.length}</h3>
                 </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-100">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
                     <h3 className="font-bold">ยอดคงเหลือรายผู้ใช้</h3>
                 </div>
                 <UseTable columns={balanceColumns} dataSource={balances} loading={loading} />
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-100">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
                     <h3 className="font-bold">รายการธุรกรรม</h3>
                 </div>
                 <UseTable columns={txColumns} dataSource={transactions} loading={loading} />

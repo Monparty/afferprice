@@ -1,10 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { WalletFilled, PlusOutlined, QrcodeOutlined, MessageFilled, CreditCardFilled } from "@ant-design/icons";
+import { WalletFilled, PlusOutlined, QrcodeOutlined, MessageFilled, CreditCardFilled, MobileOutlined } from "@ant-design/icons";
 import UseButton from "@/app/components/inputs/UseButton";
 import UseModal from "@/app/components/utils/UseModal";
 import UseSkeleton from "@/app/components/utils/UseSkeleton";
+import OmiseCardForm from "@/app/components/payment/OmiseCardForm";
+import { startOmiseRedirect } from "@/app/components/payment/redirectPay";
 import { supabase } from "@/app/lib/supabase/client";
 import {
     getMyWalletBalance,
@@ -18,8 +20,9 @@ const PRESET_AMOUNTS = [100, 500, 1000, 5000];
 
 const METHODS = [
     { value: "promptpay", label: "PromptPay", icon: QrcodeOutlined, color: "text-black! dark:text-white!" },
+    { value: "credit_card", label: "บัตร", icon: CreditCardFilled, color: "text-blue-500!" },
+    { value: "truemoney", label: "TrueMoney", icon: MobileOutlined, color: "text-red-500!" },
     { value: "linepay", label: "LINE Pay", icon: MessageFilled, color: "text-green-500!" },
-    { value: "credit_card", label: "บัตรเครดิต", icon: CreditCardFilled, color: "text-blue-500!" },
 ];
 
 function formatPrice(n) {
@@ -33,15 +36,15 @@ function formatDate(s) {
 function TopupModal({ open, onClose, userId }) {
     const [amount, setAmount] = useState(100);
     const [method, setMethod] = useState("promptpay");
+    const [phone, setPhone] = useState("");
     const [loading, setLoading] = useState(false);
     const [qrData, setQrData] = useState(null);
-    const [linepayPending, setLinepayPending] = useState(null);
 
     const reset = () => {
         setAmount(100);
         setMethod("promptpay");
+        setPhone("");
         setQrData(null);
-        setLinepayPending(null);
     };
 
     const handleClose = () => {
@@ -62,35 +65,32 @@ function TopupModal({ open, onClose, userId }) {
                 const d = await r.json();
                 if (d.error) return notifyError(d.error);
                 setQrData(d);
+            } else if (method === "truemoney") {
+                if (!/^0\d{9}$/.test(phone)) return notifyError("กรุณากรอกเบอร์ที่ผูกกับ TrueMoney (10 หลัก)");
+                await startOmiseRedirect({ sourceType: "truemoney", purpose: "topup", amount, phoneNumber: phone });
             } else if (method === "linepay") {
-                const r = await fetch("/api/payment/linepay", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ amount, purpose: "topup" }),
-                });
-                const d = await r.json();
-                if (d.error) return notifyError(d.error);
-                setLinepayPending(d);
-            } else if (method === "credit_card") {
-                notifyError("ระบบบัตรเครดิตอยู่ระหว่างเชื่อมต่อ — กรุณาเลือกช่องทางอื่น");
+                await startOmiseRedirect({ sourceType: "rabbit_linepay", purpose: "topup", amount });
             }
+        } catch (err) {
+            notifyError(err);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleLinepayConfirm = async () => {
-        if (!linepayPending?.chargeId) return;
-        setLoading(true);
-        const r = await fetch("/api/payment/linepay/confirm", {
+    // บัตรเครดิต/เดบิต topup — charge ตรง แล้ว webhook เครดิต wallet ภายหลัง
+    const handleCardToken = async (token) => {
+        const res = await fetch("/api/payment/credit-card", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ chargeId: linepayPending.chargeId }),
+            body: JSON.stringify({ omiseToken: token, purpose: "topup", amount }),
         });
-        const d = await r.json();
-        setLoading(false);
-        if (d.error) return notifyError(d.error);
-        notifySuccess("เติมเงินสำเร็จ");
+        const data = await res.json();
+        if (!res.ok) {
+            notifyError(new Error(data?.error || "เติมเงินไม่สำเร็จ"));
+            return;
+        }
+        notifySuccess("ส่งคำสั่งเติมเงินแล้ว ยอดจะอัปเดตเมื่อชำระสำเร็จ");
         handleClose();
     };
 
@@ -108,23 +108,6 @@ function TopupModal({ open, onClose, userId }) {
                         หลังชำระเงินสำเร็จ ยอดในกระเป๋าจะอัปเดตอัตโนมัติ (อาจใช้เวลาไม่กี่วินาที)
                     </p>
                 </div>
-            ) : linepayPending ? (
-                <div className="flex flex-col items-center gap-3 py-2">
-                    <div className="flex items-center justify-center w-20 h-20 bg-green-50 dark:bg-green-950/40 rounded-2xl">
-                        <MessageFilled className="text-4xl! text-green-500!" />
-                    </div>
-                    <p className="text-2xl font-bold text-green-600">{formatPrice(amount)}</p>
-                    <p className="text-sm text-gray-500">เปิดแอป LINE เพื่อยืนยันการชำระ (mock)</p>
-                    <UseButton
-                        label="ยืนยันการชำระเงิน (mock)"
-                        className="h-11! bg-green-500! border-green-500!"
-                        onClick={handleLinepayConfirm}
-                        loading={loading}
-                        wFull
-                    />
-                </div>
-            ) : loading ? (
-                <UseSkeleton />
             ) : (
                 <div className="grid gap-4 py-2">
                     <div>
@@ -156,7 +139,7 @@ function TopupModal({ open, onClose, userId }) {
 
                     <div>
                         <p className="text-sm font-semibold mb-2">ช่องทางชำระเงิน</p>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-4 gap-2">
                             {METHODS.map((m) => {
                                 const Icon = m.icon;
                                 const selected = method === m.value;
@@ -178,14 +161,33 @@ function TopupModal({ open, onClose, userId }) {
                         </div>
                     </div>
 
-                    <UseButton
-                        label="ดำเนินการชำระเงิน"
-                        className="h-11! font-bold!"
-                        onClick={handleSubmit}
-                        loading={loading}
-                        disabled={loading}
-                        wFull
-                    />
+                    {method === "truemoney" && (
+                        <input
+                            className="w-full border border-gray-300 dark:border-zinc-700 dark:bg-zinc-800 dark:text-slate-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400"
+                            placeholder="เบอร์โทร TrueMoney (เช่น 0812345678)"
+                            inputMode="numeric"
+                            maxLength={10}
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                        />
+                    )}
+
+                    {method === "credit_card" ? (
+                        <OmiseCardForm
+                            amount={amount}
+                            onToken={handleCardToken}
+                            submitLabel={`เติมเงินด้วยบัตร (${formatPrice(amount)})`}
+                        />
+                    ) : (
+                        <UseButton
+                            label="ดำเนินการชำระเงิน"
+                            className="h-11! font-bold!"
+                            onClick={handleSubmit}
+                            loading={loading}
+                            disabled={loading}
+                            wFull
+                        />
+                    )}
                 </div>
             )}
         </UseModal>

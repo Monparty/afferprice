@@ -20,6 +20,14 @@ const errorMap = [
     { match: /missing_(documents|kyc_fields)/i, thai: "กรุณากรอกข้อมูลและอัปโหลดเอกสารยืนยันตัวตนให้ครบถ้วน" },
     { match: /invalid_kyc_state/i, thai: "ไม่สามารถส่งยืนยันตัวตนซ้ำได้ในสถานะปัจจุบัน" },
     { match: /profiles_national_id_check/i, thai: "เลขประจำตัวประชาชนต้องเป็นตัวเลข 13 หลัก" },
+    // Payment
+    { match: /already_paid/i, thai: "รายการนี้ได้ชำระเงินเรียบร้อยแล้ว" },
+    { match: /invalid_amount/i, thai: "จำนวนเงินไม่ถูกต้อง (เติมได้ 20–100,000 บาท)" },
+    { match: /invalid_phone_number/i, thai: "กรุณากรอกเบอร์ TrueMoney ให้ถูกต้อง (10 หลัก)" },
+    { match: /(no_authorize_uri|invalid_source_type|invalid_purpose)/i, thai: "ไม่สามารถเริ่มการชำระเงินได้ กรุณาลองใหม่อีกครั้ง" },
+    { match: /missing_token/i, thai: "ไม่พบข้อมูลบัตร กรุณากรอกใหม่อีกครั้ง" },
+    { match: /not_found/i, thai: "ไม่พบข้อมูลที่ต้องการ" },
+    { match: /^forbidden$/i, thai: "คุณไม่มีสิทธิ์ทำรายการนี้" },
 ];
 
 export function translateSupabaseError(message) {

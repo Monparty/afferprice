@@ -3,12 +3,12 @@ import UseButton from "../inputs/UseButton";
 import { ArrowRightOutlined } from "@ant-design/icons";
 import CardDrawer from "./CardDrawer";
 
-function UseDrawer({ onClose, open, loading = false, onRead }) {
+function UseDrawer({ onClose, open, loading = false, onRead, title = "การแจ้งเตือนกิจกรรม", children }) {
     return (
         <Drawer
             title={
                 <div className="flex items-center gap-3">
-                    <h2 className="text-xl font-bold text-primary tracking-tight">การแจ้งเตือนกิจกรรม</h2>
+                    <h2 className="text-xl font-bold text-primary tracking-tight">{title}</h2>
                     <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 dark:bg-green-950/40 text-green-600 dark:text-green-400 text-[10px] font-bold uppercase tracking-wider border border-green-100 dark:border-green-900">
                         <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
                         เรียลไทม์
@@ -31,16 +31,20 @@ function UseDrawer({ onClose, open, loading = false, onRead }) {
                 </div>
             }
         >
-            <div>
-                <div className="flex gap-2">
-                    <UseButton shape="round" label="ทั้งหมด" />
-                    <UseButton shape="round" label="การเสนอราคา" type={null} />
-                    <UseButton shape="round" label="คำเตือน" type={null} />
+            {children ? (
+                <div className="flex-1 overflow-y-auto flex flex-col gap-3">{children}</div>
+            ) : (
+                <div>
+                    <div className="flex gap-2">
+                        <UseButton shape="round" label="ทั้งหมด" />
+                        <UseButton shape="round" label="การเสนอราคา" type={null} />
+                        <UseButton shape="round" label="คำเตือน" type={null} />
+                    </div>
+                    <div className="flex-1 overflow-y-auto py-4 flex flex-col gap-3">
+                        <CardDrawer open={open} onClose={onClose} onRead={onRead} />
+                    </div>
                 </div>
-                <div className="flex-1 overflow-y-auto py-4 flex flex-col gap-3">
-                    <CardDrawer open={open} onClose={onClose} onRead={onRead} />
-                </div>
-            </div>
+            )}
         </Drawer>
     );
 }

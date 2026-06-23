@@ -9,6 +9,8 @@ import {
     CarOutlined,
     WalletFilled,
     MessageFilled,
+    MobileOutlined,
+    CreditCardFilled,
 } from "@ant-design/icons";
 import UseTag from "../../../../components/utils/UseTag";
 import UseModal from "../../../../components/utils/UseModal";
@@ -329,7 +331,9 @@ function Page() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {[
                             { value: "promptpay", label: "Thai QR PromptPay", desc: "Instant Payment", icon: QrcodeOutlined, color: "text-black! dark:text-white!" },
-                            { value: "linepay", label: "LINE Pay", desc: "Pay via LINE App", icon: MessageFilled, color: "text-green-500!" },
+                            { value: "credit_card", label: "บัตรเครดิต/เดบิต", desc: "Visa / Mastercard", icon: CreditCardFilled, color: "text-blue-500!" },
+                            { value: "truemoney", label: "TrueMoney", desc: "TrueMoney Wallet", icon: MobileOutlined, color: "text-red-500!" },
+                            { value: "linepay", label: "LINE Pay", desc: "Rabbit LINE Pay", icon: MessageFilled, color: "text-green-500!" },
                             { value: "wallet", label: "Wallet", desc: "Account Balance", icon: WalletFilled, color: "text-orange-500!" },
                         ].map((opt) => {
                             const isSelected = paymentMethod === opt.value;

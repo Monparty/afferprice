@@ -92,7 +92,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - **Service**: `getAuctionResultByProduct(productId)` ใน `payment.service.js` — query ด้วย `product_id`
 - **ที่อยู่จัดส่ง**: โหลดจาก `user_addresses` — ใช้ `CardUserAddress` prop `readonly` เพื่อซ่อนปุ่ม edit/delete/set-default; เพิ่มที่อยู่ใหม่ผ่าน modal `UserAddressForm` ใน checkout ได้เลย
 - **ยอดรวม**: `final_price` + ค่าธรรมเนียม 5% + ค่าจัดส่ง (เลือกได้)
-- **ช่องทางชำระเงิน**: เลือกที่ checkout ก่อน — 3 ตัวเลือก `promptpay` | `linepay` | `wallet` (state `paymentMethod`, default `promptpay`)
+- **ช่องทางชำระเงิน**: เลือกที่ checkout ก่อน — 5 ตัวเลือก `promptpay` | `credit_card` | `truemoney` | `linepay` | `wallet` (state `paymentMethod`, default `promptpay`); ส่งต่อเป็น `?method=` ไปหน้า payment
   - UI ใช้ `<div onClick>` + conditional className ตาม state (ไม่ใช่ `<label>` + radio `has-checked:`) เพราะ Tailwind 4 + `sr-only` ทำให้ visual state ไม่ทำงาน — pattern เดียวกับ address card ในหน้าเดียวกัน
 - **ปุ่มชำระ** → route ไป `/user/payment/${result.id}?method={paymentMethod}` (**`result.id` = auction_result.id ไม่ใช่ `id` ที่เป็น product.id** — หน้า payment เรียก `getAuctionResultById` ที่ query ด้วย auction_result.id)
 - **Seller ship mode** (`sellerShipMode = isSeller && payment_status==='paid'`): ผู้ขายเปิด checkout เดียวกันแต่เห็นมุมผู้ขาย
@@ -106,10 +106,12 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - คำนวณยอด: `final_price + 5%` (ไม่รวมค่าจัดส่ง — ไม่ได้ persist จาก checkout)
 - **อ่าน `method` จาก `useSearchParams()`** (default `promptpay`) → render UI แยกตาม method:
   - `promptpay` → เรียก `POST /api/payment/promptpay` on mount พร้อม `{ userId, amount, auctionResultId }` → แสดง QR จริง (Omise)
-  - `linepay` → **mockup** — ปุ่ม "เปิดแอป LINE" → `createMockPayment()` insert `payments(linepay, pending)` → redirect `/user/selling`
+  - `credit_card` → `OmiseCardForm` → token → POST `/api/payment/credit-card` (`purpose:'auction'`) → redirect `/user/selling` (รอ webhook ปิด)
+  - `truemoney` → input เบอร์ + `startOmiseRedirect({ sourceType:'truemoney', purpose:'auction' })` → redirect ออก Omise
+  - `linepay` → `startOmiseRedirect({ sourceType:'rabbit_linepay', purpose:'auction' })` → redirect ออก Omise (Rabbit LINE Pay จริง — **เลิกใช้ mockup `createMockPayment` แล้ว**)
   - `wallet` → อ่าน `walletBalance` จาก `state.user.data?.wallet_balance` (Redux) → ถ้าไม่พอ ปุ่ม redirect ไป `/user/wallet`; ถ้าพอ → `POST /api/payment/wallet/charge` (RPC `charge_wallet` atomic) → dispatch `setWalletBalance(d.balance_after)` → redirect `/user/selling`
-- **`createMockPayment()`** ใน `payment.service.js` — insert จาก client (RLS `"user insert own payment"` อนุญาต); `transaction_ref` = `MOCK-{METHOD}-{timestamp}`
-- **Migration**: `supabase/migrations/20260524000000_add_linepay_payment_method.sql` — เพิ่ม `linepay` ใน `payments_payment_method_check` constraint
+- **`createMockPayment()`** ใน `payment.service.js` — ยังอยู่แต่**ไม่ถูกเรียกแล้ว** (linepay เป็นของจริง); เก็บไว้เผื่อ method mock อื่น
+- **Migration**: `supabase/migrations/20260524000000_add_linepay_payment_method.sql` (เพิ่ม `linepay`) + `20260623120000_add_omise_payment_methods.sql` (เพิ่ม `truemoney`)
 
 ## Bid Flow (`app/components/utils/CardProductBid.jsx`)
 
@@ -155,6 +157,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
 
 - **Menu config**: `app/admin/components/AdminLayout.jsx` (array `menus`) — แต่ละรายการ `{ url, label, icon }`; highlight active ผ่าน `pathname.split("/")[2]` เทียบกับ `menu.url.split("/")[2]`
 - **Menu badge counts**: `app/services/admin/badges.service.js` — `getAdminBadgeCounts()` คืน object keyed by route → count งานค้างที่ admin ต้องตรวจสอบ (ปัจจุบัน: `pending_review` products บน `/admin/products`, `is_kyc='pending'` profiles บน `/admin/users`); AdminLayout fetch ใน `useEffect([pathname])` แล้ว render badge เมื่อ `badgeCounts[menu.url] > 0`. **เพิ่ม badge ใหม่ = เพิ่ม entry ใน `BADGE_SOURCES`** (`{ key: ROUTES.X, count }`) ไม่ต้องแตะ layout
+- **Notification bell (header)**: `BellOutlined` บน header เปิด `AdminNotificationDrawer` (`app/admin/components/AdminNotificationDrawer.jsx`) ที่ fetch `getAllNotifications({ limit: 50 })` (system-wide feed) แล้ว render เป็น children ของ `UseDrawer` (`UseDrawer` รับ prop `children` + `title` เพื่อ override เนื้อหา; ไม่ส่ง children → ใช้ `CardDrawer` ฝั่ง user เหมือนเดิม). เป็น feed รวมทุก user — ต่างจาก badge counts ที่เป็นงานค้าง; ไม่มี mark-as-read/unread badge
 - **Routes**: `app/admin/constants/routes.js` — เพิ่ม route ใหม่ที่นี่ก่อนใช้ใน menu/page
 - **Pages ที่มีอยู่**:
   - `/admin` — แดชบอร์ด (stats + recent products + recent bids)
@@ -232,8 +235,9 @@ Schema defined in `db/00_schema.sql`. Key tables:
 
 ## Payment (Omise)
 
-- **Keys**: `OMISE_SECRET_KEY` (server-only), `NEXT_PUBLIC_OMISE_PUBLIC_KEY` (client)
-- **DO NOT use `omise` npm package** — ESM interop broken in Next.js App Router. Use `fetch` โดยตรงผ่าน helper `omiseFetch` ใน `app/api/payment/promptpay/route.js`
+- **Keys**: `OMISE_SECRET_KEY` (server-only), `NEXT_PUBLIC_OMISE_PUBLIC_KEY` (client — ใช้ tokenize บัตรฝั่ง browser)
+- **DO NOT use `omise` npm package** — ESM interop broken in Next.js App Router. Use `fetch` ผ่าน helper `omiseFetch`/`omiseGet` ใน `app/lib/payment/omise.js` (shared; `promptpay`/`webhook` route ยังมี copy inline เดิม)
+- **Shared amount resolver**: `app/lib/payment/resolveAmount.js` — `resolvePaymentAmount({ user, purpose, auctionResultId?, productId?, clientAmount? })` คืน `{ amount, auctionResultId, productId }` หรือ throw `PaymentError(code, status)`; รวม verify ownership/KYC/already-paid + clamp topup. ใช้ใน `credit-card` + `omise` route (promptpay ยัง inline)
 - **PromptPay flow**: POST `/api/payment/promptpay` body `{ auctionResultId?, productId?, amount?, purpose? }` (default `auction`) → server ดึง `final_price` จาก DB + verify winner (auction); topup ใช้ amount จาก body (range 20–100,000); `listing_fee` ดึง `start_price` จาก `products` ของ seller (verify ownership) + คำนวณ 5% ฝั่ง server + เช็คซ้ำว่ายังไม่มี success payment ของ product+purpose (`already_paid` 409); สร้าง source + charge + insert `payments` (`product_id` ถ้า listing_fee) → คืน `qrCodeUrl`
 - **Webhook**: POST `/api/payment/webhook` — รับ `charge.complete` → **re-fetch charge จาก Omise** (ไม่ trust body) → update `payments.payment_status='success'` ถ้า amount ตรง → branch ตาม `payment.purpose`:
   - `topup` → `rpc('credit_wallet', { p_payment_id })` + broadcast `wallet-{userId}` event `update` (payload ว่าง)
@@ -242,9 +246,18 @@ Schema defined in `db/00_schema.sql`. Key tables:
   - Optional auth: ถ้ามี `OMISE_WEBHOOK_USER`/`OMISE_WEBHOOK_PASSWORD` ใน env → ตรวจ Basic Auth header
 - **⚠️ payments row ต้องสร้างก่อน QR แสดง** — webhook หา record ด้วย `transaction_ref` (charge.id); ถ้าไม่มี row จะ update ไม่ได้
 - **Component**: `app/components/payment/PromptPayQR.jsx` — รับ props `{ amount, purpose, productId?, auctionResultId?, label? }` (ไม่มี LISTING_FEE constant แล้ว — ใช้ 5% calc แทน)
-- **Payment page**: `/user/payment/[auctionResultId]`
-- **Listing fee payment** (add-product step 3): ค่าธรรมเนียม = **5% ของ `start_price`** (calc ทั้ง server & client ตรงกัน); รองรับ 2 ช่องทาง: PromptPay + Wallet (`WalletListingBtn`); ถ้ามี success payment แล้ว → ฝั่ง backend RAISE `already_paid` / 409, ฝั่ง frontend ซ่อนปุ่มแล้วโชว์ "ชำระเรียบร้อยแล้ว"
+- **Payment page**: `/user/payment/[auctionResultId]` — อ่าน `method` จาก query → render UI ต่อ method (`promptpay` QR / `wallet` ตัดทันที / `credit_card` `OmiseCardForm` / `truemoney`+`linepay` redirect)
+- **Listing fee payment** (add-product step 3): ค่าธรรมเนียม = **5% ของ `start_price`** (calc ทั้ง server & client ตรงกัน); รองรับ 5 ช่องทาง: PromptPay, Wallet, บัตร, TrueMoney, Rabbit LINE Pay; ถ้ามี success payment แล้ว → backend RAISE `already_paid` / 409, frontend ซ่อนปุ่มแล้วโชว์ "ชำระเรียบร้อยแล้ว"
 - **Local dev webhook**: ต้องใช้ ngrok — `ngrok http 3000` แล้วตั้ง endpoint ใน Omise Dashboard
+
+### Omise payment methods — Card / TrueMoney / Rabbit LINE Pay
+
+- **Migration**: `20260623120000_add_omise_payment_methods.sql` — เพิ่ม `truemoney` ใน `payments_payment_method_check` (Rabbit LINE Pay เก็บเป็น `linepay` เดิม ไม่เพิ่มค่าใหม่)
+- **ครอบ 3 purpose** (`listing_fee`/`auction`/`topup`) ทุก method ผ่าน entry: ListingFeePayment (ลงขาย), checkout picker → payment page `[id]` (ประมูล), wallet TopupModal (เติมเงิน)
+- **บัตรเครดิต/เดบิต** (`payment_method='credit_card'`): tokenize ฝั่ง client (`OmiseCardForm` → Omise.js `createToken`) → POST `/api/payment/credit-card` `{ omiseToken, purpose, auctionResultId?, productId? }` → charge ตรง → insert `payments(pending)` → **webhook ปิดเป็น success** (ไม่ instant). ต้องตั้ง CSP `connect-src https://*.omise.co` (vault) — มิฉะนั้น `createToken` โดนบล็อก
+- **TrueMoney + Rabbit LINE Pay** (redirect): POST `/api/payment/omise` `{ sourceType: 'truemoney'|'rabbit_linepay', purpose, …, phoneNumber? }` → สร้าง source + charge พร้อม `return_uri` → คืน `authorizeUri` → client `window.location.href` ไป Omise → จ่ายเสร็จ Omise redirect กลับ `/user/payment/return` → หน้านั้น redirect ตาม `purpose` (topup→wallet, listing_fee→add-product edit, auction→selling). **TrueMoney บังคับ `phone_number`** (validate `/^0\d{9}$/` client+server)
+- **webhook generic** — ทุก method ปิดงานที่ `charge.complete` ผ่าน branch `purpose` เดิม (ไม่ต้องแก้). mockup `/api/payment/linepay` + `/confirm` ยังอยู่แต่เลิกเรียกแล้ว (LINE Pay = `rabbit_linepay` จริงทุก flow)
+- **⚠️ ต้องเปิดใช้ TrueMoney Wallet + Rabbit LINE Pay ใน Omise Dashboard** ก่อน source creation ถึงจะไม่ error
 
 ## Wallet System
 

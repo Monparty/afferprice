@@ -130,3 +130,44 @@ Append-only log of completed features/functions. Newest entries at the bottom.
   - **`paid` state ของ `WalletListingBtn` ไม่ได้ใช้ `PaymentMethodCard`** — เป็นการ์ดเขียวสำเร็จคนละแบบ (ตั้งใจ); การ์ดมาตรฐานคือเคสยังไม่จ่าย
   - `wFull` ของ `PromptPayQR` default `false` — ที่อื่น (topup/auction) ปุ่มยังเป็นขนาดปกติเหมือนเดิม ไม่กระทบ
   - `icon` ส่งเป็น type ไม่ใช่ element (`icon={WalletFilled}` ไม่ใช่ `icon={<WalletFilled/>}`) — `PaymentMethodCard` เป็นคนใส่ className ขนาด/สี เพื่อให้คุมที่เดียว
+
+## Admin notification bell drawer — 2026-06-23
+- **Purpose:** กด `BellOutlined` บน header ของ admin → เปิด `UseDrawer` แสดงการแจ้งเตือนระบบ (system-wide feed ทุก user) — เทียบเท่า notification bell ฝั่ง user แต่ดึงทั้งระบบผ่าน admin service
+- **Location:**
+  - `app/components/utils/UseDrawer.jsx` — เพิ่ม prop `title` + `children` (override เนื้อหา)
+  - `app/admin/components/AdminNotificationDrawer.jsx` (ใหม่) — fetch + render การ์ดเป็น children ของ `UseDrawer`
+  - `app/admin/components/AdminLayout.jsx` — state `openNoti` + `BellOutlined` clickable + render `<AdminNotificationDrawer>`
+- **Inputs/Outputs:**
+  - `UseDrawer({ onClose, open, loading, onRead, title?, children? })` — ถ้าส่ง `children` จะ render แทน filter chips + `CardDrawer` เดิม (backward-compatible: `AppHeader` ไม่ส่ง children → ใช้ของเดิม); `title` default `"การแจ้งเตือนกิจกรรม"`
+  - `AdminNotificationDrawer({ open, onClose })` — on `open` เรียก `getAllNotifications({ limit: 50 })` (admin service, `requireAdmin` + `supabaseAdmin`, enrich ชื่อผู้รับจาก `users_full`) → render การ์ด (icon ตาม `TYPE_CONFIG` รวม `kyc`/`shipping`, เวลา `dayjs().fromNow()`, บรรทัด "ถึง: {ชื่อผู้รับ}")
+- **Gotchas:**
+  - bell แสดง **feed ทั้งระบบ** ไม่ใช่งานค้างของ admin (งานค้าง = badge counts บน sidebar ผ่าน `getAdminBadgeCounts()`) — คนละ source กัน
+  - ไม่มี mark-as-read / unread badge บน bell (feed รวมทุก user → count จะ noisy) ต่างจาก `CardDrawer` ฝั่ง user ที่ `markAllNotificationsRead()` on open
+  - `TYPE_CONFIG` ใน `AdminNotificationDrawer` ไม่มี dark-mode variant (admin UI เป็น light เท่านั้น) ต่างจาก `CardDrawer` ที่มี `dark:` — ถ้าก๊อปต้องระวัง
+  - children-override ของ `UseDrawer` ยังคง footer ปุ่ม "ดูประวัติกิจกรรมทั้งหมด" (ยังไม่มี onClick) ไว้เหมือนเดิม
+
+## Omise payment methods — Card / TrueMoney / Rabbit LINE Pay (ทุก flow) — 2026-06-23
+- **Purpose:** เพิ่มช่องทางชำระเงินผ่าน Omise 3 ช่องทาง (บัตรเครดิต/เดบิต, TrueMoney Wallet, Rabbit LINE Pay) ให้ครบทั้ง 3 flow: ค่าธรรมเนียมลงขาย (`listing_fee`), จ่ายค่าประมูล (`auction`), เติมเงิน (`topup`). **LINE Pay เปลี่ยนจาก mockup เดิม → Omise source `rabbit_linepay` จริง** (redirect)
+- **Location:**
+  - Migration: `supabase/migrations/20260623120000_add_omise_payment_methods.sql` (เพิ่ม `truemoney` ใน `payments_payment_method_check`)
+  - Backend lib (ใหม่): `app/lib/payment/omise.js` (`omiseFetch`/`omiseGet`), `app/lib/payment/resolveAmount.js` (`resolvePaymentAmount` + `PaymentError`)
+  - Routes: `app/api/payment/omise/route.js` (ใหม่ — source-based redirect), `app/api/payment/credit-card/route.js` (extend `listing_fee` + ใช้ resolver)
+  - Client components: `app/components/payment/OmiseCardForm.jsx`, `redirectPay.js`, `CreditCardListingBtn.jsx`, `TrueMoneyListingBtn.jsx`, `RabbitLinePayListingBtn.jsx` (ทั้งหมดใหม่) + `ListingFeePayment.jsx`
+  - Pages: `app/(authenticated)/user/payment/[id]/page.jsx`, `.../checkout/[id]/page.jsx`, `.../wallet/page.jsx` (TopupModal), `.../payment/return/page.jsx` (ใหม่)
+  - อื่นๆ: `next.config.mjs` (CSP), `app/utils/supabaseErrorMap.js` (error ภาษาไทย)
+- **Inputs/Outputs:**
+  - `resolvePaymentAmount({ user, purpose, auctionResultId, productId, clientAmount })` → `{ amount, auctionResultId, productId }` (id ที่ไม่เกี่ยว = null) หรือ throw `PaymentError(code, status)`; รวม verify ownership/KYC/already-paid + clamp topup 20–100,000 ที่เคยซ้ำใน promptpay+credit-card
+  - `POST /api/payment/omise` body `{ sourceType: 'truemoney'|'rabbit_linepay', purpose, auctionResultId?, productId?, amount?, phoneNumber? }` → สร้าง source + charge (พร้อม `return_uri`) → คืน `{ chargeId, authorizeUri }`; `payment_method` map: `truemoney`→`truemoney`, `rabbit_linepay`→`linepay`
+  - `startOmiseRedirect(body)` (client helper `redirectPay.js`) → POST `/api/payment/omise` → `window.location.href = authorizeUri`
+  - `OmiseCardForm({ amount, onToken, submitLabel })` — โหลด Omise.js (`next/script`), `Omise.setPublicKey` + `createToken('card', {...})` → `onToken(tokenId)`; **parent ยิง `/api/payment/credit-card` เอง** (คุม purpose/ids)
+  - credit-card route รับ `{ omiseToken, purpose, auctionResultId?, productId? }` → charge ตรง → insert `payments(credit_card, pending)` → คืน `{ chargeId, status, authorizeUri }`
+- **Gotchas:**
+  - **redirect methods (truemoney/rabbit_linepay) → charge `pending` จนลูกค้า authorize → webhook `charge.complete` ปิดงาน** (ไม่มี polling). `/user/payment/return` แค่พาผู้ใช้ไปหน้าที่ refresh เอง (topup→`/user/wallet`, listing_fee→`/user/add-product/{id}/edit`, auction→`/user/selling`) ด้วย `setTimeout` 1.5s + `<Suspense>` (มี `useSearchParams`)
+  - **webhook ไม่ต้องแก้** — branch ตาม `purpose` อยู่แล้ว (topup→`credit_wallet`, auction→`auction_results.paid`, listing_fee→ไม่มี side effect); ทุก method สร้าง `payments` row ที่ webhook หาเจอด้วย `transaction_ref = charge.id`
+  - **Rabbit LINE Pay เก็บ `payment_method='linepay'`** (ไม่เพิ่มค่าใหม่ใน constraint) — reuse label/แอดมินเดิม; mockup routes `/api/payment/linepay` + `/confirm` **ยังอยู่แต่เลิกเรียกแล้ว** (topup/auction ใช้ของจริงหมด)
+  - **TrueMoney บังคับ `phone_number`** (Omise) — validate `/^0\d{9}$/` ทั้ง client + server; ทุก entry (listing btn / payment page / topup modal) มี input เบอร์เฉพาะตอนเลือก truemoney
+  - **บัตร tokenize ฝั่ง client เท่านั้น** (PAN ไม่เข้า server) — ต้องตั้ง env `NEXT_PUBLIC_OMISE_PUBLIC_KEY`; **CSP `connect-src` ขยายเป็น `https://*.omise.co`** (เดิม `api.omise.co` อย่างเดียว → `vault.omise.co` ที่ `createToken` ยิงไปโดนบล็อก)
+  - **card charge ไม่ instant** — insert `pending` แล้วรอ webhook (เหมือน promptpay); ต่างจาก wallet ที่ตัดเงินทันที. listing_fee ฝั่ง UI จะเห็น "กำลังตรวจสอบ" จน webhook ปิด
+  - **resolver ยังไม่ย้าย promptpay มาใช้** — promptpay เก็บ logic inline เดิม (ลดความเสี่ยง path หลักที่ใช้บ่อยสุด); ใช้ resolver เฉพาะ credit-card + omise route → ถ้าแก้กติกาคิดเงินต้องแก้ทั้ง resolver **และ** promptpay route
+  - **ต้องเปิดใช้ TrueMoney Wallet + Rabbit LINE Pay ใน Omise Dashboard** ก่อน ไม่งั้น source creation error
+  - checkout picker เป็น 5 ตัวเลือก (`grid-cols-3` wrap 2 แถว); topup modal เป็น 4 (`grid-cols-4`)

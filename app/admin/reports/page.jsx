@@ -55,15 +55,15 @@ function Page() {
         <main className="grid gap-6">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 {cards.map((c) => (
-                    <div key={c.label} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                        <p className="text-slate-500 text-xs">{c.label}</p>
+                    <div key={c.label} className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+                        <p className="text-slate-500 dark:text-slate-400 text-xs">{c.label}</p>
                         <h3 className="text-xl font-bold mt-1">{c.value}</h3>
                     </div>
                 ))}
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-100">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+                <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700">
                     <h3 className="font-bold">ยอดขายรายเดือน</h3>
                 </div>
                 <UseTable columns={columns} dataSource={monthly} loading={loading} />
