@@ -6,12 +6,14 @@ import {
     BarChartOutlined,
     BellOutlined,
     CarOutlined,
+    CloseOutlined,
     CreditCardOutlined,
     ExceptionOutlined,
     FileTextOutlined,
     HistoryOutlined,
     InboxOutlined,
     LogoutOutlined,
+    MenuOutlined,
     MoonOutlined,
     NotificationOutlined,
     QuestionCircleOutlined,
@@ -83,6 +85,12 @@ function AdminLayout({ children }) {
     // drawer การแจ้งเตือนระบบ
     const [openNoti, setOpenNoti] = useState(false);
 
+    // เมนู sidebar บนมือถือ (slide-in drawer)
+    const [mobileNavOpen, setMobileNavOpen] = useState(false);
+    useEffect(() => {
+        setMobileNavOpen(false);
+    }, [pathname]);
+
     // สลับโหมดสว่าง/มืด (theme เก็บใน localStorage ผ่าน ThemeProvider)
     const { isDark, toggleTheme } = useTheme();
 
@@ -92,73 +100,106 @@ function AdminLayout({ children }) {
         router.push("/");
     };
 
-    return (
-        <div className="flex">
-            <div className="w-1/6">
-                <nav className="bg-slate-800 text-white p-6 h-dvh w-1/6 fixed">
-                    <Link href={ROUTES.ADMIN} className="flex-2 flex items-center gap-3 mb-6">
-                        <Image src={afferpriceLogo} width={34} height={34} alt="Afferprice Logo" />
-                        <h1 className="text-xl font-semibold">Afferprice</h1>
+    const navContent = (
+        <nav className="bg-slate-800 text-white p-6 h-dvh w-64 flex flex-col overflow-y-auto">
+            <Link href={ROUTES.ADMIN} className="flex items-center gap-3 mb-6 shrink-0">
+                <Image src={afferpriceLogo} width={34} height={34} alt="Afferprice Logo" />
+                <h1 className="text-xl font-semibold">Afferprice</h1>
+            </Link>
+            <div className="grid gap-3 flex-1">
+                {menus.map((menu, index) => (
+                    <Link
+                        key={index}
+                        href={menu.url}
+                        className={`${headerName === menu.label ? "bg-orange-500/25 text-orange-500" : ""} flex items-center gap-3 p-2 rounded-lg hover:bg-orange-500/25 hover:text-orange-500`}
+                    >
+                        {menu.icon}
+                        <span className="truncate">{menu.label}</span>
+                        {badgeCounts[menu.url] > 0 && (
+                            <span className="ml-auto shrink-0 text-white bg-orange-600 h-5 min-w-5 p-1 text-[10px] font-medium flex items-center justify-center rounded-sm leading-4">
+                                {badgeCounts[menu.url] > 99 ? "99+" : badgeCounts[menu.url]}
+                            </span>
+                        )}
                     </Link>
-                    <div className="flex flex-col h-[calc(100%-120px)] min-h-fit">
-                        <div className="grid gap-3">
-                            {menus.map((menu, index) => (
-                                <Link
-                                    key={index}
-                                    href={menu.url}
-                                    className={`${headerName === menu.label ? "bg-orange-500/25 text-orange-500" : ""} flex items-center gap-3 p-2 rounded-lg hover:bg-orange-500/25 hover:text-orange-500`}
-                                >
-                                    {menu.icon}
-                                    {menu.label}
-                                    {badgeCounts[menu.url] > 0 && (
-                                        <span className="ml-auto text-white bg-orange-600 h-5 min-w-5 p-1 text-[10px] font-medium flex items-center justify-center rounded-sm leading-4">
-                                            {badgeCounts[menu.url] > 99 ? "99+" : badgeCounts[menu.url]}
-                                        </span>
-                                    )}
-                                </Link>
-                            ))}
+                ))}
+            </div>
+            <div className="border-t border-slate-500 pt-3 shrink-0">
+                <UsePopover
+                    placement="topLeft"
+                    content={
+                        <div className="grid gap-2 w-46">
+                            <Link href="/user">
+                                <UseButton
+                                    label="ข้อมูลผู้ใช้"
+                                    className="justify-start! h-10!"
+                                    type="text"
+                                    icon={UserOutlined}
+                                    wFull
+                                />
+                            </Link>
+                            <UseButton
+                                label="ออกจากระบบ"
+                                className="justify-start! h-10!"
+                                type="text"
+                                icon={LogoutOutlined}
+                                wFull
+                                onClick={() => handleLogout()}
+                            />
+                        </div>
+                    }
+                >
+                    <div className="flex gap-3 items-center p-2 rounded-lg transition-all hover:bg-slate-700 ">
+                        <UseAvatar src={profile?.profile_image || undefined} icon={UserOutlined} />
+                        <div className="grid min-w-0">
+                            <p className="text-sm truncate">{adminName}</p>
+                            <p className="text-xs text-slate-400 truncate">{adminRole}</p>
                         </div>
                     </div>
-                    <div className="border-t border-slate-500 pt-3">
-                        <UsePopover
-                            placement="topLeft"
-                            content={
-                                <div className="grid gap-2 w-46">
-                                    <Link href="/user">
-                                        <UseButton
-                                            label="ข้อมูลผู้ใช้"
-                                            className="justify-start! h-10!"
-                                            type="text"
-                                            icon={UserOutlined}
-                                            wFull
-                                        />
-                                    </Link>
-                                    <UseButton
-                                        label="ออกจากระบบ"
-                                        className="justify-start! h-10!"
-                                        type="text"
-                                        icon={LogoutOutlined}
-                                        wFull
-                                        onClick={() => handleLogout()}
-                                    />
-                                </div>
-                            }
-                        >
-                            <div className="flex gap-3 items-center p-2 rounded-lg transition-all hover:bg-slate-700 ">
-                                <UseAvatar src={profile?.profile_image || undefined} icon={UserOutlined} />
-                                <div className="grid">
-                                    <p className="text-sm">{adminName}</p>
-                                    <p className="text-xs text-slate-400">{adminRole}</p>
-                                </div>
-                            </div>
-                        </UsePopover>
-                    </div>
-                </nav>
+                </UsePopover>
             </div>
-            <div className="w-5/6">
-                <header className="px-6 h-12 flex items-center justify-between bg-slate-100 dark:bg-slate-900 dark:border-b dark:border-slate-700">
-                    <h2 className="text-xl font-bold dark:text-slate-100">{headerName}</h2>
-                    <div className="flex items-center gap-6">
+        </nav>
+    );
+
+    return (
+        <div className="flex min-h-dvh">
+            {/* Desktop sidebar (fixed) */}
+            <aside className="hidden lg:block w-64 shrink-0">
+                <div className="fixed top-0 left-0 w-64">{navContent}</div>
+            </aside>
+
+            {/* Mobile sidebar (slide-in drawer) */}
+            {mobileNavOpen && (
+                <div className="fixed inset-0 z-50 lg:hidden">
+                    <div
+                        className="absolute inset-0 bg-black/50"
+                        onClick={() => setMobileNavOpen(false)}
+                    />
+                    <div className="absolute top-0 left-0 max-w-[85vw]">
+                        <button
+                            onClick={() => setMobileNavOpen(false)}
+                            className="absolute top-4 right-3 z-10 text-white/80 hover:text-white"
+                            aria-label="ปิดเมนู"
+                        >
+                            <CloseOutlined className="text-lg!" />
+                        </button>
+                        {navContent}
+                    </div>
+                </div>
+            )}
+
+            <div className="flex-1 min-w-0">
+                <header className="px-4 md:px-6 h-12 flex items-center justify-between bg-slate-100 dark:bg-slate-900 dark:border-b dark:border-slate-700">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <button
+                            onClick={() => setMobileNavOpen(true)}
+                            className="lg:hidden flex items-center cursor-pointer hover:text-orange-500"
+                            aria-label="เปิดเมนู"
+                        >
+                            <MenuOutlined className="text-lg!" />
+                        </button>
+                        <h2 className="text-base md:text-xl font-bold dark:text-slate-100 truncate">{headerName}</h2>
+                    </div>
+                    <div className="flex items-center gap-4 md:gap-6 shrink-0">
                         <button
                             onClick={toggleTheme}
                             className="flex items-center cursor-pointer hover:text-orange-500"
@@ -170,10 +211,10 @@ function AdminLayout({ children }) {
                             className="text-lg! cursor-pointer hover:text-orange-500"
                             onClick={() => setOpenNoti(true)}
                         />
-                        <QuestionCircleOutlined className="text-lg!" />
+                        <QuestionCircleOutlined className="text-lg! hidden md:inline" />
                     </div>
                 </header>
-                <div className="p-6">{children}</div>
+                <div className="p-4 md:p-6">{children}</div>
             </div>
             <AdminNotificationDrawer open={openNoti} onClose={() => setOpenNoti(false)} />
         </div>

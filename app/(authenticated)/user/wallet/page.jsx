@@ -139,7 +139,7 @@ function TopupModal({ open, onClose, userId }) {
 
                     <div>
                         <p className="text-sm font-semibold mb-2">ช่องทางชำระเงิน</p>
-                        <div className="grid grid-cols-4 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             {METHODS.map((m) => {
                                 const Icon = m.icon;
                                 const selected = method === m.value;

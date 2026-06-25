@@ -78,18 +78,18 @@ const BrandMark = ({ size = 30 }) => (
 );
 
 const SectionHead = ({ eyebrow, title, live = false, more = "ดูทั้งหมด", showMore = true }) => (
-    <div className="flex items-end justify-between mt-14 mb-6">
-        <div className="flex flex-col gap-1.5">
+    <div className="flex items-end justify-between gap-3 mt-14 mb-6">
+        <div className="flex flex-col gap-1.5 min-w-0">
             <span className="inline-flex items-center gap-2 text-[12px] font-semibold tracking-[.12em] uppercase text-[#8B857E]">
                 {live && <span className="ap-live-dot inline-block w-2 h-2 rounded-full bg-[#E11D48]" />}
                 {eyebrow}
             </span>
-            <h2 className="m-0 text-[32px] font-semibold tracking-[-.02em] leading-[1.1] text-[#161412]">{title}</h2>
+            <h2 className="m-0 text-2xl sm:text-[32px] font-semibold tracking-[-.02em] leading-[1.1] text-[#161412]">{title}</h2>
         </div>
         {showMore && (
             <a
                 href="#"
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-[#E8E5DE] bg-white text-[#4A4641] text-[14px] font-medium hover:bg-[#F4F3EE] hover:translate-x-0.5 transition no-underline"
+                className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-[#E8E5DE] bg-white text-[#4A4641] text-[14px] font-medium hover:bg-[#F4F3EE] hover:translate-x-0.5 transition no-underline"
             >
                 {more}
                 <ArrowRight />
@@ -620,7 +620,7 @@ function LandingPage2() {
                 {/* ============ Hero ============ */}
                 <section>
                     <SectionHead eyebrow="ประมูลสดตอนนี้ · 12 รายการ" title="รายการประมูลแนะนำ" live />
-                    <div className="grid grid-cols-[1.65fr_1fr] gap-6 mt-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-[1.65fr_1fr] gap-6 mt-4">
                         <article className="relative overflow-hidden rounded-[28px] bg-[#1a1815] aspect-[16/10] shadow-[0_32px_80px_-40px_rgba(20,18,15,.35),0_4px_16px_rgba(20,18,15,.06)]">
                             <div className="absolute inset-0 ap-hero-img" />
                             <span className="absolute top-[18px] right-[18px] font-mono text-[10px] text-white/55 bg-black/35 border border-white/15 px-2 py-1 rounded tracking-[.08em] uppercase">
@@ -632,13 +632,13 @@ function LandingPage2() {
                                     background: "linear-gradient(180deg, transparent 30%, rgba(10,8,5,.85) 100%)",
                                 }}
                             />
-                            <div className="absolute left-8 right-8 bottom-8 text-white flex items-end justify-between gap-6">
+                            <div className="absolute left-5 right-5 sm:left-8 sm:right-8 bottom-6 sm:bottom-8 text-white flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 sm:gap-6">
                                 <div className="flex flex-col gap-3.5 max-w-[540px]">
                                     <span className="self-start inline-flex items-center gap-2 bg-[#E11D48] text-white px-3 py-1.5 rounded-full text-[12px] font-semibold tracking-[.04em] uppercase">
                                         <span className="ap-blink w-1.5 h-1.5 bg-white rounded-full" />
                                         LIVE NOW
                                     </span>
-                                    <div className="text-[36px] font-semibold leading-[1.1] tracking-[-.02em]">
+                                    <div className="text-2xl sm:text-[36px] font-semibold leading-[1.1] tracking-[-.02em]">
                                         การ์ด One Piece Leader
                                         <br />
                                         Monkey D. Luffy · Foil
@@ -655,8 +655,8 @@ function LandingPage2() {
                                         </span>
                                     </div>
                                 </div>
-                                <div className="flex flex-col items-end gap-3.5 min-w-[240px]">
-                                    <div className="bg-white/10 border border-white/15 backdrop-blur-xl px-4.5 py-3.5 rounded-[18px] text-right min-w-[240px] px-[18px]">
+                                <div className="flex flex-col items-stretch sm:items-end gap-3.5 w-full sm:w-auto sm:min-w-[240px]">
+                                    <div className="bg-white/10 border border-white/15 backdrop-blur-xl py-3.5 rounded-[18px] text-right w-full sm:min-w-[240px] px-[18px]">
                                         <div className="text-[12px] text-white/60 tracking-[.05em] uppercase">
                                             ราคาปัจจุบัน
                                         </div>
@@ -664,7 +664,7 @@ function LandingPage2() {
                                             28,500<span className="text-[16px] font-medium opacity-70 ml-1">฿</span>
                                         </div>
                                     </div>
-                                    <button className="ap-btn-primary inline-flex items-center gap-2.5 h-[52px] px-6.5 bg-[#FF6B1A] text-white rounded-full font-semibold text-[15px] cursor-pointer px-[26px]">
+                                    <button className="ap-btn-primary inline-flex items-center justify-center gap-2.5 h-[52px] bg-[#FF6B1A] text-white rounded-full font-semibold text-[15px] cursor-pointer px-[26px]">
                                         เข้าร่วมประมูล
                                         <ArrowRight />
                                     </button>
@@ -714,7 +714,7 @@ function LandingPage2() {
                 {/* ============ Ending Soon ============ */}
                 <section className="mt-[72px]">
                     <SectionHead eyebrow="ใกล้ปิดประมูล" title="เหลือเวลาไม่นาน รีบเสนอราคา" live />
-                    <div className="grid grid-cols-4 gap-4.5 mt-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4.5 mt-6">
                         {ENDING_ITEMS.map((e, i) => (
                             <div
                                 key={i}
@@ -745,7 +745,7 @@ function LandingPage2() {
                 </section>
 
                 {/* ============ Stats ============ */}
-                <section className="mt-14 grid grid-cols-4 gap-6 p-7 bg-white border border-[#E8E5DE] rounded-[28px]">
+                <section className="mt-14 grid grid-cols-2 lg:grid-cols-4 gap-6 p-6 sm:p-7 bg-white border border-[#E8E5DE] rounded-[28px]">
                     {STATS.map((s, i) => (
                         <div key={i}>
                             <div className="text-[28px] font-semibold tracking-[-.02em] font-num">
@@ -766,7 +766,7 @@ function LandingPage2() {
                             <span className="inline-flex items-center gap-2 text-[12px] font-semibold tracking-[.12em] uppercase text-[#8B857E]">
                                 การประมูลยอดนิยม
                             </span>
-                            <h2 className="m-0 text-[32px] font-semibold tracking-[-.02em] leading-[1.1]">
+                            <h2 className="m-0 text-2xl sm:text-[32px] font-semibold tracking-[-.02em] leading-[1.1]">
                                 เลือกประมูลตามหมวดที่คุณสนใจ
                             </h2>
                         </div>
@@ -826,7 +826,7 @@ function LandingPage2() {
                     </div>
 
                     {/* grid */}
-                    <div className="grid grid-cols-4 gap-6 mt-7">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-7">
                         {PRODUCTS.map((p, i) => {
                             const isFav = favs.has(i);
                             return (
@@ -935,14 +935,14 @@ function LandingPage2() {
                 </section>
 
                 {/* ============ Recently sold ============ */}
-                <section className="mt-[72px] bg-[#161412] text-white rounded-[28px] px-10 py-9 grid grid-cols-[1fr_1.8fr] gap-10 items-center">
+                <section className="mt-[72px] bg-[#161412] text-white rounded-[28px] px-6 sm:px-10 py-8 sm:py-9 grid grid-cols-1 lg:grid-cols-[1fr_1.8fr] gap-8 lg:gap-10 items-center">
                     <div>
-                        <h3 className="m-0 mb-2 text-[26px] font-semibold tracking-[-.02em]">ขายแล้วล่าสุด</h3>
+                        <h3 className="m-0 mb-2 text-2xl sm:text-[26px] font-semibold tracking-[-.02em]">ขายแล้วล่าสุด</h3>
                         <p className="m-0 text-white/65 text-[14px]">
                             การประมูลที่ปิดดีล เห็นเทรนด์ราคา ก่อนเสนอราคาครั้งต่อไป
                         </p>
                     </div>
-                    <div className="grid grid-cols-3 gap-4.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4.5">
                         {SOLD.map((s, i) => (
                             <div key={i} className="flex items-center gap-3">
                                 <div className={`w-12 h-12 rounded-lg shrink-0 ap-sold-thumb ${s.thumb}`} />
@@ -959,7 +959,7 @@ function LandingPage2() {
                 {/* ============ How it works ============ */}
                 <section className="mt-24">
                     <SectionHead eyebrow="วิธีใช้งาน" title="ประมูลของสะสมใน 3 ขั้นตอน" showMore={false} />
-                    <div className="grid grid-cols-3 gap-6 mt-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-8">
                         {STEPS.map((s, i) => (
                             <div
                                 key={i}
@@ -979,8 +979,8 @@ function LandingPage2() {
                 </section>
 
                 {/* ============ Trust & Authentication ============ */}
-                <section className="mt-24 bg-white border border-[#E8E5DE] rounded-[28px] p-14 grid grid-cols-[1fr_1.1fr] gap-16 items-center">
-                    <div className="ap-trust-visual relative aspect-square rounded-[28px] overflow-hidden grid place-items-center">
+                <section className="mt-24 bg-white border border-[#E8E5DE] rounded-[28px] p-6 sm:p-10 lg:p-14 grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-10 lg:gap-16 items-center">
+                    <div className="ap-trust-visual relative aspect-square max-w-md mx-auto w-full rounded-[28px] overflow-hidden grid place-items-center">
                         <div className="ap-seal relative w-[200px] h-[200px] rounded-full bg-white grid place-items-center border border-[#E8E5DE] shadow-[0_32px_80px_-40px_rgba(20,18,15,.35),0_4px_16px_rgba(20,18,15,.06)]">
                             <div className="ap-seal-inner relative w-[140px] h-[140px] rounded-full bg-[#FFEEDF] text-[#C94800] grid place-items-center text-center font-mono text-[11px] font-medium tracking-[.1em] leading-[1.3]">
                                 <div>
@@ -1011,7 +1011,7 @@ function LandingPage2() {
                         <span className="inline-flex items-center gap-2 text-[12px] font-semibold tracking-[.12em] uppercase text-[#8B857E]">
                             ตรวจสอบและรับประกันของแท้
                         </span>
-                        <h3 className="mt-3 mb-3 text-[32px] font-semibold tracking-[-.02em] leading-[1.15]">
+                        <h3 className="mt-3 mb-3 text-2xl sm:text-[32px] font-semibold tracking-[-.02em] leading-[1.15]">
                             ทุกชิ้นผ่านการตรวจสอบ
                             <br />
                             โดยผู้เชี่ยวชาญ
@@ -1039,7 +1039,7 @@ function LandingPage2() {
                 {/* ============ Testimonials / Reviews ============ */}
                 <section className="mt-24">
                     <SectionHead eyebrow="รีวิวจากนักสะสม" title="นักสะสมตัวจริงไว้ใจเรา" more="รีวิวทั้งหมด" />
-                    <div className="grid grid-cols-3 gap-6 mt-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
                         {REVIEWS.map((r, i) => (
                             <div
                                 key={i}
@@ -1105,7 +1105,7 @@ function LandingPage2() {
                         ))}
                     </div>
 
-                    <div className="mt-9 flex items-center justify-between px-8 py-6 bg-white border border-[#E8E5DE] rounded-[18px]">
+                    <div className="mt-9 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-6 sm:px-8 py-6 bg-white border border-[#E8E5DE] rounded-[18px]">
                         <div className="flex items-center gap-5">
                             <div className="text-[36px] font-semibold tracking-[-.02em] leading-none font-num">
                                 4.9<small className="text-[16px] font-medium opacity-55">/5.0</small>
@@ -1166,7 +1166,7 @@ function LandingPage2() {
                                         </span>
                                     </div>
                                     {open && (
-                                        <div className="text-[#4A4641] text-[15px] leading-[1.7] pr-20 pb-7 max-w-[880px]">
+                                        <div className="text-[#4A4641] text-[15px] leading-[1.7] pr-4 sm:pr-20 pb-7 max-w-[880px]">
                                             {f.a}
                                         </div>
                                     )}
@@ -1178,7 +1178,7 @@ function LandingPage2() {
 
                 {/* ============ Sell with us CTA ============ */}
                 <section
-                    className="mt-24 relative rounded-[28px] py-[72px] px-16 overflow-hidden text-white grid grid-cols-[1.4fr_1fr] gap-12 items-center"
+                    className="mt-24 relative rounded-[28px] py-12 sm:py-[72px] px-6 sm:px-10 lg:px-16 overflow-hidden text-white grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-10 lg:gap-12 items-center"
                     style={{
                         background:
                             "radial-gradient(ellipse 80% 100% at 80% 20%, rgba(255,107,26,.35), transparent 50%), linear-gradient(135deg, #1a0a02 0%, #2a1208 100%)",
@@ -1195,7 +1195,7 @@ function LandingPage2() {
                         <span className="inline-flex items-center gap-2 text-[12px] font-semibold tracking-[.12em] uppercase text-[#FF6B1A]">
                             มาเป็นผู้ขาย
                         </span>
-                        <h3 className="mt-3 mb-4 text-[44px] font-semibold tracking-[-.025em] leading-[1.05]">
+                        <h3 className="mt-3 mb-4 text-3xl sm:text-[44px] font-semibold tracking-[-.025em] leading-[1.05]">
                             มีของสะสมที่อยากเปลี่ยนเป็นเงิน?
                         </h3>
                         <p className="mt-0 mb-7 text-[16px] leading-[1.6] text-white/70 max-w-[480px]">
