@@ -90,7 +90,7 @@ function AddProductLayout({ productId }) {
         onGetProductById();
     }, [productId]);
 
-    const onSubmit = async (state) => {
+    const onSubmit = async (state, opts = {}) => {
         try {
             const value = getValues();
             const uploadedImages = await uploadPendingFiles(value?.images_url || []);
@@ -120,7 +120,15 @@ function AddProductLayout({ productId }) {
             if (productData) {
                 setValue("productId", productData.id);
             }
-            notifySuccess(state === "pending_review" ? "ส่งตรวจสอบสินค้าสำเร็จ" : "บันทึกร่างสำเร็จ");
+            if (state === "pending_review") {
+                notifySuccess("ส่งตรวจสอบสินค้าสำเร็จ");
+            } else if (opts.viaKyc) {
+                notifySuccess(
+                    "บันทึกสินค้าเป็นร่างแล้ว — เมื่อ admin อนุมัติ KYC กรุณากลับมากด \"ส่งตรวจสอบสินค้า\" อีกครั้งเพื่อเปิดประมูล",
+                );
+            } else {
+                notifySuccess("บันทึกร่างสำเร็จ");
+            }
         } catch (error) {
             notifyError(error);
         }

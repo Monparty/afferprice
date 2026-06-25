@@ -156,7 +156,7 @@ export async function getProductById(id) {
 export async function getActiveProductsWithDetails() {
     return supabase
         .from("products")
-        .select("*, categories(name), bids(id, bid_price)")
+        .select("*, categories(name), bids(id, bid_price, user_id)")
         .eq("state", "active")
         .gt("auction_end_time", new Date().toISOString())
         .order("auction_end_time", { ascending: true });

@@ -232,6 +232,10 @@ Schema defined in `db/00_schema.sql`. Key tables:
   - `UseSteps` 4 ขั้น (เตรียมจัดส่ง → ขนส่งรับพัสดุ → กำลังนำจ่าย → จัดส่งสำเร็จ); `current` map จาก `shipping_status`: `preparing`=0, `shipped`=2, `delivered`=3
   - **timeline (เวลา/สถานที่แต่ละขั้น) เป็น mock คงที่** — `shipments` ไม่มี per-step event; ไม่มี `?product=` หรือดึงไม่ได้ → fallback `MOCK` ทั้งก้อน
   - `useSearchParams` ต้องอยู่ใน `<Suspense>` (แยก `OrderContent`) กัน build error prerender
+- **ผู้ซื้อยืนยันรับสินค้า + วิดีโอแกะกล่อง** (migration `20260625000000_shipment_receipt.sql` เพิ่ม `shipments.received_at` + `unboxing_video_url`):
+  - order page fetch user (`supabase.auth.getUser()`) + `getAuctionResultByProduct` (เพิ่ม `winner_id` ใน select) → `isBuyer = currentUserId === winner_id`; ปุ่ม "ยืนยันรับสินค้า" + อัปโหลดวิดีโอ (optional) แสดงเฉพาะ `isBuyer && shipping_status !== 'delivered'`
+  - วิดีโอ upload เข้า bucket `attachments` (`uploadAttachments`+`getUrlAttachments`) → เรียก `confirmReceipt({ auctionResultId, videoUrl })` ใน [order.service.js](../app/services/order.service.js) (`"use server"`): `requireUser()` + verify `auction_results.winner_id === user.id` + `supabaseAdmin` update `shipping_status='delivered'`/`received_at`/`unboxing_video_url` + notify seller (`type='shipping'`)
+  - **product.state คงเป็น `order`** — "จัดส่งสำเร็จ" ขับด้วย `shipping_status='delivered'` ล้วน (ไม่เพิ่ม product state ใหม่); 48 ชม. เป็นคำแนะนำ ไม่ได้ enforce; ไม่มีอะไรขยับ `preparing`→`shipped` (ปุ่มผู้ซื้อกระโดดเป็น `delivered` ตรง)
 
 ## Payment (Omise)
 

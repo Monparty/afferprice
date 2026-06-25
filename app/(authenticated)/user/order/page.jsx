@@ -7,14 +7,20 @@ import UseSteps from "../../../components/utils/UseSteps";
 import UseTag from "../../../components/utils/UseTag";
 import { getAuctionResultByProduct } from "@/app/services/payment.service";
 import { getShipmentByAuctionResult } from "@/app/services/shipment.service";
+import { confirmReceipt } from "@/app/services/order.service";
+import { uploadAttachments, getUrlAttachments } from "@/app/services/upload.service";
+import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
+import { supabase } from "@/app/lib/supabase/client";
 import {
     CarOutlined,
+    CheckCircleFilled,
     CopyOutlined,
     EnvironmentOutlined,
     InboxOutlined,
     InfoCircleFilled,
     PhoneOutlined,
     TruckOutlined,
+    VideoCameraOutlined,
     WechatOutlined,
 } from "@ant-design/icons";
 
@@ -90,14 +96,24 @@ function OrderContent() {
     const searchParams = useSearchParams();
     const productId = searchParams.get("product");
     const [order, setOrder] = useState(MOCK);
+    const [currentUserId, setCurrentUserId] = useState(null);
+    const [videoFile, setVideoFile] = useState(null);
+    const [confirming, setConfirming] = useState(false);
 
     useEffect(() => {
         if (!productId) return;
         (async () => {
+            const {
+                data: { user },
+            } = await supabase.auth.getUser();
+            setCurrentUserId(user?.id ?? null);
+
             const { data: result } = await getAuctionResultByProduct(productId);
             if (!result) return; // ดึงไม่ได้ → คง mock ไว้
             const { data: shipment } = await getShipmentByAuctionResult(result.id);
             setOrder({
+                auctionResultId: result.id,
+                winnerId: result.winner_id,
                 orderNo: `BD-${result.id.slice(0, 8).toUpperCase()}`,
                 title: result.products?.title ?? MOCK.title,
                 image: result.products?.images_url?.[0]?.url ?? MOCK.image,
@@ -105,9 +121,37 @@ function OrderContent() {
                 shippingCompany: shipment?.shipping_company ?? MOCK.shippingCompany,
                 trackingNumber: shipment?.tracking_number ?? MOCK.trackingNumber,
                 shippingStatus: shipment?.shipping_status ?? MOCK.shippingStatus,
+                unboxingVideoUrl: shipment?.unboxing_video_url ?? null,
             });
         })();
     }, [productId]);
+
+    const isBuyer = currentUserId && order.winnerId === currentUserId;
+    const isDelivered = order.shippingStatus === "delivered";
+
+    const handleConfirm = async () => {
+        if (!order.auctionResultId) return;
+        setConfirming(true);
+        let videoUrl = null;
+        if (videoFile) {
+            const ext = (videoFile.name?.split(".").pop() || "mp4").toLowerCase();
+            const fileName = `${crypto.randomUUID()}.${ext}`;
+            const { error: upErr } = await uploadAttachments({ fileName, file: videoFile });
+            if (upErr) {
+                setConfirming(false);
+                return notifyError(upErr);
+            }
+            videoUrl = getUrlAttachments(fileName)?.data?.publicUrl ?? null;
+        }
+        const { error } = await confirmReceipt({ auctionResultId: order.auctionResultId, videoUrl });
+        if (error) {
+            setConfirming(false);
+            return notifyError(error === "forbidden" ? "คุณไม่มีสิทธิ์ยืนยันรายการนี้" : error);
+        }
+        notifySuccess("ยืนยันรับสินค้าเรียบร้อยแล้ว");
+        setOrder((o) => ({ ...o, shippingStatus: "delivered", unboxingVideoUrl: videoUrl }));
+        setConfirming(false);
+    };
 
     const status = STATUS_CONFIG[order.shippingStatus] ?? STATUS_CONFIG.shipped;
     const items = buildSteps(order);
@@ -172,6 +216,57 @@ function OrderContent() {
                     <UseButton label="ติดต่อบริษัทขนส่ง" size="large" type="default" icon={PhoneOutlined} />
                 </div>
             </div>
+
+            {isBuyer && !isDelivered && (
+                <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-slate-200 dark:border-zinc-800 p-6">
+                    <h4 className="text-slate-900 dark:text-white font-bold text-lg mb-1">ยืนยันการรับสินค้า</h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                        เมื่อได้รับสินค้าและตรวจสอบเรียบร้อยแล้ว กรุณากดยืนยัน
+                        แนะนำให้แนบวิดีโอขณะแกะกล่องภายใน 48 ชม. เพื่อใช้เป็นหลักฐาน (ไม่บังคับ)
+                    </p>
+                    <label className="flex items-center gap-3 mb-4 cursor-pointer text-sm text-slate-600 dark:text-slate-300">
+                        <span className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-800">
+                            <VideoCameraOutlined /> เลือกวิดีโอแกะกล่อง
+                        </span>
+                        <span className="truncate">{videoFile?.name ?? "ยังไม่ได้เลือกไฟล์"}</span>
+                        <input
+                            type="file"
+                            accept="video/*"
+                            className="hidden"
+                            onChange={(e) => setVideoFile(e.target.files?.[0] ?? null)}
+                        />
+                    </label>
+                    <UseButton
+                        label="ยืนยันรับสินค้า"
+                        icon={CheckCircleFilled}
+                        size="large"
+                        loading={confirming}
+                        onClick={handleConfirm}
+                    />
+                </div>
+            )}
+
+            {isDelivered && (
+                <div className="p-4 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-600 flex items-start gap-4">
+                    <CheckCircleFilled className="text-xl text-green-600!" />
+                    <div>
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">จัดส่งสำเร็จ</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                            ผู้ซื้อยืนยันรับสินค้าเรียบร้อยแล้ว
+                        </p>
+                        {order.unboxingVideoUrl && (
+                            <a
+                                href={order.unboxingVideoUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-sm text-orange-600 font-medium inline-flex items-center gap-1 mt-1"
+                            >
+                                <VideoCameraOutlined /> ดูวิดีโอแกะกล่อง
+                            </a>
+                        )}
+                    </div>
+                </div>
+            )}
 
             <div className="mt-4 p-4 rounded-lg bg-orange-50 dark:bg-orange-950/30 border border-orange-600 flex items-start gap-4">
                 <InfoCircleFilled className="text-xl text-orange-600!" />

@@ -9,6 +9,12 @@ export const subscribeAuth = (callback) => {
 
 export const login = (email, password) => supabase.auth.signInWithPassword({ email, password });
 
+// Email OTP — ส่งรหัส 6 หลักไปที่อีเมล (เฉพาะผู้ใช้ที่มีบัญชีแล้ว: shouldCreateUser=false)
+export const sendEmailOtp = (email) =>
+    supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+
+export const verifyEmailOtp = (email, token) => supabase.auth.verifyOtp({ email, token, type: "email" });
+
 export const logout = () => supabase.auth.signOut();
 
 export const getCurrentUser = () => supabase.auth.getUser();

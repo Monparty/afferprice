@@ -54,11 +54,11 @@ export default function CategoriesPage() {
     }, [loadProducts]);
 
     return (
-        <main className="flex gap-6">
-            <div className="h-fit w-1/4 sticky top-12">
+        <main className="flex flex-col lg:flex-row gap-6">
+            <div className="h-fit w-full lg:w-1/4 lg:sticky lg:top-12">
                 <DetailSearchBox onSearch={loadProducts} />
             </div>
-            <div className="w-full">
+            <div className="w-full min-w-0">
                 {loading ? (
                     <CardSkeleton />
                 ) : (

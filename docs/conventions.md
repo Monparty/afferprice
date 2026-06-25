@@ -52,6 +52,11 @@ Project-specific coding style and reusable patterns. Standard library behavior i
 - เมื่อ client ต้องอ่านข้อมูลที่ RLS บล็อก แต่ผู้เรียก**ไม่ใช่ admin** (เช่น seller อ่านที่อยู่ของ buyer) → server action ใน `app/services/*.service.js` (`"use server"`) ที่ `requireUser()` + **verify ownership เอง** จาก DB + `supabaseAdmin` bypass RLS. ห้าม trust id จาก argument โดยไม่เช็ค (action ถูก expose เป็น POST endpoint อัตโนมัติ).
 - ตัวอย่าง: `getBuyerShippingAddress()` ใน `app/services/checkout.service.js` — verify `auction_results.products.seller_id === user.id` ก่อนคืน address ของ winner.
 - ต่างจาก `app/services/admin/*` ที่ใช้ `requireAdmin()` (role-gated); อันนี้ user-gated ตาม ownership.
+- **3 ประเภท server action ที่ใช้ `supabaseAdmin`:**
+  1. **admin** (`app/services/admin/*`) → `requireAdmin()` บรรทัดแรก
+  2. **user-gated** (เช่น `checkout.service.js`, `order.service.js` `confirmReceipt`) → `requireUser()` + verify ownership เอง
+  3. **public-safe** (เช่น `landing.service.js` `getRecentlySoldPublic`/`getPlatformStats`) → **ไม่มี `requireUser`** เพราะเป็นข้อมูลสาธารณะ (ราคา auction, count รวม) ที่ RLS บล็อก anon — **ต้องคืนเฉพาะ field ที่เปิดเผยได้ ห้ามมี PII** (ชื่อ/อีเมล/ที่อยู่). ใช้กับหน้า landing ที่ anon เปิดได้
+- mutation ที่ผู้ใช้ทำเอง (เช่น ผู้ซื้อกดยืนยันรับสินค้า) ก็ใช้ pattern user-gated ได้ — `confirmReceipt` verify `winner_id === user.id` ก่อน update `shipments` ด้วย `supabaseAdmin` (RLS เปิดแค่ SELECT)
 
 ## Notifications
 

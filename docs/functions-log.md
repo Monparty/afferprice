@@ -186,3 +186,73 @@ Append-only log of completed features/functions. Newest entries at the bottom.
   - **subagent เริ่ม context เปล่าทุกครั้ง** — ไม่เห็นบทสนทนาก่อนหน้า เลยสั่ง prompt ให้อ่าน `git diff` + docs เองก่อนทำงาน
   - `security-guard` เป็น **read-only** — เสนอ fix เท่านั้น ไม่แก้โค้ดเองเว้นแต่ผู้ใช้สั่ง (กันแก้พลาดในขั้นตรวจ)
   - `model: sonnet` ทั้งคู่ (งาน docs/audit ไม่ต้อง opus) — ปรับได้ใน frontmatter
+
+## LandingPage2 — ต่อข้อมูลจริงทุก section (เลิก mock) — 2026-06-25
+- **Purpose:** เปลี่ยน `LandingPage2.jsx` (design handoff ที่ทุก section อ่านจาก array hardcode) ให้ดึงข้อมูลจริงจาก Supabase ครบทุกส่วน: hero, กำลังประมูลสด (sidebar), ใกล้ปิดประมูล, stats, หมวด+จำนวน, product grid, ขายแล้วล่าสุด
+- **Location:**
+  - Service (ใหม่): `app/services/landing.service.js` (`"use server"`) — `getRecentlySoldPublic(limit)`, `getPlatformStats()`
+  - UI: `app/components/utils/LandingPage2.jsx` (รื้อ data layer + ลบ mock arrays `LIVE_ITEMS`/`ENDING_ITEMS`/`STATS`/`PRODUCTS`/`SOLD`/`PH_CLASSES`)
+  - `app/services/products.service.js` — `getActiveProductsWithDetails` เพิ่ม `user_id` ใน `bids(...)` (ใช้นับ distinct bidders)
+- **Inputs/Outputs:**
+  - **active products** (hero/live/ending/grid/หมวด) ใช้ browser client `getActiveProductsWithDetails()` (anon อ่านได้ — RLS `public read products` state=active); derive ใน component ด้วย `useMemo` (กรอง endTime > now, sort by bids/endTime, filter ตามหมวดที่เลือก)
+  - **หมวด chip** = `getParentCategories()` + นับจำนวน active ต่อ `category_id` ฝั่ง client; chip แรก "ทั้งหมด" (`id:null`) → คลิกกรอง grid
+  - `getRecentlySoldPublic(limit=6)` (`supabaseAdmin`) คืน `[{ id, title, image, finalPrice, endTime }]` จาก products `state in (sold,order)` join `auction_results(final_price)` order by `auction_end_time desc`
+  - `getPlatformStats()` (`supabaseAdmin`) คืน `{ totalAuctions, activeCollectors, monthlyValue, successRate, soldCount }` — count แบบ `head:true`; `monthlyValue` = ผลรวม `final_price` ของ sold/order ที่ `auction_end_time >= ต้นเดือน`; `successRate` = sold/(sold+cancelled)*100
+  - countdown เดินจริงทุก 1 วิ ผ่าน state `now` (setInterval) ส่งเข้า `<Countdown endTime now>`; รูปจริงผ่าน `<Thumb image fallback>` (ไม่มีรูป → gradient `ap-ph-*` เดิม); ทุกการ์ด `<Link href="/product/{id}">`
+- **Gotchas:**
+  - **SOLD + STATS ต้องผ่าน server action (`supabaseAdmin`)** เพราะ RLS: `public read products` เปิดเฉพาะ `state='active'` และ `auction_results` อ่านได้แค่ winner/seller → anon/ผู้ใช้ทั่วไปอ่าน sold ไม่ได้. landing.service.js คืนเฉพาะ field public-safe (ราคา auction เป็นข้อมูลสาธารณะ ไม่มี PII) — **ไม่มี `requireUser`** (public read-only) ต่างจาก server action อื่นที่ user-gated
+  - **ชื่อผู้ประมูลในการ์ดแสดงไม่ได้** — RLS ไม่เปิด `profiles` ให้ public → แสดง "N ผู้ร่วมประมูล" + avatar เปล่า (distinct จาก `bids.user_id`); ต้องมี `user_id` ใน select (เพิ่งเพิ่ม) ไม่งั้น distinct เพี้ยน
+  - 2 ตัวเลขใน panel "ผู้ขาย" (`+18%` ยอดเฉลี่ย, `5.2 วัน`) ยังคง static — DB ไม่มีข้อมูล; section marketing (STEPS/TRUST/REVIEWS/FAQ) คง static
+  - `page.jsx` render `<LandingPage/>` ซึ่ง render `<LandingPage2/>` ต่อท้าย → หน้าแรกมี 2 ดีไซน์ซ้อน (มีอยู่ก่อนแล้ว ไม่ได้แตะ)
+
+## Buyer confirm receipt + วิดีโอแกะกล่อง → จัดส่งสำเร็จ — 2026-06-25
+- **Purpose:** ปิด flow จัดส่ง — ผู้ซื้อ (ผู้ชนะ) กด "ยืนยันรับสินค้า" + แนบวิดีโอแกะกล่อง (optional, แนะนำภายใน 48 ชม.) → `shipping_status='delivered'` → ทั้ง 2 ฝั่งเห็นสถานะ "จัดส่งสำเร็จ"
+- **Location:**
+  - Migration (ใหม่): `supabase/migrations/20260625000000_shipment_receipt.sql` — `shipments` + `received_at timestamptz`, `unboxing_video_url text`
+  - Service (ใหม่): `app/services/order.service.js` (`"use server"`) — `confirmReceipt({ auctionResultId, videoUrl })`
+  - UI: `app/(authenticated)/user/order/page.jsx` — ปุ่มยืนยัน + อัปโหลดวิดีโอ + การ์ดสถานะ
+  - `app/services/payment.service.js` — `getAuctionResultByProduct` เพิ่ม `winner_id` ใน select
+- **Inputs/Outputs:**
+  - `confirmReceipt({ auctionResultId, videoUrl=null })` — `requireUser()` + verify `auction_results.winner_id === user.id` + `supabaseAdmin` update `shipments(shipping_status='delivered', received_at, unboxing_video_url)` + insert `notifications(type='shipping')` ให้ seller; คืน `{ error }` (`not_found`/`forbidden`/null)
+  - order page: on mount `supabase.auth.getUser()` + `getAuctionResultByProduct` → `isBuyer = currentUserId === winner_id`; ปุ่ม "ยืนยันรับสินค้า" แสดงเฉพาะ `isBuyer && shipping_status !== 'delivered'`; เลือกวิดีโอ (optional) → upload `attachments` (`uploadAttachments`+`getUrlAttachments`, ชื่อ `crypto.randomUUID().ext`) → `confirmReceipt` → set delivered ใน state
+- **Gotchas:**
+  - **update shipments ผ่าน server action เท่านั้น** — RLS `shipments` เปิดแค่ SELECT (buyer/seller); ผู้ซื้อ update เองผ่าน browser client ไม่ได้ → ใช้ `supabaseAdmin` หลัง verify winner เอง (pattern เดียวกับ `getBuyerShippingAddress`)
+  - **product.state คงเป็น `order`** — ไม่เพิ่ม state ใหม่; "จัดส่งสำเร็จ" ขับด้วย `shipping_status='delivered'` ล้วน (map ใน `STATUS_CONFIG` order page = step 3) เพื่อไม่ต้องแตะ `mapProductState`/selling tabs
+  - **48 ชม. ไม่ได้ enforce** — เป็นคำแนะนำ + เก็บ `received_at` ไว้อ้างอิง; วิดีโอ optional (RLS bucket `attachments` enforce MIME/size ฝั่ง server, client magic-byte validation ถูก bypass เพราะเรียก `uploadAttachments` ตรง)
+  - **ต้องรัน migration ก่อน** ไม่งั้น update คอลัมน์ `received_at`/`unboxing_video_url` error
+  - ไม่มีอะไรขยับ `preparing`→`shipped` ในระบบ (seller สร้าง shipment เป็น `preparing`) — ปุ่มยืนยันของผู้ซื้อกระโดดเป็น `delivered` ตรง (ผู้ซื้อยืนยันว่าได้รับ)
+
+## Email OTP login — 2026-06-25
+- **Purpose:** เพิ่มทางเลือกเข้าสู่ระบบด้วยรหัส OTP 6 หลักทางอีเมล (นอกจาก password/Google) — เฉพาะบัญชีที่มีอยู่แล้ว
+- **Location:**
+  - `app/services/auth.service.js` — `sendEmailOtp(email)`, `verifyEmailOtp(email, token)`
+  - `app/(auth)/login/page.jsx` — toggle โหมด `password`/`otp`
+- **Inputs/Outputs:**
+  - `sendEmailOtp(email)` = `supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } })` (ไม่สร้าง user ใหม่ — login เท่านั้น)
+  - `verifyEmailOtp(email, token)` = `supabase.auth.verifyOtp({ email, token, type: "email" })` → มี session → `router.push("/")`
+  - login page: `mode` state; โหมด otp ใช้ `useForm` แยก (`otpEmail`/`otpCode`) → ส่งรหัส (`otpSent=true`) → กรอกรหัส → ยืนยัน; มีปุ่ม "ส่งรหัสอีกครั้ง" + "ใช้รหัสผ่านแทน"
+- **Gotchas:**
+  - **ต้องเพิ่ม `{{ .Token }}` ใน Supabase email template** (Auth → Email Templates → Magic Link) ไม่งั้นอีเมลมีแค่ลิงก์ ไม่มีรหัส 6 หลักให้กรอก (default template ไม่มี token)
+  - `shouldCreateUser:false` → กรอกอีเมลที่ไม่มีบัญชีจะ error (ตั้งใจ — หน้านี้คือ login)
+  - แยก `useForm` ออกจากฟอร์ม password (yup schema บังคับ password → ถ้าใช้ control เดียวกัน `isValid` จะ false ในโหมด otp)
+
+## Responsive — filter ฝั่งซ้ายหน้า /categories — 2026-06-25
+- **Purpose:** ทำ filter sidebar หน้า `/categories` ให้ responsive — มือถือ stack เต็มกว้างด้านบน, จอใหญ่อยู่ซ้าย sticky เหมือนเดิม
+- **Location:** `app/(public)/categories/CategoriesPage.jsx` (wrapper layout)
+- **Inputs/Outputs:** `flex` → `flex flex-col lg:flex-row`; filter `w-1/4 sticky top-12` → `w-full lg:w-1/4 lg:sticky lg:top-12`; ฝั่ง grid เพิ่ม `min-w-0` กันล้น
+- **Gotchas:**
+  - ตัว `DetailSearchBox` เองเป็น `w-full grid` อยู่แล้ว (ไม่ต้องแก้ภายใน) — ปัญหาอยู่ที่ wrapper บีบเป็น 1/4 บนมือถือ
+  - scope รอบนี้เฉพาะ /categories; หน้าอื่น responsive ยังเป็นงานค้าง
+
+## Add-product UX — สินค้าแรก + KYC พร้อมกัน (คงพฤติกรรม draft) — 2026-06-25
+- **Purpose:** แก้ความสับสนเคส user ใหม่สร้างสินค้าครั้งแรกพร้อมส่ง KYC → สินค้าถูกเซฟเป็น `draft` (เพราะ KYC ยังไม่ approved) แต่ user ไม่รู้ว่าต้องกลับมากดส่งตรวจหลัง KYC ผ่าน — **ไม่เปลี่ยน behavior** (ไม่ auto-submit, ไม่แตะ gate) แค่สื่อสารให้ชัด
+- **Location:**
+  - `app/(authenticated)/user/add-product/components/CardAddProductPreview.jsx` — banner `pending` + ส่ง flag `viaKyc`
+  - `app/(authenticated)/user/add-product/components/AddProductLayout.jsx` — `onSubmit(state, opts)` เลือกข้อความ notify
+- **Inputs/Outputs:**
+  - KYC modal `onSubmitSaveProduct` → `onSubmit(... "draft", { viaKyc: true })`
+  - `onSubmit(state, opts={})`: `pending_review` → "ส่งตรวจสอบสินค้าสำเร็จ"; `draft`+`opts.viaKyc` → ข้อความอธิบายให้กลับมากด "ส่งตรวจสอบสินค้า" อีกครั้งหลัง KYC ผ่าน; draft ปกติ → "บันทึกร่างสำเร็จ"
+  - banner `pending` (`KYC_BANNER`) แก้ข้อความให้ตรงสถานการณ์เดียวกัน
+- **Gotchas:**
+  - **เหตุที่ค้าง draft = by design** — server `upsertProduct` reject `pending_review` ถ้า seller `is_kyc !== 'approved'` (KYC ตอนส่งเป็น `pending`); ตอน `onSubmitSaveProduct` ทำงาน prop `isKyc` ยังเป็น unknown/pending ด้วย → save draft. ทางเลือก auto-submit (ต้อง marker column) ถูกตัดออกตามที่ผู้ใช้เลือก "คงเดิม"
+  - หลัง admin อนุมัติ KYC → ปุ่มหลักกลับมา enable label "การบันทึกและส่งตรวจสอบสินค้า" → กดเองเพื่อ `pending_review`

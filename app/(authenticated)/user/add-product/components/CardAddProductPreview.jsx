@@ -27,7 +27,7 @@ const KYC_BANNER = {
     pending: {
         tone: "orange",
         label: "รอ admin ตรวจสอบ KYC",
-        desc: "บันทึกร่างได้ แต่ admin จะอนุมัติสินค้าให้เปิดประมูลได้หลัง KYC ผ่าน",
+        desc: "สินค้าถูกบันทึกเป็นร่างแล้ว — เมื่อ admin อนุมัติ KYC กรุณากลับมาที่หน้านี้แล้วกด \"ส่งตรวจสอบสินค้า\" อีกครั้งเพื่อเปิดประมูล",
         cta: null,
     },
     rejected: {
@@ -234,7 +234,9 @@ function CardAddProductPreview({
                 <KycVerificationForm
                     setIsOpenModalProfile={setKycModalOpen}
                     onKycSubmitted={() => setKycModalOpen(false)}
-                    onSubmitSaveProduct={() => onSubmit(isKyc === "approved" ? "pending_review" : "draft")}
+                    onSubmitSaveProduct={() =>
+                        onSubmit(isKyc === "approved" ? "pending_review" : "draft", { viaKyc: true })
+                    }
                 />
             </UseModal>
         </div>
