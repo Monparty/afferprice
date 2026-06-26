@@ -256,3 +256,16 @@ Append-only log of completed features/functions. Newest entries at the bottom.
 - **Gotchas:**
   - **เหตุที่ค้าง draft = by design** — server `upsertProduct` reject `pending_review` ถ้า seller `is_kyc !== 'approved'` (KYC ตอนส่งเป็น `pending`); ตอน `onSubmitSaveProduct` ทำงาน prop `isKyc` ยังเป็น unknown/pending ด้วย → save draft. ทางเลือก auto-submit (ต้อง marker column) ถูกตัดออกตามที่ผู้ใช้เลือก "คงเดิม"
   - หลัง admin อนุมัติ KYC → ปุ่มหลักกลับมา enable label "การบันทึกและส่งตรวจสอบสินค้า" → กดเองเพื่อ `pending_review`
+
+## Proxy middleware — fix session หลุดตอน soft-navigate หลัง login — 2026-06-26
+- **Purpose:** แก้บั๊ก login เสร็จแล้วกดปุ่มเข้า `/user/add-product` (หรือ `/user/*`, `/checkout`, `/payment`, `/order` ใดๆ) ครั้งแรก → โดนเด้งกลับ `/login` ทั้งที่ login แล้ว; reload เต็มหน้าเข้าได้ปกติ
+- **Location:** `proxy.js` (Next 16 middleware)
+- **Inputs/Outputs:**
+  - `NextResponse.next()` → `NextResponse.next({ request: req })`
+  - `setAll` เดิมเขียน cookie แค่ลง `response` → เปลี่ยนเป็นเขียนลงทั้ง `req.cookies` (ใช้ต่อใน middleware) และสร้าง `response` ใหม่จาก request แล้วเซ็ต cookie ลง response (ส่งกลับ browser)
+  - เพิ่ม helper `redirectTo(path)` → `NextResponse.redirect` + copy `response.cookies.getAll()` ลง redirect ทุกครั้ง; ใช้แทน `NextResponse.redirect` ตรงๆ ทั้ง 4 จุด (login→/admin, admin guard→/login, non-admin→/, authed guard→/login)
+- **Gotchas:**
+  - **ต้นเหตุ:** หลัง login (client `signInWithPassword`) soft-navigate เข้า `/user/*` ครั้งแรก SSR client หมุน (refresh) token → cookie ใหม่ถูกเซ็ตลง `response` แต่ `NextResponse.redirect` เดิมสร้าง response ใหม่ที่ **ทิ้ง cookie ที่ refresh แล้ว** → `getUser()` รอบถัดไปคืน `null` → เด้ง login; reload เต็มหน้า browser อ่าน cookie ที่ลงตัวแล้วเลยผ่าน
+  - **กฎ Supabase SSR middleware:** ต้องเขียน cookie ที่ refresh ลงทั้ง request + response และ redirect ทุกตัวต้อง copy cookie ไปด้วย ไม่งั้น session race หลุด
+  - หน้า `/` ไม่อยู่ใน `matcher` → ไม่ผ่าน middleware (ครั้งแรกที่เจอ middleware คือตอนเข้า protected path ครั้งแรก = จุดที่เคยพัง)
+  - ปัญหาอยู่ที่ middleware ล้วน — หน้า add-product/layout ไม่มี client-side redirect ไป login
