@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { WalletFilled, PlusOutlined, QrcodeOutlined, MessageFilled, CreditCardFilled, MobileOutlined } from "@ant-design/icons";
+import { WalletFilled, PlusOutlined, QrcodeOutlined, MessageFilled, CreditCardFilled, MobileOutlined, ExperimentOutlined } from "@ant-design/icons";
 import UseButton from "@/app/components/inputs/UseButton";
 import UseModal from "@/app/components/utils/UseModal";
 import UseSkeleton from "@/app/components/utils/UseSkeleton";
@@ -23,6 +23,10 @@ const METHODS = [
     { value: "credit_card", label: "บัตร", icon: CreditCardFilled, color: "text-blue-500!" },
     { value: "truemoney", label: "TrueMoney", icon: MobileOutlined, color: "text-red-500!" },
     { value: "linepay", label: "LINE Pay", icon: MessageFilled, color: "text-green-500!" },
+    // ช่องทางเทสชั่วคราว — เติมเงินเข้า wallet ตรง (dev เท่านั้น, route ปิดเองบน production)
+    ...(process.env.NODE_ENV !== "production"
+        ? [{ value: "test", label: "Test", icon: ExperimentOutlined, color: "text-purple-500!" }]
+        : []),
 ];
 
 function formatPrice(n) {
@@ -70,6 +74,16 @@ function TopupModal({ open, onClose, userId }) {
                 await startOmiseRedirect({ sourceType: "truemoney", purpose: "topup", amount, phoneNumber: phone });
             } else if (method === "linepay") {
                 await startOmiseRedirect({ sourceType: "rabbit_linepay", purpose: "topup", amount });
+            } else if (method === "test") {
+                const r = await fetch("/api/payment/test-topup", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ amount }),
+                });
+                const d = await r.json();
+                if (!r.ok || d.error) return notifyError(new Error(d.error || "เติมเงินไม่สำเร็จ"));
+                notifySuccess(`เติมเงินทดสอบสำเร็จ ${formatPrice(amount)}`);
+                handleClose();
             }
         } catch (err) {
             notifyError(err);
