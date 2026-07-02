@@ -17,7 +17,7 @@ export async function getProductsByState(state) {
     const { data: { user } } = await supabase.auth.getUser();
     return supabase
         .from("products")
-        .select("*, bids(id, bid_price, user_id), auction_results(id, payment_status, winner_id)")
+        .select("*, bids(id, bid_price, user_id), auction_results(id, payment_status, winner_id, payment_due_at)")
         .eq("state", state)
         .eq("seller_id", user.id);
 }
@@ -69,7 +69,7 @@ export async function getWonProductsByUser() {
     const { data: { user } } = await supabase.auth.getUser();
     return supabase
         .from("auction_results")
-        .select("id, payment_status, winner_id, final_price, products!inner(*, bids(id, user_id))")
+        .select("id, payment_status, winner_id, final_price, payment_due_at, products!inner(*, bids(id, user_id))")
         .eq("winner_id", user.id)
         .eq("products.state", "sold");
 }
@@ -88,7 +88,7 @@ export async function getOrderProductsWonByUser() {
     const { data: { user } } = await supabase.auth.getUser();
     return supabase
         .from("auction_results")
-        .select("id, payment_status, winner_id, final_price, products!inner(*, bids(id, user_id))")
+        .select("id, payment_status, winner_id, final_price, payment_due_at, products!inner(*, bids(id, user_id))")
         .eq("winner_id", user.id)
         .eq("products.state", "order");
 }
@@ -134,6 +134,44 @@ export async function endExpiredActiveAuctions() {
         )
     );
     return { ended: ids.length };
+}
+
+// ยกเลิกผลประมูลที่ผู้ชนะไม่ชำระเงินตามกำหนด (payment_due_at < now, ยัง pending)
+// ไม่มี server cron — reconcile ตอนโหลดหน้า /user/selling ทั้งฝั่งผู้ชนะและผู้ขาย
+export async function expireUnpaidWonAuctions() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { expired: 0 };
+    const nowIso = new Date().toISOString();
+
+    // ฝั่งผู้ชนะ (RLS: winner อ่าน auction_results ของตัวเองได้)
+    const { data: wonExpired } = await supabase
+        .from("auction_results")
+        .select("id")
+        .eq("winner_id", user.id)
+        .eq("payment_status", "pending")
+        .lt("payment_due_at", nowIso);
+
+    // ฝั่งผู้ขาย (RLS: seller อ่าน auction_results ของสินค้าตัวเองได้ผ่าน products join)
+    const { data: sellerExpired } = await supabase
+        .from("auction_results")
+        .select("id, products!inner(seller_id)")
+        .eq("products.seller_id", user.id)
+        .eq("payment_status", "pending")
+        .lt("payment_due_at", nowIso);
+
+    const ids = [...new Set([...(wonExpired ?? []), ...(sellerExpired ?? [])].map((r) => r.id))];
+    if (!ids.length) return { expired: 0 };
+
+    await Promise.all(
+        ids.map((id) =>
+            fetch("/api/auction/expire-unpaid", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ auctionResultId: id }),
+            }).catch(() => {})
+        )
+    );
+    return { expired: ids.length };
 }
 
 export async function updateProductPrice(id, price) {

@@ -51,6 +51,7 @@ function CardSellingProduct({ value }) {
     const router = useRouter();
     const action = getPopoverAction(value);
     const [countdown, setCountdown] = useState(() => formatCountdown(value.auction_end_time));
+    const [payCountdown, setPayCountdown] = useState(() => formatCountdown(value.paymentDueAt));
 
     // ประมูลมีผู้ชนะ — แยก UI ตามฝั่ง (ผู้ขาย/ผู้ซื้อ) + สถานะชำระเงิน
     const isPaid = value.paymentStatus === "paid";
@@ -69,6 +70,21 @@ function CardSellingProduct({ value }) {
         const id = setInterval(tick, 1000);
         return () => clearInterval(id);
     }, [value.auction_end_time]);
+
+    // นับถอยหลังกำหนดชำระเงินของผู้ชนะ (แสดงเฉพาะตอนรอชำระ)
+    useEffect(() => {
+        if (!value.paymentDueAt) return;
+        const tick = () => setPayCountdown(formatCountdown(value.paymentDueAt));
+        tick();
+        const id = setInterval(tick, 1000);
+        return () => clearInterval(id);
+    }, [value.paymentDueAt]);
+
+    const payDeadline = value.paymentDueAt ? (
+        <p className={`mt-2 text-xs text-center font-semibold ${payCountdown?.ended ? "text-red-500" : "text-orange-500"}`}>
+            {payCountdown?.ended ? "เลยกำหนดชำระเงินแล้ว" : `ชำระภายใน ${payCountdown?.text}`}
+        </p>
+    ) : null;
 
     return (
         <div className="group flex flex-col bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl overflow-hidden hover:shadow-lg hover:border-primary/20 transition-all">
@@ -131,6 +147,7 @@ function CardSellingProduct({ value }) {
                 {sellerWaitingPay && (
                     <div className="mt-4">
                         <UseTag label="รอผู้ซื้อชำระเงิน" color="orange" icon={WalletOutlined} />
+                        {payDeadline}
                     </div>
                 )}
                 {sellerNeedShip && (
@@ -151,6 +168,7 @@ function CardSellingProduct({ value }) {
                             wFull
                             onClick={() => router.push(`/user/checkout/${value.id}`)}
                         />
+                        {payDeadline}
                     </div>
                 )}
                 {buyerWaitingShip && (

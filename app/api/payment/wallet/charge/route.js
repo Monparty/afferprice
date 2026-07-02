@@ -21,7 +21,7 @@ export async function POST(req) {
 
         const { data: result, error: resultErr } = await supabaseAdmin
             .from("auction_results")
-            .select("id, winner_id, final_price, payment_status, product_id")
+            .select("id, winner_id, final_price, payment_status, product_id, payment_due_at")
             .eq("id", auctionResultId)
             .single();
 
@@ -33,6 +33,12 @@ export async function POST(req) {
         }
         if (result.payment_status === "paid") {
             return NextResponse.json({ error: "already_paid" }, { status: 409 });
+        }
+        if (result.payment_status === "canceled") {
+            return NextResponse.json({ error: "auction_canceled" }, { status: 409 });
+        }
+        if (result.payment_due_at && new Date(result.payment_due_at) < new Date()) {
+            return NextResponse.json({ error: "payment_expired" }, { status: 409 });
         }
 
         const finalPrice = Number(result.final_price);

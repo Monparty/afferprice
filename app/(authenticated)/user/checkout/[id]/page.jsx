@@ -26,6 +26,8 @@ import { getMyBidDeposit } from "@/app/services/deposits.service";
 import { getMyAddresses } from "@/app/services/address.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import { supabase } from "@/app/lib/supabase/client";
+import { formatCountdown } from "@/app/utils/dateUtils";
+import dayjs from "dayjs";
 
 // --------------- ต้องเป็รสินค้าที่มีข้อมูลอยู่ใน auction_results ถึงจะแสดงข้อมูลในหน้านี้ -------------------------
 
@@ -90,6 +92,10 @@ function Page() {
     const isPaid = result?.payment_status === "paid";
     // ผู้ขาย + ชำระแล้ว → checkout ปกติก่อน, ปุ่มเปลี่ยนเป็น "ระบุเลขใบเสร็จการจัดส่ง" แล้วค่อยเปิดฟอร์มจัดส่ง
     const sellerShipMode = isSeller && isPaid;
+    // กำหนดชำระเงินของผู้ชนะ — เลยกำหนดแล้วจ่ายไม่ได้ (server enforce ซ้ำ)
+    const payDueAt = result?.payment_due_at;
+    const payExpired = !isPaid && payDueAt && new Date(payDueAt) < new Date();
+    const payCountdown = payDueAt ? formatCountdown(payDueAt) : null;
 
     // โหมดผู้ขาย → ดึงที่อยู่จัดส่งของผู้ซื้อ (winner) มาแสดง (read-only)
     useEffect(() => {
@@ -187,6 +193,19 @@ function Page() {
     return (
         <main className="flex flex-col lg:flex-row gap-6">
             <div className="flex-1 space-y-6">
+                {!sellerShipMode && payDueAt && (
+                    <div
+                        className={`rounded-xl p-4 border text-sm font-semibold ${
+                            payExpired
+                                ? "bg-red-50 dark:bg-red-950/40 border-red-300 text-red-600"
+                                : "bg-orange-50 dark:bg-orange-950/40 border-orange-300 text-orange-600"
+                        }`}
+                    >
+                        {payExpired
+                            ? "เลยกำหนดชำระเงินแล้ว — รายการนี้จะถูกยกเลิกและริบเงินมัดจำ"
+                            : `กรุณาชำระเงินภายใน ${dayjs(payDueAt).format("DD/MM/YYYY HH:mm")} น. (เหลือ ${payCountdown?.text})`}
+                    </div>
+                )}
                 <section className="bg-white dark:bg-zinc-900 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-zinc-800">
                     <div className="flex items-center gap-2 mb-6">
                         <span className="flex items-center bg-orange-600 justify-center w-8 h-8 rounded-full text-white text-sm font-bold">
@@ -404,7 +423,7 @@ function Page() {
                             </div>
                         </div>
                         <UseButton
-                            label={sellerShipMode ? "ระบุเลขใบเสร็จการจัดส่ง" : "ยืนยันการชำระเงิน"}
+                            label={sellerShipMode ? "ระบุเลขใบเสร็จการจัดส่ง" : payExpired ? "เลยกำหนดชำระเงิน" : "ยืนยันการชำระเงิน"}
                             icon={sellerShipMode ? CarOutlined : undefined}
                             className="h-12! text-lg! font-bold!"
                             onClick={
@@ -413,9 +432,9 @@ function Page() {
                                     : () => router.push(`/user/payment/${result.id}?method=${paymentMethod}`)
                             }
                             wFull
-                            disabled={!result || (!sellerShipMode && !selectedAddressId)}
+                            disabled={!result || (!sellerShipMode && (!selectedAddressId || payExpired))}
                         />
-                        {!sellerShipMode && !selectedAddressId && (
+                        {!sellerShipMode && !payExpired && !selectedAddressId && (
                             <p className="mt-2 text-xs text-red-500 text-center">
                                 กรุณาเลือกที่อยู่จัดส่งก่อนยืนยันการชำระเงิน
                             </p>

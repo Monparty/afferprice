@@ -87,10 +87,17 @@ export async function POST(req) {
                 .channel(`wallet-${payment.user_id}`)
                 .send({ type: "broadcast", event: "update", payload: {} });
         } else if (payment.auction_result_id) {
-            await supabaseAdmin
+            // เปลี่ยนเป็น 'paid' เฉพาะที่ยัง 'pending' — กันไม่ให้ปลุก auction ที่ถูกยกเลิก (เลยกำหนด/ริบมัดจำ) กลับมา
+            const { data: updated } = await supabaseAdmin
                 .from("auction_results")
                 .update({ payment_status: "paid" })
-                .eq("id", payment.auction_result_id);
+                .eq("id", payment.auction_result_id)
+                .eq("payment_status", "pending")
+                .select("id");
+            if (!updated?.length) {
+                // charge สำเร็จที่ Omise แต่ auction ไม่อยู่สถานะ pending แล้ว (ถูกยกเลิกก่อนจ่ายเสร็จ) → ต้อง refund ด้วยมือ
+                console.error("[webhook] auction not pending, payment succeeded on non-pending auction", payment.id, payment.auction_result_id);
+            }
         }
     }
 

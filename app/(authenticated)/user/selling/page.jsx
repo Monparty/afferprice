@@ -13,6 +13,7 @@ import {
     getLostBidProductsByUser,
     getOrderProductsWonByUser,
     endExpiredActiveAuctions,
+    expireUnpaidWonAuctions,
 } from "@/app/services/products.service";
 import { AppstoreOutlined, BarsOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
@@ -40,11 +41,15 @@ function Page() {
     ];
     const sellerStateKeys = stateConfig.filter((s) => s.key !== "won").map((s) => s.key);
 
-    // ปิดประมูลที่หมดเวลาแต่ค้างที่ active ก่อน แล้วค่อย refresh ถ้ามีการเปลี่ยนสถานะ
+    // reconcile สถานะค้าง: (1) ปิดประมูลที่หมดเวลาแต่ค้าง active (2) ยกเลิกผลประมูลที่ผู้ชนะไม่ชำระตามกำหนด
     useEffect(() => {
-        endExpiredActiveAuctions().then(({ ended }) => {
-            if (ended > 0) setRefreshKey((k) => k + 1);
-        });
+        (async () => {
+            const [{ ended }, { expired }] = await Promise.all([
+                endExpiredActiveAuctions(),
+                expireUnpaidWonAuctions(),
+            ]);
+            if (ended > 0 || expired > 0) setRefreshKey((k) => k + 1);
+        })();
     }, []);
 
     useEffect(() => {
@@ -145,6 +150,7 @@ function Page() {
                                 bidders_count: biddersCount,
                                 images_url: productData?.images_url,
                                 paymentStatus: auctionResult?.payment_status,
+                                paymentDueAt: auctionResult?.payment_due_at,
                                 isBuyer: isBuyerShape,
                                 isBidder: productData?._isBidder,
                                 isLost,

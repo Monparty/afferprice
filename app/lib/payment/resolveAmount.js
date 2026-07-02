@@ -36,12 +36,16 @@ export async function resolvePaymentAmount({ user, purpose, auctionResultId, pro
         if (!auctionResultId) throw new PaymentError("missing_auction_result", 400);
         const { data: result } = await supabaseAdmin
             .from("auction_results")
-            .select("id, winner_id, final_price, payment_status, product_id")
+            .select("id, winner_id, final_price, payment_status, product_id, payment_due_at")
             .eq("id", auctionResultId)
             .single();
         if (!result) throw new PaymentError("auction_result_not_found", 404);
         if (result.winner_id !== user.id) throw new PaymentError("forbidden", 403);
         if (result.payment_status === "paid") throw new PaymentError("already_paid", 409);
+        if (result.payment_status === "canceled") throw new PaymentError("auction_canceled", 409);
+        if (result.payment_due_at && new Date(result.payment_due_at) < new Date()) {
+            throw new PaymentError("payment_expired", 409);
+        }
         const finalPrice = Number(result.final_price);
         const deposit = await getAppliedDepositAmount(user.id, result.product_id);
         const amount = Math.max(1, Math.round(finalPrice + finalPrice * AUCTION_FEE_RATE) - deposit);

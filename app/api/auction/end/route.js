@@ -42,11 +42,16 @@ export async function POST(request) {
         .maybeSingle();
 
     if (winningBid) {
+        // ผู้ชนะมีเวลาชำระเงิน 3 วันหลังปิดประมูล; เกินกำหนดจะถูกริบมัดจำ (ดู expire_unpaid_auction)
+        const PAYMENT_DUE_DAYS = 3;
+        const paymentDueAt = new Date(Date.now() + PAYMENT_DUE_DAYS * 24 * 60 * 60 * 1000).toISOString();
+
         // 4. สร้าง auction_result — ถ้าชน UNIQUE(product_id) แปลว่ามี invocation อื่นทำอยู่พร้อมกัน → จบเลย
         const { error: insertErr } = await supabaseAdmin.from("auction_results").insert({
             product_id: productId,
             winner_id: winningBid.user_id,
             final_price: winningBid.bid_price,
+            payment_due_at: paymentDueAt,
         });
         if (insertErr) return NextResponse.json({ ended: true }, { status: 200 });
 
