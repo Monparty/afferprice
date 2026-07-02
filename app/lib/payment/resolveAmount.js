@@ -3,8 +3,22 @@ import { supabaseAdmin } from "@/app/lib/supabase/admin";
 
 export const AUCTION_FEE_RATE = 0.05;
 export const LISTING_FEE_RATE = 0.05;
+export const DEPOSIT_RATE = 0.2;
 export const TOPUP_MIN = 20;
 export const TOPUP_MAX = 100000;
+
+// เงินมัดจำของผู้ชนะ (status='applied' — mark โดย /api/auction/end) หักออกจากยอดชำระค่าประมูล
+export async function getAppliedDepositAmount(userId, productId) {
+    if (!userId || !productId) return 0;
+    const { data } = await supabaseAdmin
+        .from("bid_deposits")
+        .select("amount")
+        .eq("product_id", productId)
+        .eq("user_id", userId)
+        .eq("status", "applied")
+        .maybeSingle();
+    return Number(data?.amount ?? 0);
+}
 
 export class PaymentError extends Error {
     constructor(code, status = 400) {
@@ -22,14 +36,15 @@ export async function resolvePaymentAmount({ user, purpose, auctionResultId, pro
         if (!auctionResultId) throw new PaymentError("missing_auction_result", 400);
         const { data: result } = await supabaseAdmin
             .from("auction_results")
-            .select("id, winner_id, final_price, payment_status")
+            .select("id, winner_id, final_price, payment_status, product_id")
             .eq("id", auctionResultId)
             .single();
         if (!result) throw new PaymentError("auction_result_not_found", 404);
         if (result.winner_id !== user.id) throw new PaymentError("forbidden", 403);
         if (result.payment_status === "paid") throw new PaymentError("already_paid", 409);
         const finalPrice = Number(result.final_price);
-        const amount = Math.round(finalPrice + finalPrice * AUCTION_FEE_RATE);
+        const deposit = await getAppliedDepositAmount(user.id, result.product_id);
+        const amount = Math.max(1, Math.round(finalPrice + finalPrice * AUCTION_FEE_RATE) - deposit);
         return { amount, auctionResultId, productId: null };
     }
 

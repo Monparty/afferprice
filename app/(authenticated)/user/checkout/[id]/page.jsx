@@ -22,6 +22,7 @@ import { useEffect, useState } from "react";
 import { getAuctionResultByProduct } from "@/app/services/payment.service";
 import { createShipment } from "@/app/services/shipment.service";
 import { getBuyerShippingAddress } from "@/app/services/checkout.service";
+import { getMyBidDeposit } from "@/app/services/deposits.service";
 import { getMyAddresses } from "@/app/services/address.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import { supabase } from "@/app/lib/supabase/client";
@@ -60,6 +61,7 @@ function Page() {
     const [submitting, setSubmitting] = useState(false);
     const [showShipmentForm, setShowShipmentForm] = useState(false);
     const [buyerAddress, setBuyerAddress] = useState(null);
+    const [deposit, setDeposit] = useState(null);
 
     const fetchAddresses = async () => {
         const { data, error } = await getMyAddresses();
@@ -79,6 +81,8 @@ function Page() {
             if (error) return notifyError(error);
             setResult(data);
         });
+        // เงินมัดจำของผู้ชนะ (status='applied') — RLS คืนเฉพาะของตัวเอง (ฝั่ง seller ไม่มี row)
+        getMyBidDeposit(id).then(({ data }) => setDeposit(data ?? null));
         fetchAddresses();
     }, [id]);
 
@@ -118,7 +122,9 @@ function Page() {
     const finalPrice = Number(result?.final_price ?? 0);
     const auctionFee = Math.round(finalPrice * AUCTION_FEE_RATE);
     const shippingFee = SHIPPING_OPTIONS.find((o) => o.value === shipping)?.fee ?? 0;
-    const total = finalPrice + auctionFee + shippingFee;
+    // เงินมัดจำที่วางไว้ตอนประมูล — หักออกจากยอดชำระ (ยอดจริง server คำนวณซ้ำอีกชั้น)
+    const depositApplied = deposit?.status === "applied" ? Number(deposit.amount) : 0;
+    const total = Math.max(0, finalPrice + auctionFee + shippingFee - depositApplied);
     const productImage = product?.images_url?.[0]?.url;
 
     if (showShipmentForm) {
@@ -379,6 +385,14 @@ function Page() {
                                     {shippingFee === 0 ? "ฟรี" : formatPrice(shippingFee)}
                                 </span>
                             </div>
+                            {depositApplied > 0 && (
+                                <div className="flex justify-between text-gray-600 dark:text-slate-300">
+                                    <span>หักเงินมัดจำที่วางไว้</span>
+                                    <span className="font-semibold text-emerald-600">
+                                        −{formatPrice(depositApplied)}
+                                    </span>
+                                </div>
+                            )}
                             <div className="pt-4 border-t border-gray-100 dark:border-zinc-800 flex justify-between items-end">
                                 <div>
                                     <p className="text-sm text-gray-500 dark:text-slate-400 uppercase font-bold tracking-wider">

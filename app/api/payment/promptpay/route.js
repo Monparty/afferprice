@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/app/lib/supabase/admin";
 import { requireUser, AuthError } from "@/app/lib/auth";
 import { rateLimit, clientKey } from "@/app/lib/rateLimit";
+import { getAppliedDepositAmount } from "@/app/lib/payment/resolveAmount";
 import { NextResponse } from "next/server";
 
 const AUCTION_FEE_RATE = 0.05;
@@ -40,7 +41,7 @@ export async function POST(req) {
             }
             const { data: result } = await supabaseAdmin
                 .from("auction_results")
-                .select("id, winner_id, final_price, payment_status")
+                .select("id, winner_id, final_price, payment_status, product_id")
                 .eq("id", auctionResultId)
                 .single();
             if (!result) return NextResponse.json({ error: "auction_result_not_found" }, { status: 404 });
@@ -49,7 +50,9 @@ export async function POST(req) {
                 return NextResponse.json({ error: "already_paid" }, { status: 409 });
             }
             const finalPrice = Number(result.final_price);
-            amount = Math.round(finalPrice + finalPrice * AUCTION_FEE_RATE);
+            // หักเงินมัดจำของผู้ชนะ (ถ้ามี) ออกจากยอดชำระ
+            const deposit = await getAppliedDepositAmount(user.id, result.product_id);
+            amount = Math.max(1, Math.round(finalPrice + finalPrice * AUCTION_FEE_RATE) - deposit);
         } else if (purpose === "topup") {
             const n = Number(clientAmount);
             if (!Number.isFinite(n) || n < TOPUP_MIN || n > TOPUP_MAX) {

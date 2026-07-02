@@ -269,3 +269,47 @@ Append-only log of completed features/functions. Newest entries at the bottom.
   - **กฎ Supabase SSR middleware:** ต้องเขียน cookie ที่ refresh ลงทั้ง request + response และ redirect ทุกตัวต้อง copy cookie ไปด้วย ไม่งั้น session race หลุด
   - หน้า `/` ไม่อยู่ใน `matcher` → ไม่ผ่าน middleware (ครั้งแรกที่เจอ middleware คือตอนเข้า protected path ครั้งแรก = จุดที่เคยพัง)
   - ปัญหาอยู่ที่ middleware ล้วน — หน้า add-product/layout ไม่มี client-side redirect ไป login
+
+## CardProductBid — KYC pending ไม่เปิด modal ซ้ำ — 2026-07-02
+- **Purpose:** แก้ UX ปุ่มประมูลตอน KYC สถานะ `pending` — เดิมกดปุ่มเปิด `KycVerificationForm` modal ซ้ำได้เรื่อยๆ ทั้งที่ส่งไปรอตรวจแล้ว
+- **Location:** `app/components/utils/CardProductBid.jsx`
+- **Inputs/Outputs:**
+  - `isKycPending = userData?.is_kyc === "pending"`
+  - เมื่อ `needKyc && isKycPending` → ปุ่ม label เปลี่ยนเป็น "รอตรวจสอบการยืนยันตัวตน" + `disabled` + `onClick={undefined}` (ไม่เปิด modal)
+  - สถานะ `unknown`/`rejected` (เข้า `needKyc` เหมือนกันแต่ `isKycPending` false) ยังเปิด `KycVerificationForm` modal ตามเดิม
+- **Gotchas:**
+  - เช็คแยกจาก `needKyc` เดิม (`needKyc` แค่บอกว่ายัง `!== 'approved'`) — `isKycPending` เป็นเงื่อนไขซ้อนเพื่อแยก UI ระหว่าง "ยังไม่เคยส่ง" กับ "ส่งแล้วรอ admin"
+  - ไม่ได้แตะ logic guard ใน `onSubmit` (ที่กัน insert bid ซ้ำถ้า `is_kyc !== 'approved'`) — เปลี่ยนแค่ฝั่ง UI ปุ่ม
+
+## Bid deposit — เงินมัดจำ 20% ก่อนประมูลครั้งแรก — 2026-07-02
+- **Purpose:** ผู้ประมูลคนแรกที่จะ bid สินค้าแต่ละชิ้นต้องวางมัดจำ 20% ของราคาปัจจุบัน (ตัดจาก **wallet เท่านั้น**) ก่อนจึงจะ bid ได้ — กันคนตั้งราคาแล้วหนีไม่จ่าย; แพ้ประมูล → คืนเงินเข้า wallet อัตโนมัติตอน `/api/auction/end`; ชนะ → มัดจำถูก mark `applied` แล้วหักออกจากยอดชำระค่าประมูลทุกช่องทาง (promptpay/wallet/credit-card/truemoney/linepay)
+- **Location:**
+  - Migration (ใหม่): `supabase/migrations/20260702000000_bid_deposits.sql` — ตาราง `bid_deposits`, `UNIQUE(auction_results.product_id)`, RPC `place_bid_deposit`/`refund_bid_deposit`, `CREATE OR REPLACE validate_bid` (เพิ่มเช็ค deposit)
+  - Route (ใหม่): `app/api/bid/deposit/route.js` — `POST { productId }`
+  - Service (ใหม่): `app/services/deposits.service.js` — `getMyBidDeposit(productId)`, `placeBidDeposit(productId)`
+  - `app/api/auction/end/route.js` — step ใหม่ mark applied / refund deposit ที่เหลือ
+  - `app/lib/payment/resolveAmount.js` — export `DEPOSIT_RATE=0.2` + `getAppliedDepositAmount(userId, productId)`
+  - `app/api/payment/promptpay/route.js`, `app/api/payment/wallet/charge/route.js` — หักมัดจำแบบเดียวกัน (inline ตาม convention เดิมของ promptpay)
+  - `app/services/payment.service.js` — `getAuctionResultById` เพิ่ม `product_id` ใน select
+  - `app/components/utils/CardProductBid.jsx` — เพิ่ม gate วางมัดจำ (ระหว่าง KYC gate กับปุ่ม bid จริง)
+  - `app/(authenticated)/user/checkout/[id]/page.jsx`, `app/(authenticated)/user/payment/[id]/page.jsx` — แสดงบรรทัดหักมัดจำ + total หักแล้ว
+  - `app/utils/supabaseErrorMap.js` — เพิ่ม `deposit_required`/`already_deposited`/`insufficient_balance`/`deposit_not_found`
+- **Inputs/Outputs:**
+  - `place_bid_deposit(p_user_id, p_product_id)` (RPC, SECURITY DEFINER, service_role only) — lock product `FOR UPDATE`, ตรวจ `state='active'` + ยังไม่หมดเวลา + ไม่ใช่ seller + **`profiles.is_kyc='approved'`** + ยังไม่เคยวางมัดจำ (`UNIQUE(product_id,user_id)`); ราคาปัจจุบัน = `COALESCE(MAX(bids.bid_price), start_price)` (สูตรเดียวกับ `validate_bid`); `v_amount = GREATEST(1, ROUND(current * 0.20))`; ตัด `profiles.wallet_balance` + insert `bid_deposits(status='held')` + `wallet_transactions(type='payment', note='bid deposit')`; คืน `{ deposit_id, amount, balance_after }`
+  - `refund_bid_deposit(p_deposit_id)` (RPC) — idempotent: คืนเงินเฉพาะ row ที่ `status='held'` (ภายใต้ `FOR UPDATE`); เรียกซ้ำคืน `{ already_processed: true, status }` เฉยๆ ไม่ credit ซ้ำ; credit `wallet_balance` + insert `wallet_transactions(type='refund')` + update `status='refunded'`
+  - `POST /api/bid/deposit` body `{ productId }` — `requireUser()` + `rateLimit(5/min, key 'bid-deposit')` (เท่า wallet/charge เพราะตัดเงินทันที) → เรียก `place_bid_deposit` RPC → broadcast `wallet-{userId}` (payload ว่าง) → คืน `{ deposit_id, amount, balance_after }` หรือ `{ error }`
+  - `getMyBidDeposit(productId)` (browser client) → `bid_deposits` row ของตัวเอง (`id, amount, status`) หรือ `null` — RLS `"own deposit read"` กรองอัตโนมัติ
+  - `getAppliedDepositAmount(userId, productId)` (`resolveAmount.js`, ใช้ `supabaseAdmin`) → ยอด deposit ที่ `status='applied'` (0 ถ้าไม่มี) — ใช้ลบออกจาก `amount = Math.max(1, round(final_price*1.05) - deposit)` ใน resolver (ครอบ credit-card + omise route อัตโนมัติ) และ inline ใน promptpay/wallet-charge
+  - `CardProductBid`: gate chain ใหม่ = login → KYC (`needKyc`) → **`needDeposit`** (`!isSeller && !needKyc && !hasDeposit`) → ปุ่ม bid จริง. `needDeposit` → ปุ่ม "วางเงินมัดจำ 20% (฿X)"; ถ้า `walletBalance < depositAmount` → label "เติมเงินเพื่อวางมัดจำ" กดแล้ว push `/user/wallet` แทนการเรียก deposit; วางสำเร็จ (`hasDeposit`) → ข้อความเขียว "วางเงินมัดจำแล้ว ฿X" เหนือปุ่ม bid; `onSubmit` มี guard ซ้ำ `deposit?.status !== "held"` → `notifyError({message:"deposit_required"})`
+  - checkout/payment page: `depositApplied = deposit?.status === "applied" ? Number(deposit.amount) : 0` → แสดงบรรทัด "หักเงินมัดจำที่วางไว้ −฿X" + `total = Math.max(0, ... - depositApplied)`
+- **Gotchas:**
+  - **ต้องรัน migration `20260702000000_bid_deposits.sql` ก่อนใช้งาน** — ไม่งั้นทั้ง `validate_bid` (DB gate) และ RPC `place_bid_deposit`/`refund_bid_deposit` ไม่มี → bid จะพังหรือไม่ถูก gate เลย
+  - **มัดจำ fix ที่ 20% ของราคา ณ ตอนวาง ไม่ขยับตามราคาที่บิดขึ้นภายหลัง** — เป็น product decision ที่เปิดไว้ (อาจต้องบังคับ top-up มัดจำเพิ่มในอนาคตถ้าราคาสูงขึ้นมาก แต่ยังไม่ทำ)
+  - ยอดที่ client แสดง (`Math.round(currentPrice*0.2)` ใน `CardProductBid`) เป็นแค่ display เพื่อโชว์ตัวเลขคร่าวๆ — ยอดจริงคำนวณใน RPC ฝั่ง DB เสมอ (กัน client ส่งค่าปลอม เพราะ RPC ไม่รับ amount จาก client)
+  - **`auction_results` เพิ่ม `UNIQUE(product_id)`** เพื่อกัน `/api/auction/end` ถูกยิงซ้ำพร้อมกัน (เช่น 2 tab timer หมดพร้อมกัน) แล้ว insert `auction_results` ซ้ำ/เงินมัดจำถูกจัดการ 2 รอบ — ถ้า insert ชน unique จะ `return { ended: true }` ทันทีโดยไม่ทำ step คืนมัดจำซ้ำ (invocation แรกที่ insert สำเร็จเป็นคนจัดการมัดจำแต่ผู้เดียว)
+  - **webhook Omise ไม่ต้องแก้อะไร** — `payments` row insert ด้วยยอด **net หลังหักมัดจำแล้ว** (เท่ากับยอด charge ที่สร้างจริง) ดังนั้น amount verification ใน webhook (`payment.amount === charge.amount/100`) ยัง match ปกติ
+  - **resolver ยังไม่ย้าย promptpay** (ตาม convention เดิมของไฟล์นี้) — `promptpay` + `wallet/charge` route หักมัดจำแบบ inline คนละที่กับ `resolveAmount.js`; แก้กติกาหักมัดจำ/ค่าธรรมเนียมต้องแก้ทั้ง 3 จุด (`resolveAmount.js`, `promptpay/route.js`, `wallet/charge/route.js`)
+  - มีช่วงเสี้ยววินาทีระหว่าง insert `auction_results` กับ mark `bid_deposits.status='applied'` ใน `/api/auction/end` (non-atomic, เป็น loop JS ไม่ใช่ transaction เดียว) — ถ้า client เข้าหน้า payment พอดีช่วงนั้นอาจเห็นยอดยังไม่หักมัดจำชั่วครู่ แต่จะถูกต้องหลัง loop จบเสมอ (ไม่กระทบเงินจริงเพราะ RPC ฝั่ง server เป็นคน mark)
+  - `refund_bid_deposit` ครอบคลุมทั้งคนที่แพ้ประมูล **และ** คนที่วางมัดจำไว้แต่ไม่เคย bid จริง (deposit ค้าง `held` เฉยๆ) — loop ใน `/api/auction/end` ดึงทุก `held` deposit ของ product แล้วคืนให้ทุกคนที่ไม่ใช่ผู้ชนะ
+  - ผ่าน `security-guard` audit แล้ว: ไม่มีข้อ 🔴; แก้ 🟡 ไปแล้ว 3 ข้อระหว่างทำ — เพิ่ม KYC check ใน `place_bid_deposit` RPC (กัน user KYC ไม่ผ่านมาล็อกเงินตัวเองทั้งที่ bid จริงไม่ได้), เพิ่ม `UNIQUE(auction_results.product_id)` + bail-out เมื่อ insert ชน, ปรับ rate limit เป็น 5/min (เดิมไม่มี/หลวมกว่านี้)
+  - `npm run build` ผ่านหลังแก้ครบ

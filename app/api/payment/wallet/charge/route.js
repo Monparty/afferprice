@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/app/lib/supabase/admin";
 import { requireUser, AuthError } from "@/app/lib/auth";
 import { rateLimit, clientKey } from "@/app/lib/rateLimit";
+import { getAppliedDepositAmount } from "@/app/lib/payment/resolveAmount";
 import { NextResponse } from "next/server";
 
 const AUCTION_FEE_RATE = 0.05;
@@ -20,7 +21,7 @@ export async function POST(req) {
 
         const { data: result, error: resultErr } = await supabaseAdmin
             .from("auction_results")
-            .select("id, winner_id, final_price, payment_status")
+            .select("id, winner_id, final_price, payment_status, product_id")
             .eq("id", auctionResultId)
             .single();
 
@@ -35,7 +36,9 @@ export async function POST(req) {
         }
 
         const finalPrice = Number(result.final_price);
-        const total = Math.round(finalPrice + finalPrice * AUCTION_FEE_RATE);
+        // หักเงินมัดจำของผู้ชนะ (ถ้ามี) ออกจากยอดชำระ
+        const deposit = await getAppliedDepositAmount(user.id, result.product_id);
+        const total = Math.max(1, Math.round(finalPrice + finalPrice * AUCTION_FEE_RATE) - deposit);
 
         const { data, error } = await supabaseAdmin.rpc("charge_wallet", {
             p_user_id: user.id,

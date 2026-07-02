@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { supabase } from "@/app/lib/supabase/client";
 import { getAuctionResultById } from "@/app/services/payment.service";
+import { getMyBidDeposit } from "@/app/services/deposits.service";
 import { getMyWalletBalance } from "@/app/services/wallet.service";
 import OmiseCardForm from "@/app/components/payment/OmiseCardForm";
 import { startOmiseRedirect } from "@/app/components/payment/redirectPay";
@@ -41,6 +42,7 @@ function Page() {
     const [phone, setPhone] = useState("");
     const [redirecting, setRedirecting] = useState(false);
     const [walletSubmitting, setWalletSubmitting] = useState(false);
+    const [deposit, setDeposit] = useState(null);
 
     // fetchUser ไม่ได้ถูก dispatch ทุกหน้า → โหลด user + balance ตรงจาก Supabase (pattern เดียวกับ checkout/wallet)
     useEffect(() => {
@@ -60,6 +62,10 @@ function Page() {
         getAuctionResultById(id).then(({ data, error }) => {
             if (error) return notifyError(error);
             setResult(data);
+            // เงินมัดจำที่วางไว้ตอนประมูล (status='applied') — หักออกจากยอดชำระ
+            if (data?.product_id) {
+                getMyBidDeposit(data.product_id).then(({ data: dep }) => setDeposit(dep ?? null));
+            }
         });
     }, [id]);
 
@@ -81,7 +87,8 @@ function Page() {
     const product = result?.products;
     const finalPrice = Number(result?.final_price ?? 0);
     const fee = Math.round(finalPrice * AUCTION_FEE_RATE);
-    const total = finalPrice + fee;
+    const depositApplied = deposit?.status === "applied" ? Number(deposit.amount) : 0;
+    const total = Math.max(0, finalPrice + fee - depositApplied);
 
     const handleWalletPay = async () => {
         if (!userId || !result) return;
@@ -322,6 +329,14 @@ function Page() {
                                 {formatPrice(fee)}
                             </span>
                         </div>
+                        {depositApplied > 0 && (
+                            <div className="flex justify-between items-center gap-4">
+                                <span className="text-gray-500 text-sm">หักเงินมัดจำที่วางไว้</span>
+                                <span className="text-emerald-600 text-sm font-semibold">
+                                    −{formatPrice(depositApplied)}
+                                </span>
+                            </div>
+                        )}
                         <div className="pt-3 border-t border-gray-100 dark:border-zinc-800 flex justify-between items-center gap-4">
                             <span className="text-gray-900 dark:text-slate-100 font-bold">ยอดชำระสุทธิ</span>
                             <span className="text-gray-900 dark:text-slate-100 font-bold text-lg">

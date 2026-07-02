@@ -78,6 +78,8 @@ Schema defined in `db/00_schema.sql`. Key tables:
      - ไม่มี bid → `'cancelled'`
 - **`auction_end_time`** ถูก set โดย admin ตอน approve เท่านั้น (ไม่ set ตอน draft save)
 - **⚠️ Trigger เป็น client-side อย่างเดียว** → ถ้าหมดเวลาแต่ไม่มีใครเปิดหน้า product detail สถานะจะค้างที่ `active`. **Reconciliation**: `endExpiredActiveAuctions()` ใน `products.service.js` หาสินค้า `state='active'` ที่ `auction_end_time < now()` (สินค้าตัวเอง + สินค้าที่ user เคย bid) แล้วยิง `/api/auction/end` ให้ครบ — เรียกตอน mount หน้า `/user/selling`; ถ้า `ended > 0` bump `refreshKey` re-fetch list + counts (ยังไม่มี server-side cron — ค้างได้ถ้าไม่มีใครเปิดหน้า selling/detail เลย)
+- **`auction_results` มี `UNIQUE(product_id)`** (migration `20260702000000_bid_deposits.sql`) — กัน endpoint ถูกยิงซ้ำพร้อมกัน (เช่น timer หมดพร้อมกันหลาย tab) สร้าง `auction_results` ซ้ำ; ถ้า insert ชน unique → return `{ ended: true }` ทันทีไม่ทำ step ถัดไปซ้ำ
+- **จัดการเงินมัดจำ (bid deposit)** — หลัง set `is_winning`/insert notifications: ดึง `bid_deposits` ที่ `status='held'` ของ product ทั้งหมด → ของผู้ชนะ mark `status='applied'` (หักออกจากยอดชำระภายหลัง), ที่เหลือ (คนแพ้ + คนวางมัดจำไว้แต่ไม่เคย bid จริง) เรียก RPC `refund_bid_deposit` คืนเข้า wallet + insert notification (`type='payment'`, "คืนเงินมัดจำแล้ว") + broadcast `wallet-{userId}` ดู [Bid Deposit](#bid-deposit-เงินมัดจำก่อนประมูล)
 
 ## Favorites
 
@@ -91,7 +93,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - **URL**: `/user/checkout/[id]` — `id` คือ **`product.id`** (ไม่ใช่ `auction_result.id`)
 - **Service**: `getAuctionResultByProduct(productId)` ใน `payment.service.js` — query ด้วย `product_id`
 - **ที่อยู่จัดส่ง**: โหลดจาก `user_addresses` — ใช้ `CardUserAddress` prop `readonly` เพื่อซ่อนปุ่ม edit/delete/set-default; เพิ่มที่อยู่ใหม่ผ่าน modal `UserAddressForm` ใน checkout ได้เลย
-- **ยอดรวม**: `final_price` + ค่าธรรมเนียม 5% + ค่าจัดส่ง (เลือกได้)
+- **ยอดรวม**: `final_price` + ค่าธรรมเนียม 5% + ค่าจัดส่ง (เลือกได้) − เงินมัดจำที่วางไว้ (ถ้ามี, ดู [Bid Deposit](#bid-deposit-เงินมัดจำก่อนประมูล)) — `total = Math.max(0, final_price + fee + shipping - depositApplied)`; ดึงมัดจำผ่าน `getMyBidDeposit(productId)` (RLS คืนเฉพาะของผู้ซื้อ ฝั่ง seller ไม่มี row)
 - **ช่องทางชำระเงิน**: เลือกที่ checkout ก่อน — 5 ตัวเลือก `promptpay` | `credit_card` | `truemoney` | `linepay` | `wallet` (state `paymentMethod`, default `promptpay`); ส่งต่อเป็น `?method=` ไปหน้า payment
   - UI ใช้ `<div onClick>` + conditional className ตาม state (ไม่ใช่ `<label>` + radio `has-checked:`) เพราะ Tailwind 4 + `sr-only` ทำให้ visual state ไม่ทำงาน — pattern เดียวกับ address card ในหน้าเดียวกัน
 - **ปุ่มชำระ** → route ไป `/user/payment/${result.id}?method={paymentMethod}` (**`result.id` = auction_result.id ไม่ใช่ `id` ที่เป็น product.id** — หน้า payment เรียก `getAuctionResultById` ที่ query ด้วย auction_result.id)
@@ -102,8 +104,8 @@ Schema defined in `db/00_schema.sql`. Key tables:
 
 ## Payment Page (`/user/payment/[auctionResultId]`)
 
-- fetch ข้อมูลด้วย `getAuctionResultById(id)` ใน `payment.service.js`
-- คำนวณยอด: `final_price + 5%` (ไม่รวมค่าจัดส่ง — ไม่ได้ persist จาก checkout)
+- fetch ข้อมูลด้วย `getAuctionResultById(id)` ใน `payment.service.js` (select เพิ่ม `product_id` — ใช้หาเงินมัดจำ)
+- คำนวณยอด: `final_price + 5%` (ไม่รวมค่าจัดส่ง — ไม่ได้ persist จาก checkout) **− เงินมัดจำที่วางไว้** (ถ้า `bid_deposits.status='applied'`, ดู [Bid Deposit](#bid-deposit-เงินมัดจำก่อนประมูล)) → `total = Math.max(0, final_price + fee - depositApplied)`; หักซ้ำอีกชั้นฝั่ง server ใน `getAppliedDepositAmount()` (promptpay/wallet-charge/credit-card/omise route ทุกตัว) — ตัวเลขหน้านี้เป็นแค่ display
 - **อ่าน `method` จาก `useSearchParams()`** (default `promptpay`) → render UI แยกตาม method:
   - `promptpay` → เรียก `POST /api/payment/promptpay` on mount พร้อม `{ userId, amount, auctionResultId }` → แสดง QR จริง (Omise)
   - `credit_card` → `OmiseCardForm` → token → POST `/api/payment/credit-card` (`purpose:'auction'`) → redirect `/user/selling` (รอ webhook ปิด)
@@ -121,9 +123,11 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - `getBidsByProduct(productId)` ใน `bids.service.js` — ดึง bid history เรียงตาม `bid_time DESC`
 - **Validation**: `bidPrice` ต้องมากกว่า `currentPrice` เท่านั้น (ไม่อนุญาตเท่ากัน) — `isBelowMin` ใช้ `<=`
 - **🔒 KYC gate ก่อนประมูล**: `needKyc = login + ไม่ใช่ seller + userData.is_kyc !== 'approved'`
-  - `needKyc` → ปุ่มเปลี่ยนเป็น "ยืนยันตัวตนก่อนประมูล" (`SafetyCertificateFilled`) → เปิด `UseModal` ที่ render `<KycVerificationForm>` แทนปุ่มประมูล (ส่ง `onSubmitSaveProduct={() => {}}` no-op)
+  - `needKyc` → ปุ่มเปลี่ยนเป็น "ยืนยันตัวตนก่อนประมูล" (`SafetyCertificateFilled`) → เปิด `UseModal` ที่ render `<KycVerificationForm>` แทนปุ่มประมูล (ส่ง `onSubmitSaveProduct={() => {}}` no-op) — เฉพาะสถานะ `unknown`/`rejected`
+  - **`isKycPending = userData?.is_kyc === "pending"`** → ปุ่มเปลี่ยน label เป็น "รอตรวจสอบการยืนยันตัวตน" + `disabled` + ไม่มี `onClick` (ไม่เปิด modal ซ้ำ เพราะส่งไปรอ admin ตรวจอยู่แล้ว)
   - `onSubmit` มี guard ซ้ำ: ถ้า `is_kyc !== 'approved'` → เด้ง modal ไม่ insert bid
   - หลังส่ง KYC สถานะเป็น `pending` → ยังประมูลไม่ได้จนกว่า admin approve (`KycVerificationForm` dispatch `fetchUser` ให้ Redux อัปเดต)
+- **🔒 Bid deposit gate (มัดจำ 20%)** — ต้องผ่าน KYC gate ก่อนถึงจะเจอ gate นี้ (ดู [Bid Deposit](#bid-deposit-เงินมัดจำก่อนประมูล) สำหรับรายละเอียดเต็ม): `needDeposit = login + ไม่ใช่ seller + ผ่าน KYC + ยังไม่มี `bid_deposits` row `status='held'` ของ product นี้` → แสดงปุ่ม "วางเงินมัดจำ 20% (฿X)" แทนปุ่ม bid จริง; wallet ไม่พอ → ปุ่ม redirect `/user/wallet` แทน
 - **ห้าม bid ติดกัน 2 ครั้ง**: ผู้ที่เป็น highest bidder อยู่ตอนนี้กดประมูลซ้ำไม่ได้ ต้องรอ user คนอื่นมา bid ก่อน
   - state `highestBidderId` เก็บ user id ของผู้ bid สูงสุด — set จาก `getHighestBid()` ตอน mount + จาก broadcast payload `userId`
   - `isHighestBidder = userData.id === highestBidderId` → disable ปุ่ม + เปลี่ยน label เป็น "รอผู้อื่นเสนอราคา"
@@ -134,6 +138,21 @@ Schema defined in `db/00_schema.sql`. Key tables:
   - sub-component `BidRow` ใช้ร่วมระหว่าง list หลักกับ modal (กัน duplicate markup)
   - highlight bid ของ user ปัจจุบัน — เทียบ `bid.user_id` กับ `currentUserId` → avatar สีน้ำเงิน "ME", ชื่อ `"คุณ"`, พื้นหลังแถวสีน้ำเงินอ่อน
   - `currentUserId` ดึงจาก Redux (`state.user.data?.id`) ใน `ProductDetail.jsx` แล้วส่งเป็น prop
+
+## Bid Deposit (เงินมัดจำก่อนประมูล)
+
+- **Migration**: `supabase/migrations/20260702000000_bid_deposits.sql` — ตาราง `bid_deposits` (`product_id`, `user_id`, `amount`, `status` ∈ `held`/`refunded`/`applied`, `UNIQUE(product_id, user_id)`, FK `ON DELETE RESTRICT`) + RLS SELECT เฉพาะของตัวเอง (`"own deposit read"`, mutation ผ่าน RPC เท่านั้น) + `auction_results` เพิ่ม `UNIQUE(product_id)` (ดู [Auction End Flow](#auction-end-flow)) + `CREATE OR REPLACE validate_bid` เพิ่มเช็ค deposit
+- **Rule**: ผู้ประมูลที่ยังไม่เคยวางมัดจำสินค้านั้นต้องวางมัดจำ **20% ของราคาปัจจุบัน** (ตัดจาก **wallet เท่านั้น** — ไม่มีช่องทางอื่น) ก่อนจึงจะ bid ครั้งแรกได้; วางแล้วใช้ซ้ำได้กับทุก bid ถัดไปของสินค้าเดียวกัน (ไม่ต้องวางซ้ำทุกครั้ง)
+- **RPC `place_bid_deposit(p_user_id, p_product_id)`** (SECURITY DEFINER, grant `service_role` เท่านั้น) — lock product `FOR UPDATE` แล้วตรวจ `state='active'` + ยังไม่หมดเวลา + ไม่ใช่ seller + **`profiles.is_kyc='approved'`** + ยังไม่เคยวางมัดจำ (unique constraint กันซ้ำ); ราคาปัจจุบัน = `COALESCE(MAX(bids.bid_price), start_price)` (สูตรเดียวกับ `validate_bid`); `amount = GREATEST(1, ROUND(current_price * 0.20))`; ตัด `profiles.wallet_balance` → insert `bid_deposits(status='held')` + `wallet_transactions(type='payment', note='bid deposit')` → คืน `{ deposit_id, amount, balance_after }`
+- **RPC `refund_bid_deposit(p_deposit_id)`** — idempotent (คืนเงินเฉพาะ row ที่ยัง `status='held'` ภายใต้ `FOR UPDATE`; เรียกซ้ำคืน `{ already_processed: true, status }` เฉยๆ) → credit `wallet_balance` + insert `wallet_transactions(type='refund')` + update `status='refunded'`
+- **`validate_bid` trigger** เพิ่มเช็ค: ต้องมี `bid_deposits` row `status='held'` ของ `(product_id, user_id)` นั้น ไม่งั้น `RAISE 'deposit_required'` (defense-in-depth คู่กับ UX gate ใน `CardProductBid`)
+- **API**: `POST /api/bid/deposit` (`app/api/bid/deposit/route.js`) body `{ productId }` — `requireUser()` + `rateLimit(5/min)` (เท่า `wallet/charge` เพราะตัดเงินทันที) → เรียก `place_bid_deposit` RPC → broadcast `wallet-{userId}` (payload ว่าง, client re-fetch balance เอง) → คืนผลจาก RPC ตรงๆ
+- **Service**: `app/services/deposits.service.js` — `getMyBidDeposit(productId)` (browser client, อ่าน `bid_deposits` ของตัวเอง ผ่าน RLS), `placeBidDeposit(productId)` (fetch wrapper เรียก API ข้างบน)
+- **UI gate** (`CardProductBid`, ดู [Bid Flow](#bid-flow-appcomponentsutilscardproductbidjsx)): เรียงเป็น login → KYC → **deposit** → ปุ่ม bid จริง; ยอด wallet ไม่พอ → ปุ่มเปลี่ยนเป็น "เติมเงินเพื่อวางมัดจำ" push `/user/wallet`; วางสำเร็จ → ข้อความเขียว "วางเงินมัดจำแล้ว ฿X" เหนือปุ่ม bid; `onSubmit` guard ซ้ำถ้า `deposit?.status !== 'held'`
+- **ตอนแพ้/ชนะประมูล** — ผูกกับ `/api/auction/end` (ดู [Auction End Flow](#auction-end-flow)): ผู้ชนะ mark `status='applied'`, ที่เหลือ (แพ้ + วางมัดจำไว้แต่ไม่เคย bid จริง) refund อัตโนมัติเข้า wallet
+- **หักออกจากยอดชำระ** — `getAppliedDepositAmount(userId, productId)` ใน `app/lib/payment/resolveAmount.js` คืนยอด `status='applied'` (0 ถ้าไม่มี) แล้วลบออกจาก `amount = Math.max(1, round(final_price*1.05) - deposit)`; ใช้ผ่าน resolver ใน `credit-card`/`omise` route และ inline (ตาม convention เดิม) ใน `promptpay`/`wallet/charge` route; ฝั่ง UI แสดงบรรทัด "หักเงินมัดจำที่วางไว้ −฿X" ทั้งใน checkout และ payment page
+- **⚠️ มัดจำ fix ที่ 20% ของราคา ณ ตอนวาง** — ไม่ขยับตามราคาที่ถูกบิดขึ้นภายหลัง (ยังไม่บังคับ top-up เพิ่ม — เป็น decision ที่เปิดไว้)
+- **⚠️ ยอด deposit ที่ client แสดงเป็นแค่ display** — คำนวณจริงเสมอฝั่ง DB ใน `place_bid_deposit` RPC (client ไม่ส่ง amount ไปได้)
 
 ## Realtime Bid (Supabase Broadcast)
 
@@ -271,10 +290,13 @@ Schema defined in `db/00_schema.sql`. Key tables:
   - `20260524130200_payments_allow_topup.sql` — `auction_result_id` nullable + `purpose` column
   - `20260524130300_wallet_rpcs.sql` — `credit_wallet` + `charge_wallet` (SECURITY DEFINER, granted to service_role)
   - `20260526000003_charge_wallet_listing.sql` — เพิ่ม `payments.product_id` (nullable FK) + RPC `charge_wallet_listing` สำหรับชำระค่าธรรมเนียม listing
+  - `20260702000000_bid_deposits.sql` — ตาราง `bid_deposits` + RPC `place_bid_deposit`/`refund_bid_deposit` สำหรับเงินมัดจำก่อนประมูล (ดู [Bid Deposit](#bid-deposit-เงินมัดจำก่อนประมูล))
 - **RPCs** (เรียกผ่าน `supabaseAdmin.rpc()` จาก API route เท่านั้น):
   - `credit_wallet(p_payment_id)` — ใช้ตอน topup สำเร็จ; idempotent ผ่าน `EXISTS wallet_transactions WHERE reference_id = payment_id AND type='topup'` กัน double-credit เมื่อ webhook ส่งซ้ำ
   - `charge_wallet(p_user_id, p_amount, p_auction_result_id)` — atomic deduction; `SELECT FOR UPDATE` lock + ราคา < balance + insert `payments(wallet, success)` + insert `wallet_transactions(payment, -amount)` + update `auction_results.payment_status='paid'`
   - `charge_wallet_listing(p_user_id, p_amount, p_product_id)` — atomic ตัด wallet ชำระค่า listing fee; idempotent ผ่าน `EXISTS payments WHERE product_id AND purpose='listing_fee' AND payment_status='success'` (RAISE `already_paid` ถ้าจ่ายแล้ว) + insert `payments(wallet, success, listing_fee, product_id)` + insert `wallet_transactions`
+  - `place_bid_deposit(p_user_id, p_product_id)` — atomic ตัด wallet วางมัดจำ 20% ของราคาปัจจุบัน ก่อนประมูลครั้งแรก; `charge_wallet_listing` และตัวนี้ต่างกันที่ผูกกับ `bid_deposits` แทน `payments` (คนละ audit trail)
+  - `refund_bid_deposit(p_deposit_id)` — idempotent คืนมัดจำเข้า wallet (เฉพาะ `status='held'`); เรียกจาก `/api/auction/end` ตอนปิดประมูล (ดู [Bid Deposit](#bid-deposit-เงินมัดจำก่อนประมูล))
 - **Service**: `app/services/wallet.service.js` — `getMyWalletBalance()`, `getMyTransactions({limit})`, `subscribeWallet(userId, onUpdate)` (broadcast channel `wallet-{userId}`)
 - **API routes**:
   - `POST /api/payment/wallet/charge` — เรียก `charge_wallet` RPC + broadcast `wallet-{userId}` update

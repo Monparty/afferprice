@@ -42,12 +42,13 @@ export async function POST(request) {
         .maybeSingle();
 
     if (winningBid) {
-        // 4. สร้าง auction_result
-        await supabaseAdmin.from("auction_results").insert({
+        // 4. สร้าง auction_result — ถ้าชน UNIQUE(product_id) แปลว่ามี invocation อื่นทำอยู่พร้อมกัน → จบเลย
+        const { error: insertErr } = await supabaseAdmin.from("auction_results").insert({
             product_id: productId,
             winner_id: winningBid.user_id,
             final_price: winningBid.bid_price,
         });
+        if (insertErr) return NextResponse.json({ ended: true }, { status: 200 });
 
         // 5. set is_winning = true
         await supabaseAdmin.from("bids").update({ is_winning: true }).eq("id", winningBid.id);
@@ -68,7 +69,35 @@ export async function POST(request) {
         await supabaseAdmin.from("notifications").insert(notifications);
     }
 
-    // 7. อัป product state
+    // 7. จัดการเงินมัดจำ — ผู้ชนะ: mark 'applied' (หักจากยอดชำระ), ที่เหลือ: คืนเข้า wallet อัตโนมัติ
+    const { data: heldDeposits } = await supabaseAdmin
+        .from("bid_deposits")
+        .select("id, user_id, amount")
+        .eq("product_id", productId)
+        .eq("status", "held");
+
+    for (const dep of heldDeposits || []) {
+        if (winningBid && dep.user_id === winningBid.user_id) {
+            await supabaseAdmin.from("bid_deposits").update({ status: "applied" }).eq("id", dep.id);
+            continue;
+        }
+        const { error: refundErr } = await supabaseAdmin.rpc("refund_bid_deposit", { p_deposit_id: dep.id });
+        if (refundErr) {
+            console.error("[auction/end] refund_bid_deposit failed", dep.id, refundErr.message);
+            continue;
+        }
+        await supabaseAdmin.from("notifications").insert({
+            user_id: dep.user_id,
+            type: "payment",
+            title: "คืนเงินมัดจำแล้ว",
+            message: `ระบบคืนเงินมัดจำ ฿${Number(dep.amount).toLocaleString("th-TH")} เข้ากระเป๋าเงินของคุณแล้ว`,
+        });
+        await supabaseAdmin
+            .channel(`wallet-${dep.user_id}`)
+            .send({ type: "broadcast", event: "update", payload: {} });
+    }
+
+    // 8. อัป product state
     const newState = winningBid ? "sold" : "cancelled";
     await supabaseAdmin.from("products").update({ state: newState }).eq("id", productId);
 

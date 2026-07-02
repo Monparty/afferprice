@@ -20,6 +20,11 @@ const errorMap = [
     { match: /missing_(documents|kyc_fields)/i, thai: "กรุณากรอกข้อมูลและอัปโหลดเอกสารยืนยันตัวตนให้ครบถ้วน" },
     { match: /invalid_kyc_state/i, thai: "ไม่สามารถส่งยืนยันตัวตนซ้ำได้ในสถานะปัจจุบัน" },
     { match: /profiles_national_id_check/i, thai: "เลขประจำตัวประชาชนต้องเป็นตัวเลข 13 หลัก" },
+    // Bid deposit
+    { match: /deposit_required/i, thai: "กรุณาวางเงินมัดจำ 20% ก่อนเข้าร่วมประมูล" },
+    { match: /already_deposited/i, thai: "คุณได้วางเงินมัดจำสินค้านี้แล้ว" },
+    { match: /insufficient_balance/i, thai: "ยอดเงินในกระเป๋าไม่เพียงพอ กรุณาเติมเงินก่อน" },
+    { match: /deposit_not_found/i, thai: "ไม่พบข้อมูลเงินมัดจำ" },
     // Payment
     { match: /already_paid/i, thai: "รายการนี้ได้ชำระเงินเรียบร้อยแล้ว" },
     { match: /invalid_amount/i, thai: "จำนวนเงินไม่ถูกต้อง (เติมได้ 20–100,000 บาท)" },

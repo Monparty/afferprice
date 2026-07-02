@@ -13,8 +13,11 @@ import {
     NotificationFilled,
     RiseOutlined,
     SafetyCertificateFilled,
+    WalletFilled,
 } from "@ant-design/icons";
 import { insertBid, getHighestBid } from "@/app/services/bids.service";
+import { getMyBidDeposit, placeBidDeposit } from "@/app/services/deposits.service";
+import { getMyWalletBalance } from "@/app/services/wallet.service";
 import { supabase } from "@/app/lib/supabase/client";
 import { updateProductPrice } from "@/app/services/products.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
@@ -42,7 +45,19 @@ function CardProductBid({ product, onBidSuccess }) {
     const [currentPrice, setCurrentPrice] = useState(product?.start_price);
     const [highestBidderId, setHighestBidderId] = useState(null);
     const [kycModalOpen, setKycModalOpen] = useState(false);
+    const [deposit, setDeposit] = useState(null);
+    const [depositLoading, setDepositLoading] = useState(false);
+    const [walletBalance, setWalletBalance] = useState(null);
     const channelRef = useRef(null);
+
+    // เงินมัดจำของ user สำหรับสินค้านี้ + ยอด wallet (ไว้เช็คว่าพอวางมัดจำไหม)
+    useEffect(() => {
+        if (!userData?.id || !product?.id) return;
+        getMyBidDeposit(product.id).then(({ data }) => setDeposit(data ?? null));
+        getMyWalletBalance().then(({ data }) => {
+            if (data) setWalletBalance(Number(data.wallet_balance ?? 0));
+        });
+    }, [userData?.id, product?.id]);
 
     useEffect(() => {
         if (product?.start_price) setCurrentPrice(product.start_price);
@@ -112,6 +127,9 @@ function CardProductBid({ product, onBidSuccess }) {
             setKycModalOpen(true);
             return;
         }
+        if (deposit?.status !== "held") {
+            return notifyError({ message: "deposit_required" });
+        }
         setLoading(true);
         const { error } = await insertBid({
             product_id: product.id,
@@ -143,6 +161,23 @@ function CardProductBid({ product, onBidSuccess }) {
     const isHighestBidder = !!userData?.id && userData.id === highestBidderId;
     // ต้องยืนยันตัวตน (KYC) ก่อนจึงจะประมูลได้
     const needKyc = !!userData?.id && !isSeller && userData.is_kyc !== "approved";
+    // KYC ส่งแล้วรอ admin ตรวจสอบ — ยังประมูลไม่ได้ แต่ไม่ต้องเปิดฟอร์ม KYC ซ้ำ
+    const isKycPending = userData?.is_kyc === "pending";
+    // ประมูลครั้งแรกต้องวางเงินมัดจำ 20% ของราคาปัจจุบันก่อน (ยอดจริงคำนวณฝั่ง server)
+    const hasDeposit = deposit?.status === "held";
+    const depositAmount = Math.max(1, Math.round((currentPrice || 0) * 0.2));
+    const needDeposit = !!userData?.id && !isSeller && !needKyc && !hasDeposit;
+    const insufficientForDeposit = walletBalance !== null && walletBalance < depositAmount;
+
+    const onPlaceDeposit = async () => {
+        setDepositLoading(true);
+        const { data, error } = await placeBidDeposit(product.id);
+        setDepositLoading(false);
+        if (error) return notifyError(error);
+        setDeposit({ id: data.deposit_id, amount: data.amount, status: "held" });
+        setWalletBalance(Number(data.balance_after));
+        notifySuccess("วางเงินมัดจำสำเร็จ เริ่มประมูลได้เลย");
+    };
 
     return (
         <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-slate-200 dark:border-zinc-700 overflow-hidden">
@@ -213,28 +248,57 @@ function CardProductBid({ product, onBidSuccess }) {
                     />
                     {needKyc ? (
                         <UseButton
-                            label="ยืนยันตัวตนก่อนประมูล"
+                            label={isKycPending ? "รอตรวจสอบการยืนยันตัวตน" : "ยืนยันตัวตนก่อนประมูล"}
                             wFull
                             size="large"
                             icon={SafetyCertificateFilled}
                             iconPlacement
                             className="h-12! text-lg! font-bold!"
                             type="default"
-                            disabled={ended}
-                            onClick={() => setKycModalOpen(true)}
+                            disabled={ended || isKycPending}
+                            onClick={isKycPending ? undefined : () => setKycModalOpen(true)}
                         />
+                    ) : needDeposit ? (
+                        <div className="space-y-2">
+                            <UseButton
+                                label={
+                                    insufficientForDeposit
+                                        ? `เติมเงินเพื่อวางมัดจำ (${formatPrice(depositAmount)})`
+                                        : `วางเงินมัดจำ 20% (${formatPrice(depositAmount)})`
+                                }
+                                wFull
+                                size="large"
+                                icon={WalletFilled}
+                                iconPlacement
+                                className="h-12! text-lg! font-bold!"
+                                type="default"
+                                disabled={ended}
+                                loading={depositLoading}
+                                onClick={insufficientForDeposit ? () => router.push("/user/wallet") : onPlaceDeposit}
+                            />
+                            <p className="text-xs text-slate-400 text-center">
+                                ประมูลครั้งแรกต้องวางเงินมัดจำ 20% ของราคาปัจจุบัน — หากไม่ชนะระบบคืนเงินเข้ากระเป๋าอัตโนมัติ
+                            </p>
+                        </div>
                     ) : (
-                        <UseButton
-                            label={isHighestBidder ? "รอผู้อื่นเสนอราคา" : "วางประมูลทันที"}
-                            wFull
-                            size="large"
-                            icon={NotificationFilled}
-                            iconPlacement
-                            className="h-12! text-lg! font-bold!"
-                            htmlType="submit"
-                            loading={loading}
-                            disabled={ended || isBelowMin || isSeller || isHighestBidder}
-                        />
+                        <>
+                            {hasDeposit && (
+                                <p className="text-xs text-emerald-600 text-center">
+                                    วางเงินมัดจำแล้ว {formatPrice(Number(deposit.amount))} — หากไม่ชนะระบบคืนเงินอัตโนมัติ
+                                </p>
+                            )}
+                            <UseButton
+                                label={isHighestBidder ? "รอผู้อื่นเสนอราคา" : "วางประมูลทันที"}
+                                wFull
+                                size="large"
+                                icon={NotificationFilled}
+                                iconPlacement
+                                className="h-12! text-lg! font-bold!"
+                                htmlType="submit"
+                                loading={loading}
+                                disabled={ended || isBelowMin || isSeller || isHighestBidder}
+                            />
+                        </>
                     )}
                     <div className="flex flex-col gap-2 text-sm text-slate-400 text-center">
                         <span className="flex items-center justify-center gap-2">
