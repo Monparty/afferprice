@@ -1,18 +1,22 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { WalletFilled, PlusOutlined, QrcodeOutlined, MessageFilled, CreditCardFilled, MobileOutlined, ExperimentOutlined } from "@ant-design/icons";
+import {
+    WalletFilled,
+    PlusOutlined,
+    QrcodeOutlined,
+    MessageFilled,
+    CreditCardFilled,
+    MobileOutlined,
+    ExperimentOutlined,
+} from "@ant-design/icons";
 import UseButton from "@/app/components/inputs/UseButton";
 import UseModal from "@/app/components/utils/UseModal";
 import UseSkeleton from "@/app/components/utils/UseSkeleton";
 import OmiseCardForm from "@/app/components/payment/OmiseCardForm";
 import { startOmiseRedirect } from "@/app/components/payment/redirectPay";
 import { supabase } from "@/app/lib/supabase/client";
-import {
-    getMyWalletBalance,
-    getMyTransactions,
-    subscribeWallet,
-} from "@/app/services/wallet.service";
+import { getMyWalletBalance, getMyTransactions, subscribeWallet } from "@/app/services/wallet.service";
 import { setWalletBalance } from "@/app/features/user/userSlice";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 
@@ -24,9 +28,10 @@ const METHODS = [
     { value: "truemoney", label: "TrueMoney", icon: MobileOutlined, color: "text-red-500!" },
     { value: "linepay", label: "LINE Pay", icon: MessageFilled, color: "text-green-500!" },
     // ช่องทางเทสชั่วคราว — เติมเงินเข้า wallet ตรง (dev เท่านั้น, route ปิดเองบน production)
-    ...(process.env.NODE_ENV !== "production"
-        ? [{ value: "test", label: "Test", icon: ExperimentOutlined, color: "text-purple-500!" }]
-        : []),
+    // ...(process.env.NODE_ENV !== "production"
+    //     ? [{ value: "test", label: "Test", icon: ExperimentOutlined, color: "text-purple-500!" }]
+    //     : []),
+    { value: "test", label: "Test", icon: ExperimentOutlined, color: "text-purple-500!" },
 ];
 
 function formatPrice(n) {
@@ -214,7 +219,9 @@ function TransactionRow({ tx }) {
     return (
         <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-zinc-800 last:border-0">
             <div className="flex flex-col gap-1">
-                <span className="text-sm font-semibold text-gray-900 dark:text-slate-100">{labelMap[tx.type] || tx.type}</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+                    {labelMap[tx.type] || tx.type}
+                </span>
                 <span className="text-xs text-gray-400">{formatDate(tx.created_at)}</span>
                 {tx.note && <span className="text-xs text-gray-500 dark:text-slate-400">{tx.note}</span>}
             </div>

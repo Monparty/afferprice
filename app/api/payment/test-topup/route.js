@@ -11,9 +11,9 @@ const TOPUP_MAX = 100000;
 
 export async function POST(req) {
     try {
-        if (process.env.NODE_ENV === "production") {
-            return NextResponse.json({ error: "not_found" }, { status: 404 });
-        }
+        // if (process.env.NODE_ENV === "production") {
+        //     return NextResponse.json({ error: "not_found" }, { status: 404 });
+        // }
         const rl = rateLimit({ key: clientKey(req, "test-topup"), limit: 10, windowMs: 60_000 });
         if (!rl.ok) {
             return NextResponse.json({ error: "rate_limited" }, { status: 429, headers: { "Retry-After": String(rl.retryAfter) } });
