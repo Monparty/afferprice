@@ -412,3 +412,22 @@ Append-only log of completed features/functions. Newest entries at the bottom.
   - เดิม shipping ไม่ถูก charge เลย (payment page ทิ้งค่าส่ง) — ตอนนี้ charge ตาม intent ที่ checkout แสดงไว้
   - **seller ship mode ไม่เรียก `saveCheckoutShipping`** (ปุ่มเป็น `setShowShipmentForm`) — เฉพาะ buyer path เท่านั้น
   - `npm run build` ผ่าน
+
+## Local Supabase test environment — squash schema + local dev — 2026-07-03
+- **Purpose:** ตั้ง environment ทดสอบแยกจาก production 100% — รัน Supabase stack เต็มบนเครื่อง (Docker) เพื่อเทสต์ DB/RLS/RPC/Storage โดยไม่แตะข้อมูลจริง; รวม migration ให้เหลือไฟล์เดียวที่เป็นโครงสร้างล่าสุด
+- **Location:**
+  - `supabase/migrations/20260703040000_schema.sql` (ใหม่ — squash ไฟล์เดียว) — โครงสร้างเต็มปัจจุบัน
+  - `supabase/config.toml` (ใหม่ จาก `supabase init`) — ตั้ง `[analytics] enabled = false`
+  - `.env.local` → ชี้ local (`127.0.0.1:54321`); `.env.local.prod.bak` → สำรอง prod (gitignored ทั้งคู่ผ่าน `.env*`)
+  - **ลบ:** `schema.sql` (root เดิม) + migrations เก่า 30 ไฟล์ทั้งหมด
+  - คำสั่งใช้งานทั้งหมด → [commands.md](commands.md#local-supabase-test-env)
+- **สิ่งที่ทำ / Inputs-Outputs:**
+  - รวม migrations ทั้งหมด → 1 ไฟล์: `supabase db dump` จาก remote prod (public schema เต็ม) + เติม storage buckets/policies (`id-cards` + `attachments`) เขียนมือต่อท้าย เพราะ `db dump` ไม่ดึง `storage` schema
+  - `supabase start` apply ผ่าน exit 0 → verify: 16 tables (รวม `bid_deposits`/`withdrawal_requests`), 13 RPC, buckets `attachments`+`id-cards`, 28 public + 9 storage policies
+- **Gotchas:**
+  - **analytics ต้องปิดบน Windows** — container `supabase_analytics` unhealthy → `supabase start` exit 1 ถ้าไม่ปิด (ต้อง expose Docker daemon บน `tcp://localhost:2375` ไม่งั้นพัง); ปิด `enabled=false` คือ workaround มาตรฐาน — migration ไม่เกี่ยว
+  - **`db dump` ไม่ดึง `storage` schema** — bucket/policy ต้องเติมเองในไฟล์ squash; `attachments` เปลี่ยน `UPDATE`→`INSERT ... ON CONFLICT` เพื่อให้ env ใหม่สร้าง bucket ได้ (ของเดิม assume bucket ถูกสร้างมือใน dashboard)
+  - **⚠️ ห้าม `supabase db push` ไฟล์ squash ขึ้น remote prod เดิม** — prod apply migration เก่าไปหมดแล้ว (มี history ใน `schema_migrations`) → push squash จะชน/ซ้ำ; squash ใช้กับ **local / โปรเจกต์ใหม่** เท่านั้น
+  - **local DB ว่างเปล่า** — ไม่มี seed/admin/หมวดหมู่; สมัคร user แล้ว promote admin เอง (ทั้ง `profiles.role` + `auth.users.raw_app_meta_data`) หรือทำ `supabase/seed.sql`
+  - CLI ไม่ได้ลง global → เรียกผ่าน `npx supabase ...`; ต้องเปิด Docker Desktop ก่อนทุกคำสั่ง supabase local
+  - โครงสร้างใหม่หลังจากนี้ = migration ไฟล์ใหม่ต่อจาก squash (`npx supabase migration new <name>`) — อย่าแก้ไฟล์ squash
