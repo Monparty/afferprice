@@ -80,7 +80,7 @@ export async function getSoldOrderDetail(productId) {
 
     const { data: result, error: rErr } = await supabaseAdmin
         .from("auction_results")
-        .select("id, final_price, payment_status, winner_id")
+        .select("id, final_price, payment_status, winner_id, address_id, shipping_option, shipping_fee")
         .eq("product_id", productId)
         .maybeSingle();
     if (rErr) return { data: null, error: rErr };
@@ -93,7 +93,17 @@ export async function getSoldOrderDetail(productId) {
     const userMap = Object.fromEntries((users ?? []).map((u) => [u.id, u]));
 
     let buyerAddress = null;
-    if (result?.winner_id) {
+    if (result?.address_id) {
+        // ที่อยู่ที่ผู้ซื้อเลือกไว้ตอน checkout (persist แล้ว)
+        const { data: chosen } = await supabaseAdmin
+            .from("user_addresses")
+            .select("*")
+            .eq("id", result.address_id)
+            .maybeSingle();
+        buyerAddress = chosen ?? null;
+    }
+    if (!buyerAddress && result?.winner_id) {
+        // fallback: default ของ winner
         const { data: addrs } = await supabaseAdmin
             .from("user_addresses")
             .select("*")

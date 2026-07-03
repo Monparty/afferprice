@@ -21,7 +21,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getAuctionResultByProduct } from "@/app/services/payment.service";
 import { createShipment } from "@/app/services/shipment.service";
-import { getBuyerShippingAddress } from "@/app/services/checkout.service";
+import { getBuyerShippingAddress, saveCheckoutShipping } from "@/app/services/checkout.service";
 import { getMyBidDeposit } from "@/app/services/deposits.service";
 import { getMyAddresses } from "@/app/services/address.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
@@ -105,6 +105,15 @@ function Page() {
             setBuyerAddress(data ?? null);
         });
     }, [sellerShipMode, result?.id]);
+
+    // ผู้ซื้อยืนยัน → persist ที่อยู่+รูปแบบจัดส่งลง auction_results ก่อนไปหน้าชำระเงิน
+    const handleConfirmCheckout = async () => {
+        setSubmitting(true);
+        const { error } = await saveCheckoutShipping(result.id, selectedAddressId, shipping);
+        setSubmitting(false);
+        if (error) return notifyError(error);
+        router.push(`/user/payment/${result.id}?method=${paymentMethod}`);
+    };
 
     const handleShipmentSubmit = async () => {
         if (!shippingCompany || !trackingNumber) return notifyError("กรุณากรอกข้อมูลให้ครบ");
@@ -426,13 +435,10 @@ function Page() {
                             label={sellerShipMode ? "ระบุเลขใบเสร็จการจัดส่ง" : payExpired ? "เลยกำหนดชำระเงิน" : "ยืนยันการชำระเงิน"}
                             icon={sellerShipMode ? CarOutlined : undefined}
                             className="h-12! text-lg! font-bold!"
-                            onClick={
-                                sellerShipMode
-                                    ? () => setShowShipmentForm(true)
-                                    : () => router.push(`/user/payment/${result.id}?method=${paymentMethod}`)
-                            }
+                            onClick={sellerShipMode ? () => setShowShipmentForm(true) : handleConfirmCheckout}
+                            loading={!sellerShipMode && submitting}
                             wFull
-                            disabled={!result || (!sellerShipMode && (!selectedAddressId || payExpired))}
+                            disabled={!result || (!sellerShipMode && (!selectedAddressId || payExpired || submitting))}
                         />
                         {!sellerShipMode && !payExpired && !selectedAddressId && (
                             <p className="mt-2 text-xs text-red-500 text-center">

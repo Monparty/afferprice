@@ -29,6 +29,10 @@ const errorMap = [
     { match: /already_paid/i, thai: "รายการนี้ได้ชำระเงินเรียบร้อยแล้ว" },
     { match: /payment_expired/i, thai: "เลยกำหนดชำระเงินแล้ว รายการถูกยกเลิกและริบเงินมัดจำ" },
     { match: /auction_canceled/i, thai: "รายการประมูลนี้ถูกยกเลิกแล้ว" },
+    // Withdrawal
+    { match: /invalid_withdrawal_amount/i, thai: "จำนวนเงินถอนไม่ถูกต้อง (ถอนขั้นต่ำ 100 บาท)" },
+    { match: /bank_account_required/i, thai: "กรุณาระบุบัญชีธนาคารในข้อมูลยืนยันตัวตน (KYC) ก่อนถอนเงิน" },
+    { match: /kyc_not_approved/i, thai: "ต้องยืนยันตัวตน (KYC) ให้ผ่านก่อนจึงจะถอนเงินได้" },
     { match: /invalid_amount/i, thai: "จำนวนเงินไม่ถูกต้อง (เติมได้ 20–100,000 บาท)" },
     { match: /invalid_phone_number/i, thai: "กรุณากรอกเบอร์ TrueMoney ให้ถูกต้อง (10 หลัก)" },
     { match: /(no_authorize_uri|invalid_source_type|invalid_purpose)/i, thai: "ไม่สามารถเริ่มการชำระเงินได้ กรุณาลองใหม่อีกครั้ง" },

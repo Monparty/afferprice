@@ -8,6 +8,7 @@ export const ROUTES = {
     ADMIN_PAYMENTS: "/admin/payments",
     ADMIN_SHIPMENTS: "/admin/shipments",
     ADMIN_WALLET: "/admin/wallet",
+    ADMIN_WITHDRAWALS: "/admin/withdrawals",
     ADMIN_NOTIFICATIONS: "/admin/notifications",
     ADMIN_REPORTS: "/admin/reports",
     ADMIN_ISSUES: "/admin/issues",

@@ -24,6 +24,15 @@ const BADGE_SOURCES = [
                 .select("*", { count: "exact", head: true })
                 .eq("is_kyc", "pending"),
     },
+    {
+        // คำขอถอนเงินที่รอดำเนินการ (status = pending)
+        key: ROUTES.ADMIN_WITHDRAWALS,
+        count: () =>
+            supabaseAdmin
+                .from("withdrawal_requests")
+                .select("*", { count: "exact", head: true })
+                .eq("status", "pending"),
+    },
 ];
 
 export async function getAdminBadgeCounts() {

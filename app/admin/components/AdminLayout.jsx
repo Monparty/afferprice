@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import afferpriceLogo from "../../../public/images/afferpriceLogo.png";
 import {
+    BankOutlined,
     BarChartOutlined,
     BellOutlined,
     CarOutlined,
@@ -45,6 +46,7 @@ const menus = [
     { url: ROUTES.ADMIN_SHIPMENTS, label: "การจัดส่ง", icon: <CarOutlined className="text-lg!" /> },
     { url: ROUTES.ADMIN_PAYMENTS, label: "การชำระเงิน", icon: <CreditCardOutlined className="text-lg!" /> },
     { url: ROUTES.ADMIN_WALLET, label: "กระเป๋าเงิน", icon: <WalletOutlined className="text-lg!" /> },
+    { url: ROUTES.ADMIN_WITHDRAWALS, label: "คำขอถอนเงิน", icon: <BankOutlined className="text-lg!" /> },
     { url: ROUTES.ADMIN_USERS, label: "จัดการผู้ใช้งาน", icon: <UserOutlined className="text-lg!" /> },
     { url: ROUTES.ADMIN_CATEGORIES, label: "จัดการหมวดหมู่สินค้า", icon: <ShopOutlined className="text-lg!" /> },
     { url: ROUTES.ADMIN_NOTIFICATIONS, label: "การแจ้งเตือน", icon: <NotificationOutlined className="text-lg!" /> },

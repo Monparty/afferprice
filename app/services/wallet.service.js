@@ -23,3 +23,24 @@ export function subscribeWallet(userId, onUpdate) {
         .subscribe();
     return () => supabase.removeChannel(ch);
 }
+
+// คำขอถอนเงินของตัวเอง (RLS "own withdrawal read")
+export async function getMyWithdrawals({ limit = 20 } = {}) {
+    return supabase
+        .from("withdrawal_requests")
+        .select("id, amount, status, bank_name, bank_account_no, admin_note, created_at, processed_at")
+        .order("created_at", { ascending: false })
+        .limit(limit);
+}
+
+// ขอถอนเงิน (ยอดจริง server เช็คกับ balance) → { data, error }
+export async function requestWithdrawal(amount) {
+    const res = await fetch("/api/wallet/withdraw", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount }),
+    });
+    const data = await res.json();
+    if (!res.ok) return { data: null, error: { message: data.error || "internal_error" } };
+    return { data, error: null };
+}

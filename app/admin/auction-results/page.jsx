@@ -25,7 +25,7 @@ function Page() {
                     imageUrl: r.products?.images_url?.[0]?.url || null,
                     winnerName: [r.winner?.first_name, r.winner?.last_name].filter(Boolean).join(" ") || "-",
                     sellerName: [r.seller?.first_name, r.seller?.last_name].filter(Boolean).join(" ") || "-",
-                    createdAt: formatDateTime(r.created_at),
+                    createdAt: formatDateTime(r.ended_at),
                 })),
             );
         });

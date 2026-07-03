@@ -10,6 +10,8 @@ const TYPE_COLOR = {
     topup: "green",
     payment: "blue",
     refund: "gold",
+    sale: "cyan",
+    withdrawal: "volcano",
 };
 
 function Page() {

@@ -6,8 +6,8 @@ export async function getAuctionResults() {
     await requireAdmin();
     const { data, error } = await supabaseAdmin
         .from("auction_results")
-        .select("id, final_price, payment_status, created_at, product_id, winner_id, products(title, images_url, seller_id, state)")
-        .order("created_at", { ascending: false });
+        .select("id, final_price, payment_status, ended_at, payment_due_at, product_id, winner_id, products(title, images_url, seller_id, state)")
+        .order("ended_at", { ascending: false });
 
     if (error) return { data: null, error };
 

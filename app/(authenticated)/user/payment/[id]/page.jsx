@@ -87,8 +87,9 @@ function Page() {
     const product = result?.products;
     const finalPrice = Number(result?.final_price ?? 0);
     const fee = Math.round(finalPrice * AUCTION_FEE_RATE);
+    const shippingFee = Number(result?.shipping_fee ?? 0);
     const depositApplied = deposit?.status === "applied" ? Number(deposit.amount) : 0;
-    const total = Math.max(0, finalPrice + fee - depositApplied);
+    const total = Math.max(0, finalPrice + fee + shippingFee - depositApplied);
 
     const handleWalletPay = async () => {
         if (!userId || !result) return;
@@ -329,6 +330,14 @@ function Page() {
                                 {formatPrice(fee)}
                             </span>
                         </div>
+                        {shippingFee > 0 && (
+                            <div className="flex justify-between items-center gap-4">
+                                <span className="text-gray-500 text-sm">ค่าจัดส่ง</span>
+                                <span className="text-gray-900 dark:text-slate-100 text-sm font-semibold">
+                                    {formatPrice(shippingFee)}
+                                </span>
+                            </div>
+                        )}
                         {depositApplied > 0 && (
                             <div className="flex justify-between items-center gap-4">
                                 <span className="text-gray-500 text-sm">หักเงินมัดจำที่วางไว้</span>

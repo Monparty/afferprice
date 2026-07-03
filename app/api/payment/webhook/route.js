@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "@/app/lib/supabase/admin";
 import { rateLimit, clientKey } from "@/app/lib/rateLimit";
+import { settleSellerProceeds } from "@/app/lib/payment/sellerPayout";
 import { NextResponse } from "next/server";
 
 async function omiseGet(path) {
@@ -46,7 +47,8 @@ export async function POST(req) {
         return NextResponse.json({ error: "invalid_payload" }, { status: 400 });
     }
 
-    if (event.key !== "charge.complete") {
+    // charge.complete = จ่ายเสร็จ (สำเร็จ/ล้มเหลว); charge.expire = QR/charge หมดอายุก่อนจ่าย → ปิด payment เป็น failed
+    if (event.key !== "charge.complete" && event.key !== "charge.expire") {
         return NextResponse.json({ received: true });
     }
 
@@ -94,7 +96,10 @@ export async function POST(req) {
                 .eq("id", payment.auction_result_id)
                 .eq("payment_status", "pending")
                 .select("id");
-            if (!updated?.length) {
+            if (updated?.length) {
+                // เครดิตเงินขายเข้า wallet ผู้ขาย (idempotent)
+                await settleSellerProceeds(payment.auction_result_id);
+            } else {
                 // charge สำเร็จที่ Omise แต่ auction ไม่อยู่สถานะ pending แล้ว (ถูกยกเลิกก่อนจ่ายเสร็จ) → ต้อง refund ด้วยมือ
                 console.error("[webhook] auction not pending, payment succeeded on non-pending auction", payment.id, payment.auction_result_id);
             }

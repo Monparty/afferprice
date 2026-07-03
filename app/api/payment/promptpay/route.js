@@ -41,7 +41,7 @@ export async function POST(req) {
             }
             const { data: result } = await supabaseAdmin
                 .from("auction_results")
-                .select("id, winner_id, final_price, payment_status, product_id, payment_due_at")
+                .select("id, winner_id, final_price, payment_status, product_id, payment_due_at, shipping_fee")
                 .eq("id", auctionResultId)
                 .single();
             if (!result) return NextResponse.json({ error: "auction_result_not_found" }, { status: 404 });
@@ -56,9 +56,10 @@ export async function POST(req) {
                 return NextResponse.json({ error: "payment_expired" }, { status: 409 });
             }
             const finalPrice = Number(result.final_price);
+            const shippingFee = Number(result.shipping_fee ?? 0);
             // หักเงินมัดจำของผู้ชนะ (ถ้ามี) ออกจากยอดชำระ
             const deposit = await getAppliedDepositAmount(user.id, result.product_id);
-            amount = Math.max(1, Math.round(finalPrice + finalPrice * AUCTION_FEE_RATE) - deposit);
+            amount = Math.max(1, Math.round(finalPrice + finalPrice * AUCTION_FEE_RATE) + shippingFee - deposit);
         } else if (purpose === "topup") {
             const n = Number(clientAmount);
             if (!Number.isFinite(n) || n < TOPUP_MIN || n > TOPUP_MAX) {

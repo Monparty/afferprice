@@ -313,3 +313,102 @@ Append-only log of completed features/functions. Newest entries at the bottom.
   - `refund_bid_deposit` ครอบคลุมทั้งคนที่แพ้ประมูล **และ** คนที่วางมัดจำไว้แต่ไม่เคย bid จริง (deposit ค้าง `held` เฉยๆ) — loop ใน `/api/auction/end` ดึงทุก `held` deposit ของ product แล้วคืนให้ทุกคนที่ไม่ใช่ผู้ชนะ
   - ผ่าน `security-guard` audit แล้ว: ไม่มีข้อ 🔴; แก้ 🟡 ไปแล้ว 3 ข้อระหว่างทำ — เพิ่ม KYC check ใน `place_bid_deposit` RPC (กัน user KYC ไม่ผ่านมาล็อกเงินตัวเองทั้งที่ bid จริงไม่ได้), เพิ่ม `UNIQUE(auction_results.product_id)` + bail-out เมื่อ insert ชน, ปรับ rate limit เป็น 5/min (เดิมไม่มี/หลวมกว่านี้)
   - `npm run build` ผ่านหลังแก้ครบ
+
+## Payment deadline + forfeit มัดจำ — ผู้ชนะไม่จ่ายตามกำหนด — 2026-07-03
+- **Purpose:** ปิด loop มัดจำ — ผู้ชนะมีเวลา **3 วัน** หลังปิดประมูลเพื่อชำระค่าประมูล; ถ้าไม่จ่ายทัน → ยกเลิกผลประมูล (`payment_status='canceled'`) + **ริบมัดจำ** (`bid_deposits.status='forfeited'` เงินไม่คืน = ค่าปรับ) + product กลับเป็น `cancelled` + แจ้งเตือน 2 ฝั่ง
+- **Location:**
+  - Migration (ใหม่): `supabase/migrations/20260702100000_payment_deadline.sql` — `auction_results.payment_due_at`, `bid_deposits` เพิ่มสถานะ `forfeited` + `forfeited_at`, RPC `expire_unpaid_auction`, **`CREATE OR REPLACE charge_wallet`** (เพิ่ม lock+guard)
+  - Route (ใหม่): `app/api/auction/expire-unpaid/route.js` — `POST { auctionResultId }`
+  - `app/api/auction/end/route.js` — set `payment_due_at = now + 3 วัน` ตอน insert `auction_results`
+  - Service: `app/services/products.service.js` — `expireUnpaidWonAuctions()` (reconcile) + เพิ่ม `payment_due_at` ใน select ของ `getProductsByState`/`getWonProductsByUser`/`getOrderProductsWonByUser`; `app/services/payment.service.js` — `getAuctionResultByProduct`/`getAuctionResultById` เพิ่ม `payment_due_at`
+  - UI: `app/(authenticated)/user/selling/page.jsx` (เรียก reconcile + ส่ง `paymentDueAt`), `app/components/utils/CardSellingProduct.jsx` (countdown deadline), `app/(authenticated)/user/checkout/[id]/page.jsx` (banner + ล็อกปุ่มเมื่อเลยกำหนด)
+  - Enforce ฝั่ง server: `app/lib/payment/resolveAmount.js` (auction branch), `app/api/payment/promptpay/route.js`, `app/api/payment/wallet/charge/route.js` (เช็ค `canceled`/`payment_due_at`), `app/api/payment/webhook/route.js` (flip `pending→paid` เท่านั้น)
+  - `app/utils/supabaseErrorMap.js` — เพิ่ม `payment_expired`/`auction_canceled`
+- **Inputs/Outputs:**
+  - `expire_unpaid_auction(p_auction_result_id)` (RPC, SECURITY DEFINER, service_role only) — lock `auction_results` `FOR UPDATE`; idempotent (`payment_status<>'pending'` → `{already_processed,status}`); ยังไม่ครบกำหนด (`payment_due_at IS NULL OR > now()`) → `{not_due:true}`; มิฉะนั้น set `canceled` + ริบมัดจำผู้ชนะ (`applied`/`held`→`forfeited`+`forfeited_at`) + product `sold→cancelled` → คืน `{expired,winner_id,seller_id,product_id,deposit_amount}`
+  - `POST /api/auction/expire-unpaid` — `rateLimit(30/min)`, **ไม่มี requireUser** (guard อยู่ใน RPC ทั้งหมด เหมือน `/api/auction/end`); ถ้า `expired` → insert notifications (`type='payment'`) ให้ winner (ริบมัดจำ) + seller (ผู้ซื้อไม่จ่าย)
+  - `expireUnpaidWonAuctions()` (browser client) — หา `auction_results` `payment_status='pending'` + `payment_due_at < now` ทั้งฝั่งผู้ชนะ (`winner_id`) และผู้ขาย (`products!inner.seller_id`) แล้ว POST expire ทีละตัว; คืน `{expired: count}` — เรียกตอน mount `/user/selling` คู่กับ `endExpiredActiveAuctions()`
+  - `CardSellingProduct`: `payDeadline` = countdown ของ `value.paymentDueAt` (`formatCountdown`, tick 1s) — แสดงใต้ tag "รอผู้ซื้อชำระเงิน" (seller) และใต้ปุ่ม "ชำระเงิน" (buyer); เลยกำหนด → "เลยกำหนดชำระเงินแล้ว" สีแดง
+  - checkout: `payExpired = !isPaid && payDueAt < now` → banner ส้ม/แดง + ปุ่มเปลี่ยนเป็น "เลยกำหนดชำระเงิน" `disabled`
+- **Gotchas:**
+  - **ต้องรัน migration `20260702100000_payment_deadline.sql` ก่อน** — ไม่งั้น `payment_due_at`/`expire_unpaid_auction`/สถานะ `forfeited` ไม่มี → reconcile พังหรือ update column error
+  - **backfill ผ่อนผัน 3 วันจากตอน migrate** (`payment_due_at = now() + interval '3 days'` ให้ทุก pending เดิม) — ไม่ริบย้อนหลังทันทีตอน deploy
+  - **มัดจำที่ริบตอนนี้ platform เก็บไว้** (เงินถูกตัดจาก wallet ผู้ชนะตั้งแต่ตอนวางแล้ว, forfeit = แค่เปลี่ยน status ไม่ move เงิน) — **ยังไม่ credit ให้ผู้ขาย** (จะทำตอน seller payout) [[seller-payout]]
+  - **ปิด TOCTOU race กับ payment 2 จุด** (money-correctness):
+    1. `charge_wallet` เดิมไม่ lock/เช็ค `auction_results` เลย → ถ้า expire แทรกกลางระหว่าง route SELECT กับ RPC ผู้ชนะอาจโดนตัดค่าประมูล **และ** ริบมัดจำพร้อมกัน. แก้ด้วย `CREATE OR REPLACE charge_wallet` เพิ่ม `SELECT ... FOR UPDATE` auction_results + เช็ค `paid`/`canceled`/`payment_due_at` (serialize กับ `expire_unpaid_auction` ที่ lock row เดียวกัน)
+    2. webhook เดิม set `auction_results='paid'` แบบไม่มีเงื่อนไข → charge async (promptpay/บัตร/redirect) ที่สำเร็จหลัง auction ถูก cancel จะปลุกกลับเป็น paid. แก้เป็น `.eq("payment_status","pending")` (flip เฉพาะ pending→paid); ถ้า 0 row → log error (charge สำเร็จบน auction ที่ยกเลิกแล้ว = ต้อง refund มือ — รอ refund infra)
+  - **การ enforce deadline อยู่ 4 จุด** — resolver (ครอบ credit-card+omise), promptpay route (inline), wallet route (inline) + `charge_wallet` RPC (ชั้นลึกสุด); แก้กติกา deadline ต้องดูให้ครบ (pattern เดียวกับ deposit ที่กระจาย 3 จุด)
+  - **ไม่มี server cron** — expire พึ่ง client เปิด `/user/selling` เหมือน end-auction (ค้างได้ถ้าไม่มีใครเปิด) [[server-cron]]
+  - หลัง expire product เป็น `cancelled` → หายจาก won tab ผู้ซื้อ (filter `sold`) + ไปโผล่ cancelled tab ผู้ขาย; ผู้ซื้อรู้ผ่าน notification
+  - `npm run build` ผ่าน
+
+## Seller payout — เครดิตเงินขายเข้า wallet ผู้ขาย — 2026-07-03
+- **Purpose:** ปิดวงจรเงินไปหาผู้ขาย — ผู้ซื้อชำระค่าประมูลสำเร็จ → ผู้ขายได้ `final_price` เข้า wallet อัตโนมัติ (platform เก็บค่าธรรมเนียม 5% + listing fee); ผู้ซื้อผิดนัด (forfeit) → มัดจำที่ริบ credit ให้ผู้ขายเป็นค่าชดเชย
+- **Location:**
+  - Migration (ใหม่): `supabase/migrations/20260703000000_seller_payout.sql` — เพิ่ม type `'sale'`/`'withdrawal'` ใน `wallet_transactions_type_check` + RPC `credit_seller_proceeds` + `CREATE OR REPLACE expire_unpaid_auction` (เพิ่ม seller compensation)
+  - Lib (ใหม่): `app/lib/payment/sellerPayout.js` — `settleSellerProceeds(auctionResultId)`
+  - `app/api/payment/wallet/charge/route.js` (เรียกหลัง charge สำเร็จ) + `app/api/payment/webhook/route.js` (เรียกหลัง flip paid) + `app/api/auction/expire-unpaid/route.js` (broadcast seller หลัง forfeit)
+  - `app/(authenticated)/user/wallet/page.jsx` + `app/admin/wallet/page.jsx` — label/สี type `sale`/`withdrawal`
+- **Inputs/Outputs:**
+  - `credit_seller_proceeds(p_auction_result_id)` (RPC, SECURITY DEFINER, service_role) — lock `auction_results` `FOR UPDATE`; ต้อง `payment_status='paid'`; idempotent (`EXISTS wallet_transactions WHERE reference_id=auction_result_id AND type='sale'`); credit `final_price` เข้า wallet ผู้ขาย + insert `wallet_transactions(type='sale')` → คืน `{seller_id, amount, balance_after}`
+  - `settleSellerProceeds(auctionResultId)` — เรียก RPC; ถ้า credit ใหม่ (ไม่ใช่ already_credited/skipped) → broadcast `wallet-{seller}` + notify ผู้ขาย
+  - `expire_unpaid_auction` — หลัง forfeit มัดจำ ถ้า `deposit_amount > 0` → credit ให้ผู้ขาย + `wallet_transactions(type='sale', note='forfeited deposit compensation')`
+- **Gotchas:**
+  - **ต้องรัน migration `20260703000000_seller_payout.sql`** — ไม่งั้น type `sale`/`withdrawal` insert ไม่ผ่าน constraint + RPC ไม่มี
+  - **ผู้ขายได้ `final_price` เท่านั้น** — **ค่าจัดส่ง (shipping_fee) + ค่าธรรมเนียม 5% platform เก็บ** (open decision: ยังไม่ reimburse ค่าส่งให้ผู้ขายทั้งที่ผู้ขายเป็นคนส่งเอง — เปลี่ยนได้ทีหลังเป็น 1 บรรทัดใน RPC หลังมี column shipping_fee)
+  - **idempotent ต่อ auction_result** ผ่าน `reference_id + type='sale'` — paid (final_price) กับ forfeit (deposit compensation) exclusive กัน (paid vs canceled คนละสถานะ) จึงไม่มี double 'sale'
+  - เงินขายเข้า wallet ผู้ขาย → ถอนออกผ่าน withdrawal flow [[wallet-withdrawal]]
+  - `npm run build` ผ่าน
+
+## Wallet withdrawal — ถอนเงินจาก wallet เข้าบัญชีธนาคาร — 2026-07-03
+- **Purpose:** ผู้ใช้ (ผู้ขายที่มียอด wallet) ถอนเงินเข้าบัญชีธนาคารที่ให้ไว้ตอน KYC — ตัด wallet ทันทีตอนขอ (ล็อกเงิน) → admin ตรวจ+โอนจริง mark `paid` หรือปฏิเสธ `rejected` (คืนเงิน)
+- **Location:**
+  - Migration (ใหม่): `supabase/migrations/20260703010000_wallet_withdrawal.sql` — ตาราง `withdrawal_requests` + RLS own-read + RPC `request_withdrawal`/`process_withdrawal`
+  - Route (ใหม่): `app/api/wallet/withdraw/route.js` — `POST { amount }`
+  - Service: `app/services/wallet.service.js` — `getMyWithdrawals()`, `requestWithdrawal(amount)`; `app/services/admin/withdrawals.service.js` (ใหม่) — `getWithdrawals()`, `processWithdrawal(id, action, note)`
+  - UI: `app/(authenticated)/user/wallet/page.jsx` (ปุ่ม+`WithdrawModal`+รายการคำขอ); Admin page ใหม่ `app/admin/withdrawals/page.jsx` + `routes.js` `ADMIN_WITHDRAWALS` + menu ใน `AdminLayout` + badge ใน `badges.service.js`
+  - `app/utils/supabaseErrorMap.js` — `invalid_withdrawal_amount`/`bank_account_required`/`kyc_not_approved`
+- **Inputs/Outputs:**
+  - `request_withdrawal(p_user_id, p_amount)` (RPC) — lock profiles; guard `amount >= 100` + KYC approved + มี `bank_account_no` + `balance >= amount`; ตัด wallet + insert `withdrawal_requests(pending, snapshot bank_*)` + `wallet_transactions(type='withdrawal', -amount)` → `{withdrawal_id, amount, balance_after}`
+  - `process_withdrawal(p_withdrawal_id, p_action, p_note)` (RPC) — idempotent (เฉพาะ `pending`); `paid` → set status; `rejected` → คืนเงิน + `wallet_transactions(type='refund')`
+  - `POST /api/wallet/withdraw` — `requireUser` + `rateLimit(5/min)` → RPC + broadcast `wallet-{user}`
+  - admin `processWithdrawal` (`requireAdmin`) → RPC + notify ผู้ใช้ + broadcast (rejected)
+- **Gotchas:**
+  - **ต้องรัน migration `20260703010000_wallet_withdrawal.sql`** — ต้องมาหลัง `20260703000000` (ต้องการ type `withdrawal` ใน constraint)
+  - **ตัดเงินทันทีตอนขอ** (ล็อกเงิน กันถอนซ้ำ/ใช้เงินที่ขอถอนไปแล้ว) — reject → คืน; ไม่มี real bank transfer integration → admin โอนมือแล้ว mark `paid`
+  - badge `/admin/withdrawals` นับ `status='pending'` (เพิ่ม entry ใน `BADGE_SOURCES`)
+  - `npm run build` ผ่าน
+
+## Server cron — reconcile ประมูลฝั่ง server + refactor shared lib — 2026-07-03
+- **Purpose:** เลิกพึ่ง client เปิด `/user/selling` อย่างเดียว — เพิ่ม cron endpoint reconcile ทั้งระบบ (ปิดประมูลหมดเวลา + ยกเลิกผลที่ผู้ชนะไม่จ่าย) + refactor logic ซ้ำออกเป็น shared lib
+- **Location:**
+  - Lib (ใหม่): `app/lib/auction/reconcile.js` — `endAuction(productId)`, `expireUnpaidAuction(auctionResultId)`, `reconcileAll()`
+  - Route (ใหม่): `app/api/cron/reconcile/route.js` — `GET|POST`, auth ด้วย `CRON_SECRET`
+  - Refactor: `app/api/auction/end/route.js` + `app/api/auction/expire-unpaid/route.js` → เรียก shared lib (logic ย้ายไป `reconcile.js`)
+  - Docs: `docs/commands.md` — วิธีตั้ง cron
+- **Inputs/Outputs:**
+  - `reconcileAll()` — หา products `state='active'` `auction_end_time<now` → `endAuction` ทีละตัว; หา `auction_results` `pending` `payment_due_at<now` → `expireUnpaidAuction` ทีละตัว → `{endedCount, expiredCount}`
+  - `GET|POST /api/cron/reconcile` — ต้องตั้ง env `CRON_SECRET` (ไม่ตั้ง → 501); auth `Authorization: Bearer <secret>` หรือ `?key=<secret>` → เรียก `reconcileAll()`
+- **Gotchas:**
+  - **ต้องตั้ง env `CRON_SECRET`** + external scheduler (Vercel Cron/cron-job.org/GitHub Actions) เรียกทุก ~10 นาที (ดู `docs/commands.md`); ไม่มี `vercel.json` ในโปรเจกต์ (ยังไม่ผูก Vercel)
+  - client reconcile เดิม (selling mount) **ยังอยู่** — cron เป็น safety net
+  - **refactor ลด duplication** — logic auction end/expire อยู่ที่ `reconcile.js` ที่เดียว (route + cron เรียกซ้ำได้); `endAuction`/`expireUnpaidAuction` คืน `{error, status}` ให้ route wrap เป็น NextResponse
+  - `npm run build` ผ่าน
+
+## Persist checkout shipping — ที่อยู่+ค่าจัดส่งลง auction_results — 2026-07-03
+- **Purpose:** แก้ปัญหาที่ checkout เลือกที่อยู่+รูปแบบจัดส่งแล้วไม่ persist → payment page/charge คิดยอดไม่รวมค่าส่ง + ผู้ขาย/แอดมินเห็นแค่ default address (อาจส่งผิดที่)
+- **Location:**
+  - Migration (ใหม่): `supabase/migrations/20260703020000_persist_checkout_shipping.sql` — `auction_results` เพิ่ม `address_id`/`shipping_option`/`shipping_fee`
+  - Service: `app/services/checkout.service.js` — `saveCheckoutShipping()` (ใหม่) + `getBuyerShippingAddress` ใช้ persisted address ก่อน; `app/services/payment.service.js` `getAuctionResultById` เพิ่ม `shipping_fee`; `app/services/admin/bids.service.js` `getSoldOrderDetail` ใช้ persisted address
+  - UI: `app/(authenticated)/user/checkout/[id]/page.jsx` (ปุ่มยืนยัน → `saveCheckoutShipping` ก่อน push payment), `.../payment/[id]/page.jsx` (แสดง+รวมค่าส่งใน total)
+  - Payment amount: `resolveAmount.js` + `promptpay` + `wallet/charge` route เพิ่ม `+ shipping_fee`
+- **Inputs/Outputs:**
+  - `saveCheckoutShipping(auctionResultId, addressId, shippingOption)` (`"use server"`, user-gated) — verify `winner_id===user.id` + address เป็นของ user; ค่าจัดส่งจาก `SHIPPING_FEES` server-side (`express:80/standard:40/pickup:0`) → update `auction_results`; guard `payment_status!=='paid'`
+  - ยอดชำระทุกช่องทาง = `max(1, round(final*1.05) + shipping_fee − applied_deposit)`
+- **Gotchas:**
+  - **ต้องรัน migration `20260703020000`** ก่อน — ไม่งั้น select/update `shipping_fee`/`address_id` error
+  - **`SHIPPING_FEES` (server) ต้องตรงกับ `SHIPPING_OPTIONS` (checkout page display)** — คนละที่ ถ้าแก้ราคาต้องแก้ทั้งคู่
+  - **ค่าส่งถูกเก็บใน column แล้ว** — payment routes อ่าน `shipping_fee` ตรง ไม่ต้อง re-derive (ยอดตรงกันทุกจุด client/server; กัน wallet balance check เพี้ยน)
+  - เดิม shipping ไม่ถูก charge เลย (payment page ทิ้งค่าส่ง) — ตอนนี้ charge ตาม intent ที่ checkout แสดงไว้
+  - **seller ship mode ไม่เรียก `saveCheckoutShipping`** (ปุ่มเป็น `setShowShipmentForm`) — เฉพาะ buyer path เท่านั้น
+  - `npm run build` ผ่าน

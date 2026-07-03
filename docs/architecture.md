@@ -153,6 +153,21 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - **หักออกจากยอดชำระ** — `getAppliedDepositAmount(userId, productId)` ใน `app/lib/payment/resolveAmount.js` คืนยอด `status='applied'` (0 ถ้าไม่มี) แล้วลบออกจาก `amount = Math.max(1, round(final_price*1.05) - deposit)`; ใช้ผ่าน resolver ใน `credit-card`/`omise` route และ inline (ตาม convention เดิม) ใน `promptpay`/`wallet/charge` route; ฝั่ง UI แสดงบรรทัด "หักเงินมัดจำที่วางไว้ −฿X" ทั้งใน checkout และ payment page
 - **⚠️ มัดจำ fix ที่ 20% ของราคา ณ ตอนวาง** — ไม่ขยับตามราคาที่ถูกบิดขึ้นภายหลัง (ยังไม่บังคับ top-up เพิ่ม — เป็น decision ที่เปิดไว้)
 - **⚠️ ยอด deposit ที่ client แสดงเป็นแค่ display** — คำนวณจริงเสมอฝั่ง DB ใน `place_bid_deposit` RPC (client ไม่ส่ง amount ไปได้)
+- **ถ้าผู้ชนะไม่จ่ายตามกำหนด** → มัดจำถูกริบ (`status='forfeited'`) ดู [Payment Deadline & Forfeit](#payment-deadline--forfeit-ผู้ชนะไม่จ่ายตามกำหนด)
+
+## Payment Deadline & Forfeit (ผู้ชนะไม่จ่ายตามกำหนด)
+
+- **Migration**: `supabase/migrations/20260702100000_payment_deadline.sql` — `auction_results.payment_due_at timestamptz` + `bid_deposits` เพิ่มสถานะ `'forfeited'` + `forfeited_at` + RPC `expire_unpaid_auction` + **`CREATE OR REPLACE charge_wallet`** (เพิ่ม lock+guard)
+- **Rule**: ผู้ชนะมีเวลา **3 วัน** หลังปิดประมูล (set `payment_due_at = now + 3 วัน` ตอน insert `auction_results` ใน `/api/auction/end`) เพื่อชำระค่าประมูล; เกินกำหนดยังไม่จ่าย → ยกเลิก
+- **RPC `expire_unpaid_auction(p_auction_result_id)`** (SECURITY DEFINER, service_role เท่านั้น) — lock `auction_results` `FOR UPDATE`; idempotent (`payment_status<>'pending'` → `{already_processed}`); ยังไม่ครบกำหนด → `{not_due:true}`; มิฉะนั้น: `payment_status='canceled'` + ริบมัดจำผู้ชนะ (`applied`/`held`→`forfeited`) + product `sold→cancelled` → คืน `{expired, winner_id, seller_id, product_id, deposit_amount}`
+- **API**: `POST /api/auction/expire-unpaid` (`app/api/auction/expire-unpaid/route.js`) — `rateLimit(30/min)`, **ไม่มี requireUser** (guard อยู่ใน RPC ทั้งหมด เหมือน `/api/auction/end` — client ส่ง id ปลอมไม่มีผลเพราะ RPC เช็ค due_at+status); `expired=true` → insert notifications ให้ winner + seller
+- **Reconcile**: `expireUnpaidWonAuctions()` ใน `products.service.js` — หา pending + overdue ทั้งฝั่ง `winner_id` และ `products.seller_id` แล้ว POST expire; เรียกตอน mount `/user/selling` คู่กับ `endExpiredActiveAuctions()` (**ไม่มี server cron** — ค้างได้ถ้าไม่มีใครเปิดหน้า)
+- **UI**: `CardSellingProduct` countdown `paymentDueAt` (ใต้ tag ผู้ขาย / ใต้ปุ่มผู้ซื้อ); checkout banner + ล็อกปุ่มเมื่อ `payExpired`
+- **Enforce ฝั่ง server 4 จุด** (กันจ่ายหลังเลยกำหนด/ยกเลิก): `resolveAmount.js` (auction), `promptpay` route, `wallet/charge` route (เช็ค `canceled` + `payment_due_at < now`) + **`charge_wallet` RPC** (ชั้นลึกสุด, lock row)
+- **⚠️ TOCTOU race ที่ปิดไปแล้ว**:
+  1. `charge_wallet` เพิ่ม `SELECT ... FOR UPDATE auction_results` + เช็คสถานะ (serialize กับ `expire_unpaid_auction` ที่ lock row เดียวกัน) — กันผู้ชนะโดนตัดค่าประมูล "และ" ริบมัดจำพร้อมกัน
+  2. webhook flip `pending→paid` เท่านั้น (`.eq("payment_status","pending")`) — กัน charge async ที่สำเร็จหลัง cancel ปลุก auction กลับมา paid; 0 row → log (ต้อง refund มือ)
+- **⚠️ มัดจำที่ริบ platform เก็บไว้** — ยังไม่ credit ให้ผู้ขาย (จะทำตอน seller payout)
 
 ## Realtime Bid (Supabase Broadcast)
 
@@ -293,7 +308,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
   - `20260702000000_bid_deposits.sql` — ตาราง `bid_deposits` + RPC `place_bid_deposit`/`refund_bid_deposit` สำหรับเงินมัดจำก่อนประมูล (ดู [Bid Deposit](#bid-deposit-เงินมัดจำก่อนประมูล))
 - **RPCs** (เรียกผ่าน `supabaseAdmin.rpc()` จาก API route เท่านั้น):
   - `credit_wallet(p_payment_id)` — ใช้ตอน topup สำเร็จ; idempotent ผ่าน `EXISTS wallet_transactions WHERE reference_id = payment_id AND type='topup'` กัน double-credit เมื่อ webhook ส่งซ้ำ
-  - `charge_wallet(p_user_id, p_amount, p_auction_result_id)` — atomic deduction; `SELECT FOR UPDATE` lock + ราคา < balance + insert `payments(wallet, success)` + insert `wallet_transactions(payment, -amount)` + update `auction_results.payment_status='paid'`
+  - `charge_wallet(p_user_id, p_amount, p_auction_result_id)` — atomic deduction; **lock `auction_results` `FOR UPDATE` + เช็ค `paid`/`canceled`/`payment_due_at`** (migration `20260702100000` — serialize กับ `expire_unpaid_auction`) → `SELECT FOR UPDATE` profiles + ราคา < balance + insert `payments(wallet, success)` + insert `wallet_transactions(payment, -amount)` + update `auction_results.payment_status='paid'`
   - `charge_wallet_listing(p_user_id, p_amount, p_product_id)` — atomic ตัด wallet ชำระค่า listing fee; idempotent ผ่าน `EXISTS payments WHERE product_id AND purpose='listing_fee' AND payment_status='success'` (RAISE `already_paid` ถ้าจ่ายแล้ว) + insert `payments(wallet, success, listing_fee, product_id)` + insert `wallet_transactions`
   - `place_bid_deposit(p_user_id, p_product_id)` — atomic ตัด wallet วางมัดจำ 20% ของราคาปัจจุบัน ก่อนประมูลครั้งแรก; `charge_wallet_listing` และตัวนี้ต่างกันที่ผูกกับ `bid_deposits` แทน `payments` (คนละ audit trail)
   - `refund_bid_deposit(p_deposit_id)` — idempotent คืนมัดจำเข้า wallet (เฉพาะ `status='held'`); เรียกจาก `/api/auction/end` ตอนปิดประมูล (ดู [Bid Deposit](#bid-deposit-เงินมัดจำก่อนประมูล))
@@ -315,6 +330,28 @@ Schema defined in `db/00_schema.sql`. Key tables:
   - **TopupModal** — preset chips `[100, 500, 1000, 5000]` + custom input + method radio (`promptpay`/`linepay`/`credit_card`)
   - หลัง topup สำเร็จ broadcast → wallet page + AppHeader refresh อัตโนมัติ
 - **UserNavbar** (`app/(authenticated)/user/components/UserNavbar.jsx`) — มี nav item "กระเป๋าเงิน" → `/user/wallet`
+
+## Seller Payout & Wallet Withdrawal
+
+- **Seller payout** (migration `20260703000000_seller_payout.sql`) — ผู้ซื้อชำระค่าประมูลสำเร็จ → ผู้ขายได้ `final_price` เข้า wallet อัตโนมัติ (platform เก็บค่าธรรมเนียม 5% + shipping fee + listing fee)
+  - RPC `credit_seller_proceeds(p_auction_result_id)` (service_role) — lock auction_results, ต้อง `payment_status='paid'`, idempotent ผ่าน `wallet_transactions(reference_id=auction_result_id, type='sale')`, credit `final_price` + insert `wallet_transactions(type='sale')`
+  - helper `settleSellerProceeds()` ใน `app/lib/payment/sellerPayout.js` — เรียก RPC + broadcast `wallet-{seller}` + notify; เรียกจาก **wallet/charge route** (หลัง charge) และ **webhook** (หลัง flip paid)
+  - **forfeit** → `expire_unpaid_auction` credit มัดจำที่ริบให้ผู้ขาย (`type='sale'`, "forfeited deposit compensation")
+  - `wallet_transactions.type` เพิ่ม `'sale'`/`'withdrawal'` (label/สีใน user + admin wallet page)
+  - **⚠️ ผู้ขายได้ `final_price` เท่านั้น** — shipping_fee + 5% platform เก็บ (open decision: ยังไม่ reimburse ค่าส่งให้ผู้ขาย)
+- **Wallet withdrawal** (migration `20260703010000_wallet_withdrawal.sql`) — ถอนเงินเข้าบัญชีธนาคาร (จาก KYC)
+  - ตาราง `withdrawal_requests` (`status`: `pending`/`paid`/`rejected`, snapshot `bank_*`), RLS own-read, mutation ผ่าน RPC
+  - RPC `request_withdrawal(p_user_id, p_amount)` — guard `amount>=100` + KYC approved + มีบัญชี + `balance>=amount`; **ตัด wallet ทันที** (ล็อกเงิน) + `wallet_transactions(type='withdrawal')`
+  - RPC `process_withdrawal(p_withdrawal_id, p_action, p_note)` (admin) idempotent — `paid` mark จ่าย, `rejected` คืนเงิน (`type='refund'`)
+  - `POST /api/wallet/withdraw` (requireUser + rateLimit 5/min); admin `processWithdrawal()` (requireAdmin) + notify
+  - หน้า `/admin/withdrawals` (badge = pending count); user wallet page มีปุ่ม + `WithdrawModal` + รายการคำขอ
+  - **⚠️ ไม่มี real bank transfer** — admin โอนมือแล้ว mark `paid`
+
+## Server Reconcile Cron
+
+- **`app/lib/auction/reconcile.js`** — `endAuction(productId)`, `expireUnpaidAuction(auctionResultId)`, `reconcileAll()` (shared logic; `/api/auction/end` + `/api/auction/expire-unpaid` เรียกใช้แทน logic เดิม inline)
+- **`GET|POST /api/cron/reconcile`** — reconcile ทั้งระบบ (ปิดประมูลหมดเวลา + ยกเลิกผลที่ผู้ชนะไม่จ่าย); auth ด้วย env `CRON_SECRET` (`Authorization: Bearer` หรือ `?key=`); ไม่ตั้ง → 501
+- ตั้ง external scheduler (Vercel Cron/cron-job.org) เรียกทุก ~10 นาที (ดู [commands.md](commands.md#auction-reconcile-cron)); client reconcile บน `/user/selling` mount ยังทำงานเป็น safety net คู่กัน
 
 ## Inactivity Logout
 

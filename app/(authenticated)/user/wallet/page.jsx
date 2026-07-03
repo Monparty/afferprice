@@ -9,14 +9,17 @@ import {
     CreditCardFilled,
     MobileOutlined,
     ExperimentOutlined,
+    BankOutlined,
 } from "@ant-design/icons";
+import { Input } from "antd";
 import UseButton from "@/app/components/inputs/UseButton";
 import UseModal from "@/app/components/utils/UseModal";
 import UseSkeleton from "@/app/components/utils/UseSkeleton";
+import UseTag from "@/app/components/utils/UseTag";
 import OmiseCardForm from "@/app/components/payment/OmiseCardForm";
 import { startOmiseRedirect } from "@/app/components/payment/redirectPay";
 import { supabase } from "@/app/lib/supabase/client";
-import { getMyWalletBalance, getMyTransactions, subscribeWallet } from "@/app/services/wallet.service";
+import { getMyWalletBalance, getMyTransactions, subscribeWallet, getMyWithdrawals, requestWithdrawal } from "@/app/services/wallet.service";
 import { setWalletBalance } from "@/app/features/user/userSlice";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 
@@ -215,7 +218,7 @@ function TopupModal({ open, onClose, userId }) {
 
 function TransactionRow({ tx }) {
     const isCredit = tx.amount > 0;
-    const labelMap = { topup: "เติมเงิน", payment: "ชำระค่าประมูล", refund: "คืนเงิน" };
+    const labelMap = { topup: "เติมเงิน", payment: "ชำระค่าประมูล", refund: "คืนเงิน", sale: "รายได้จากการขาย", withdrawal: "ถอนเงิน" };
     return (
         <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-zinc-800 last:border-0">
             <div className="flex flex-col gap-1">
@@ -236,21 +239,87 @@ function TransactionRow({ tx }) {
     );
 }
 
+const WITHDRAW_MIN = 100;
+const WD_STATUS = {
+    pending: { label: "รอดำเนินการ", color: "gold" },
+    paid: { label: "จ่ายแล้ว", color: "green" },
+    rejected: { label: "ปฏิเสธ", color: "red" },
+};
+
+function WithdrawModal({ open, onClose, balance, onSuccess }) {
+    const [amount, setAmount] = useState("");
+    const [submitting, setSubmitting] = useState(false);
+
+    const n = Number(amount);
+    const invalid = !Number.isFinite(n) || n < WITHDRAW_MIN || n > balance;
+
+    const handleSubmit = async () => {
+        if (invalid) return;
+        setSubmitting(true);
+        const { error } = await requestWithdrawal(Math.round(n));
+        setSubmitting(false);
+        if (error) return notifyError(error);
+        notifySuccess("ส่งคำขอถอนเงินแล้ว รอผู้ดูแลระบบดำเนินการ");
+        setAmount("");
+        onSuccess?.();
+        onClose();
+    };
+
+    return (
+        <UseModal title="ถอนเงิน" open={open} onCancel={onClose}>
+            <div className="grid gap-4">
+                <p className="text-sm text-gray-500">
+                    ยอดคงเหลือ <span className="font-bold text-orange-600">{formatPrice(balance)}</span> — ถอนขั้นต่ำ ฿{WITHDRAW_MIN.toLocaleString()}
+                </p>
+                <div className="grid gap-1">
+                    <label className="text-sm font-semibold">จำนวนเงินที่ต้องการถอน</label>
+                    <Input
+                        type="number"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                        placeholder={`ระบุจำนวนเงิน (สูงสุด ${balance.toLocaleString()})`}
+                        prefix="฿"
+                    />
+                    {amount !== "" && invalid && (
+                        <span className="text-xs text-red-500">
+                            {n > balance ? "ยอดเงินไม่เพียงพอ" : `ถอนขั้นต่ำ ฿${WITHDRAW_MIN.toLocaleString()}`}
+                        </span>
+                    )}
+                </div>
+                <p className="text-xs text-gray-400">
+                    ระบบจะโอนเงินเข้าบัญชีธนาคารที่คุณให้ไว้ตอนยืนยันตัวตน (KYC) หลังผู้ดูแลระบบตรวจสอบ
+                </p>
+                <UseButton
+                    label="ยืนยันการถอนเงิน"
+                    icon={BankOutlined}
+                    wFull
+                    onClick={handleSubmit}
+                    loading={submitting}
+                    disabled={invalid || submitting}
+                />
+            </div>
+        </UseModal>
+    );
+}
+
 function Page() {
     const dispatch = useDispatch();
     const [userId, setUserId] = useState(null);
     const [balance, setBalance] = useState(0);
     const [transactions, setTransactions] = useState([]);
+    const [withdrawals, setWithdrawals] = useState([]);
     const [loadingTx, setLoadingTx] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
+    const [withdrawOpen, setWithdrawOpen] = useState(false);
 
     const refresh = async () => {
-        const [balRes, txRes] = await Promise.all([getMyWalletBalance(), getMyTransactions()]);
+        const [balRes, txRes, wdRes] = await Promise.all([getMyWalletBalance(), getMyTransactions(), getMyWithdrawals()]);
         const bal = Number(balRes.data?.wallet_balance ?? 0);
         setBalance(bal);
         dispatch(setWalletBalance(bal));
         if (txRes.error) notifyError(txRes.error);
         else setTransactions(txRes.data ?? []);
+        if (!wdRes.error) setWithdrawals(wdRes.data ?? []);
         setLoadingTx(false);
     };
 
@@ -276,15 +345,51 @@ function Page() {
                     </div>
                     <WalletFilled className="text-3xl! opacity-80" />
                 </div>
-                <UseButton
-                    label="เติมเงิน"
-                    icon={PlusOutlined}
-                    className="text-orange-600!"
-                    type="default"
-                    size="large"
-                    onClick={() => setModalOpen(true)}
-                />
+                <div className="flex gap-3">
+                    <UseButton
+                        label="เติมเงิน"
+                        icon={PlusOutlined}
+                        className="text-orange-600!"
+                        type="default"
+                        size="large"
+                        onClick={() => setModalOpen(true)}
+                    />
+                    <UseButton
+                        label="ถอนเงิน"
+                        icon={BankOutlined}
+                        className="bg-orange-700/30! border-white/40! text-white!"
+                        type="default"
+                        size="large"
+                        onClick={() => setWithdrawOpen(true)}
+                    />
+                </div>
             </div>
+
+            {withdrawals.length > 0 && (
+                <div className="rounded-xl bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 shadow-sm p-6">
+                    <h2 className="text-lg font-bold mb-2">คำขอถอนเงิน</h2>
+                    <div>
+                        {withdrawals.map((wd) => {
+                            const st = WD_STATUS[wd.status] || { label: wd.status, color: "default" };
+                            return (
+                                <div
+                                    key={wd.id}
+                                    className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-zinc-800 last:border-0"
+                                >
+                                    <div className="flex flex-col gap-1">
+                                        <span className="text-sm font-semibold">{formatPrice(wd.amount)}</span>
+                                        <span className="text-xs text-gray-400">{formatDate(wd.created_at)}</span>
+                                        {wd.status === "rejected" && wd.admin_note && (
+                                            <span className="text-xs text-red-500">{wd.admin_note}</span>
+                                        )}
+                                    </div>
+                                    <UseTag label={st.label} color={st.color} />
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
 
             <div className="rounded-xl bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 shadow-sm p-6">
                 <h2 className="text-lg font-bold mb-2">ประวัติการทำรายการ</h2>
@@ -305,6 +410,12 @@ function Page() {
             </div>
 
             <TopupModal open={modalOpen} onClose={() => setModalOpen(false)} userId={userId} />
+            <WithdrawModal
+                open={withdrawOpen}
+                onClose={() => setWithdrawOpen(false)}
+                balance={balance}
+                onSuccess={refresh}
+            />
         </main>
     );
 }

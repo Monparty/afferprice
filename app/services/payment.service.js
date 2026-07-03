@@ -11,7 +11,7 @@ export async function getAuctionResultByProduct(productId) {
 export async function getAuctionResultById(id) {
     return supabase
         .from("auction_results")
-        .select("id, final_price, payment_status, product_id, payment_due_at, products(title, images_url)")
+        .select("id, final_price, payment_status, product_id, payment_due_at, shipping_fee, products(title, images_url)")
         .eq("id", id)
         .maybeSingle();
 }
