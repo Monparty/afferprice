@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "docker:up": "npx supabase start && docker compose up --build",
+    "docker:down": "docker compose down && npx supabase stop"
   },
   "dependencies": {
     "@google/design.md": "^0.1.1",

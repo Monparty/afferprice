@@ -82,3 +82,26 @@ npx supabase db dump -f out.sql     # dump schema จาก remote (ต้อง
   update profiles set role='admin' where id='<uuid>';
   update auth.users set raw_app_meta_data = raw_app_meta_data || '{"role":"admin"}'::jsonb where id='<uuid>';
   ```
+
+## รันทั้งโปรเจกต์ผ่าน Docker (ให้เพื่อนรันเองบนเครื่อง)
+
+Backend ใช้ Supabase CLI เดิม (Docker) + ตัวแอป Next.js อยู่ใน `docker-compose.yml` (hybrid) — ต่อกันผ่าน `host.docker.internal`. ไฟล์: [Dockerfile](../Dockerfile), [docker-compose.yml](../docker-compose.yml), [.dockerignore](../.dockerignore).
+
+**เพื่อนต้องมี:** Docker Desktop + Node.js + ไฟล์ `.env` (เจ้าของส่งให้ หรือ `cp .env.example .env` แล้วเติม key — ดู [.env.example](../.env.example))
+
+```bash
+git clone <repo> && cd afferprice
+cp .env.example .env     # แล้วเติม key (หรือใช้ .env ที่เจ้าของส่งให้)
+npm install              # ให้มี supabase CLI ผ่าน npx
+npm run docker:up        # = npx supabase start && docker compose up --build
+# เปิด http://localhost:3000  (Supabase Studio: http://localhost:54323)
+npm run docker:down      # หยุดทั้ง app + supabase
+```
+
+- **secrets ไม่ commit** — `SUPABASE_SERVICE_ROLE_KEY` + `OMISE_SECRET_KEY` อยู่ใน `.env` (gitignored) ที่ compose อ่าน `${...}`; ค่าอื่น (NEXT_PUBLIC_*, host URL) ฝังใน `docker-compose.yml`
+- **DB เพื่อนเปล่า** — สมัคร user ที่ `/register` แล้ว promote admin เอง (SQL ด้านบน) + สร้างหมวดหมู่/สินค้าเอง; ยังไม่มี `supabase/seed.sql`
+- **ทำไม hybrid ไม่ใช่ `docker compose up` เดียว:** backend มาจาก `npx supabase start` (ใช้ migration/seed เดิม ไม่ drift) — `npm run docker:up` รวมให้เป็นคำสั่งเดียว
+- **กลไก networking:** browser ยิง Supabase ที่ `127.0.0.1:54321` (baked ตอน build), ส่วน server-code ในคอนเทนเนอร์ยิง `host.docker.internal:54321` ผ่าน env `SUPABASE_INTERNAL_URL` (6 จุดฝั่ง server มี fallback — ไม่ตั้ง = พฤติกรรมเดิม prod/dev)
+- **CSP + next/image** ใน [next.config.mjs](../next.config.mjs) derive origin จาก `NEXT_PUBLIC_SUPABASE_URL` แล้ว (รองรับทั้ง local http + prod https); `upgrade-insecure-requests` ปิดอัตโนมัติเมื่อ Supabase เป็น http
+- **Windows/Mac:** `extra_hosts: host.docker.internal:host-gateway` ทำให้ใช้ได้ทั้ง Docker Desktop และ Linux
+- **แก้โค้ดแล้วต้อง rebuild image:** `docker compose up --build` (โค้ดถูก build เข้า image ไม่ได้ mount — ต่างจาก `npm run dev`)

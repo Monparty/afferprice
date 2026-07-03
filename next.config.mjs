@@ -1,24 +1,31 @@
-const SUPABASE_HOST = "https://auiowkhqygdswdkexrip.supabase.co";
-const SUPABASE_WS = "wss://auiowkhqygdswdkexrip.supabase.co";
+// Supabase origin สำหรับ CSP — derive จาก env เพื่อให้ทำงานได้ทั้ง prod (https)
+// และ local/docker (http://127.0.0.1:54321). ถ้าไม่ตั้ง env fallback เป็น host prod เดิม
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://auiowkhqygdswdkexrip.supabase.co";
+const supaOrigin = new URL(SUPABASE_URL).origin; // http://127.0.0.1:54321 | https://xxx.supabase.co
+const supaWs = supaOrigin.replace(/^http/, "ws"); // ws://127.0.0.1:54321 | wss://xxx.supabase.co
+const isHttps = supaOrigin.startsWith("https");
 
 const csp = [
     "default-src 'self'",
     `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.omise.co`,
     "style-src 'self' 'unsafe-inline'",
-    `img-src 'self' data: blob: ${SUPABASE_HOST} https://picsum.photos`,
-    `media-src 'self' blob: data: ${SUPABASE_HOST}`,
+    `img-src 'self' data: blob: ${supaOrigin} https://picsum.photos`,
+    `media-src 'self' blob: data: ${supaOrigin}`,
     "font-src 'self' data:",
-    `connect-src 'self' ${SUPABASE_HOST} ${SUPABASE_WS} https://*.omise.co`,
+    `connect-src 'self' ${supaOrigin} ${supaWs} https://*.omise.co`,
     "frame-src 'self' https://*.omise.co",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
     "object-src 'none'",
-    "upgrade-insecure-requests",
+    // อย่า upgrade เป็น https ตอน local (Supabase local เป็น http) — จะทำให้ยิงไม่ถึง
+    ...(isHttps ? ["upgrade-insecure-requests"] : []),
 ].join("; ");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    // standalone build สำหรับ Docker (.next/standalone/server.js)
+    output: "standalone",
     images: {
         remotePatterns: [
             {
@@ -29,6 +36,13 @@ const nextConfig = {
             {
                 protocol: "https",
                 hostname: "picsum.photos",
+            },
+            {
+                // Supabase local storage (docker/dev)
+                protocol: "http",
+                hostname: "127.0.0.1",
+                port: "54321",
+                pathname: "/storage/v1/object/public/**",
             },
         ],
     },

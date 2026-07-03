@@ -10,7 +10,7 @@ export default async function Image({ params }) {
     const { id } = params;
 
     const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.SUPABASE_INTERNAL_URL || process.env.NEXT_PUBLIC_SUPABASE_URL,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     );
 

@@ -1,0 +1,17 @@
+node_modules
+.next
+.git
+.gitignore
+.env*
+Dockerfile
+docker-compose.yml
+.dockerignore
+npm-debug.log*
+coverage
+.vscode
+.claude
+docs
+scripts
+supabase/.branches
+supabase/.temp
+**/*.md
