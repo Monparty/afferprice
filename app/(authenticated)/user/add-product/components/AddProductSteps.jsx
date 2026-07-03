@@ -15,7 +15,7 @@ function AddProductSteps({ activeStep }) {
             title: "ตรวจสอบข้อมูล",
         },
         {
-            title: "ชำระค่าธรรมเนียม",
+            title: "ชำระเงินค่าประกันการขาย",
         },
     ];
 
@@ -23,7 +23,7 @@ function AddProductSteps({ activeStep }) {
         0: { step: "1", title: "อัปโหลดรูปภาพ", percentage: "0" },
         1: { step: "2", title: "ระบุรายละเอียดสินค้า", percentage: "25" },
         2: { step: "3", title: "ตรวจสอบข้อมูล", percentage: "50" },
-        3: { step: "4", title: "ชำระค่าธรรมเนียม", percentage: "75" },
+        3: { step: "4", title: "ชำระเงินค่าประกันการขาย", percentage: "75" },
     };
 
     const { step, title, percentage } = dataConfig[activeStep] || {

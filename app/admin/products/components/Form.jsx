@@ -183,7 +183,7 @@ function Form({ id, mode, onSubmit }) {
                 )}
             </div>
             <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-4">
-                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">ค่าธรรมเนียมลงขาย (5%)</p>
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">เงินค่าประกันการขาย (5%)</p>
                 {feePayment ? (
                     <div className="grid sm:grid-cols-2 gap-2 text-sm">
                         <div>
@@ -228,7 +228,7 @@ function Form({ id, mode, onSubmit }) {
                         )}
                     </div>
                 ) : (
-                    <p className="text-sm text-slate-400">ยังไม่มีการชำระค่าธรรมเนียม</p>
+                    <p className="text-sm text-slate-400">ยังไม่มีการชำระเงินค่าประกันการขาย</p>
                 )}
             </div>
             {!isWatch && (
@@ -270,7 +270,7 @@ function Form({ id, mode, onSubmit }) {
                         </UseTooltip>
                     )}
                     {watchState === "pending_review" && (
-                        <UseTooltip title={isFeePaid ? "อนุมัติ" : "ผู้ขายยังไม่ชำระค่าธรรมเนียม"}>
+                        <UseTooltip title={isFeePaid ? "อนุมัติ" : "ผู้ขายยังไม่ชำระเงินค่าประกันการขาย"}>
                             <UseButton
                                 shape="circle"
                                 icon={CheckCircleFilled}

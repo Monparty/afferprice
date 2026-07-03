@@ -30,6 +30,7 @@ Project-specific coding style and reusable patterns. Standard library behavior i
 - **เพิ่ม method ใหม่**: สร้าง `XxxListingBtn.jsx` ใช้ `PaymentMethodCard` เป็นเปลือก + ใส่เนื้อหาปุ่มของตัวเอง แล้วเพิ่มลง `ListingFeePayment` — **ห้าม copy markup การ์ด** (จะหลุด single source).
 - **ช่องทางที่มี (listing fee):** `PromptPayListingBtn`, `WalletListingBtn`, `CreditCardListingBtn`, `TrueMoneyListingBtn`, `RabbitLinePayListingBtn`.
 - **method ครอบ 3 flow:** ช่องทางเดียวควรเสียบได้ทั้ง `listing_fee` (ListingFeePayment), `auction` (checkout picker → payment page `[id]`), `topup` (wallet TopupModal) — ต่างกันแค่ `purpose` + id ที่ส่งเข้า route
+- **คำเรียก listing fee ใน UI = "เงินค่าประกันการขาย"** (rename 2026-07-04 — คืนให้ผู้ขายเมื่อการขายไม่สำเร็จ) — ห้ามใช้ "ค่าธรรมเนียมลงขาย" ใน UI ใหม่; โค้ด/DB ยังใช้ `listing_fee` เหมือนเดิม. อย่าสับสนกับ "ค่าธรรมเนียมการประมูล 5%" ฝั่งผู้ซื้อ (`final_price*1.05`) ซึ่งเป็นคนละเงิน — คำนั้นคงเดิม.
 
 ## Client payment helpers (Omise)
 

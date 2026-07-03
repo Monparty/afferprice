@@ -56,7 +56,7 @@ function WalletListingBtn({ productId, amount, onSuccess }) {
                 setBalance(data.balance_after);
             }
             setPaid(true);
-            notifySuccess("ชำระค่าธรรมเนียมสำเร็จ");
+            notifySuccess("ชำระเงินค่าประกันการขายสำเร็จ");
             onSuccess?.(data);
         } catch (err) {
             notifyError(err);
@@ -70,7 +70,7 @@ function WalletListingBtn({ productId, amount, onSuccess }) {
     if (paid) {
         return (
             <div className="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-900 rounded-xl p-4 text-center">
-                <p className="text-green-700 dark:text-green-400 font-semibold">ชำระค่าธรรมเนียมสำเร็จ</p>
+                <p className="text-green-700 dark:text-green-400 font-semibold">ชำระเงินค่าประกันการขายสำเร็จ</p>
             </div>
         );
     }

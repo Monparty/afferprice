@@ -32,6 +32,8 @@ function Page() {
                             <li>login ด้วย OTP (อีเมล) — ต้องเพิ่ม {`{{ .Token }}`} ใน email template ของ Supabase</li>
                             <li>filter ฝั่งซ้ายหน้า /categories responsive (stack บนมือถือ)</li>
                             <li>ปรับ UX: สร้างสินค้าแรก + KYC พร้อมกัน → แจ้งให้กลับมากดส่งตรวจหลัง KYC ผ่าน</li>
+                            <li>เลขราคา wallet บน topbar บางทีก็เปลี่ยนบางทีก็ไม่เปลี่ยน</li>
+                            <li>หน้าสร้างสินค้า เปลี่ยนคำ ค่าธรรมเนียม เปลี่ยนเป็นเงินค่าประกันการขาย</li>
                         </ul>
                         <p className="font-normal mt-2 underline">⏳ เหลือ</p>
                         <ul className="ps-4 list-decimal font-normal">

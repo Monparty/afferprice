@@ -179,25 +179,26 @@ function AddProductForm({ activeStep, control, categoryList, setValue, isKyc = "
                     <div className="mb-6">
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                             <CreditCardFilled className="text-orange-600!" />
-                            ชำระค่าธรรมเนียม
+                            ชำระเงินค่าประกันการขาย
                         </h2>
                         <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-                            ค่าธรรมเนียมการลงขาย 5% ของราคาเริ่มต้น = ฿{listingFee.toLocaleString()}
+                            เงินค่าประกันการขาย 5% ของราคาเริ่มต้น = ฿{listingFee.toLocaleString()}{" "}
+                            (ได้รับคืนเข้ากระเป๋าเงินหากการขายไม่สำเร็จ)
                         </p>
                     </div>
                     {isKyc !== "approved" ? (
                         <div className="bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-900 rounded-xl p-4 text-sm text-orange-700 dark:text-orange-300">
-                            กรุณายืนยันตัวตน (KYC) และรอ admin อนุมัติก่อน จึงจะชำระค่าธรรมเนียมลงขายได้
+                            กรุณายืนยันตัวตน (KYC) และรอ admin อนุมัติก่อน จึงจะชำระเงินค่าประกันการขายได้
                         </div>
                     ) : !watchProductId ? (
                         <div className="bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-900 rounded-xl p-4 text-sm text-orange-700 dark:text-orange-300">
-                            กรุณาบันทึกและส่งตรวจสอบสินค้าก่อน จึงจะชำระค่าธรรมเนียมได้
+                            กรุณาบันทึกและส่งตรวจสอบสินค้าก่อน จึงจะชำระเงินค่าประกันการขายได้
                         </div>
                     ) : isFeePaid ? (
                         <div className="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-900 rounded-xl p-4 flex items-center gap-3">
                             <CheckCircleFilled className="text-2xl! text-green-600!" />
                             <div>
-                                <p className="font-semibold text-green-700 dark:text-green-400">ชำระค่าธรรมเนียมเรียบร้อยแล้ว</p>
+                                <p className="font-semibold text-green-700 dark:text-green-400">ชำระเงินค่าประกันการขายเรียบร้อยแล้ว</p>
                                 <p className="text-xs text-slate-600 dark:text-slate-400">
                                     ฿{Number(feePayment.amount).toLocaleString()} •{" "}
                                     {feePayment.payment_method?.toUpperCase()}

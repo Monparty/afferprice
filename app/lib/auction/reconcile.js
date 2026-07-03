@@ -3,6 +3,23 @@ import { supabaseAdmin } from "@/app/lib/supabase/admin";
 
 const PAYMENT_DUE_DAYS = 3;
 
+// คืนเงินค่าประกันการขาย (listing fee) ให้ผู้ขายเมื่อการขายไม่สำเร็จ — idempotent ใน RPC
+async function refundListingFee(productId) {
+    const { data, error } = await supabaseAdmin.rpc("refund_listing_fee", { p_product_id: productId });
+    if (error) {
+        console.error("[reconcile] refund_listing_fee failed", productId, error.message);
+        return;
+    }
+    if (!data?.refunded) return;
+    await supabaseAdmin.from("notifications").insert({
+        user_id: data.seller_id,
+        type: "payment",
+        title: "คืนเงินค่าประกันการขายแล้ว",
+        message: `การขายไม่สำเร็จ ระบบคืนเงินค่าประกันการขาย ฿${Number(data.amount).toLocaleString("th-TH")} เข้ากระเป๋าเงินของคุณแล้ว`,
+    });
+    await supabaseAdmin.channel(`wallet-${data.seller_id}`).send({ type: "broadcast", event: "update", payload: {} });
+}
+
 // ปิดประมูล 1 รายการ (idempotent) — logic เดียวกับที่ /api/auction/end ใช้; ใช้ร่วมกันโดย route + cron
 export async function endAuction(productId) {
     const { data: product } = await supabaseAdmin
@@ -88,6 +105,9 @@ export async function endAuction(productId) {
     const newState = winningBid ? "sold" : "cancelled";
     await supabaseAdmin.from("products").update({ state: newState }).eq("id", productId);
 
+    // ไม่มีคน bid → การขายไม่สำเร็จ → คืนเงินค่าประกันการขายให้ผู้ขาย
+    if (!winningBid) await refundListingFee(productId);
+
     return { ended: true, winnerId: winningBid?.user_id ?? null };
 }
 
@@ -101,7 +121,9 @@ export async function expireUnpaidAuction(auctionResultId) {
 
     if (data?.expired) {
         const depositAmount = Number(data.deposit_amount || 0);
+        const sellerComp = Number(data.seller_compensation || 0);
         const amountText = depositAmount.toLocaleString("th-TH");
+        const compText = sellerComp.toLocaleString("th-TH");
         const notifications = [
             {
                 user_id: data.winner_id,
@@ -116,16 +138,19 @@ export async function expireUnpaidAuction(auctionResultId) {
                 type: "payment",
                 title: "ผู้ซื้อไม่ชำระเงิน",
                 message:
-                    depositAmount > 0
-                        ? `ผู้ชนะไม่ชำระค่าประมูลภายในกำหนด รายการถูกยกเลิก ระบบโอนเงินมัดจำ ฿${amountText} เข้ากระเป๋าเงินของคุณเป็นค่าชดเชย`
+                    sellerComp > 0
+                        ? `ผู้ชนะไม่ชำระค่าประมูลภายในกำหนด รายการถูกยกเลิก ระบบโอนค่าชดเชย ฿${compText} (ส่วนแบ่ง 5% จากเงินมัดจำผู้ซื้อ) เข้ากระเป๋าเงินของคุณ`
                         : "ผู้ชนะไม่ได้ชำระค่าประมูลภายในกำหนด รายการถูกยกเลิก",
             });
         }
         await supabaseAdmin.from("notifications").insert(notifications);
 
-        if (data.seller_id && depositAmount > 0) {
+        if (data.seller_id && sellerComp > 0) {
             await supabaseAdmin.channel(`wallet-${data.seller_id}`).send({ type: "broadcast", event: "update", payload: {} });
         }
+
+        // ผู้ชนะไม่จ่าย → การขายไม่สำเร็จ → คืนเงินค่าประกันการขายให้ผู้ขาย
+        if (data.product_id) await refundListingFee(data.product_id);
     }
 
     return data;

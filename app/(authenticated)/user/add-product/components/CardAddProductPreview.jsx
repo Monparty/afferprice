@@ -135,7 +135,7 @@ function CardAddProductPreview({
                     <div className="mx-5 mb-1 p-3 rounded-lg border bg-green-50 dark:bg-green-950/40 border-green-300 dark:border-green-900">
                         <div className="flex items-center gap-2 mb-1">
                             <CheckCircleFilled className="text-green-600!" />
-                            <span className="text-sm font-semibold text-green-700 dark:text-green-400">ชำระค่าธรรมเนียมแล้ว</span>
+                            <span className="text-sm font-semibold text-green-700 dark:text-green-400">ชำระเงินค่าประกันการขายแล้ว</span>
                         </div>
                         <p className="text-xs text-slate-600 dark:text-slate-300">
                             รอ admin ตรวจสอบและอนุมัติสินค้า ไม่สามารถแก้ไขหรือบันทึกเพิ่มได้

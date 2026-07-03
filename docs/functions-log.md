@@ -431,3 +431,34 @@ Append-only log of completed features/functions. Newest entries at the bottom.
   - **local DB ว่างเปล่า** — ไม่มี seed/admin/หมวดหมู่; สมัคร user แล้ว promote admin เอง (ทั้ง `profiles.role` + `auth.users.raw_app_meta_data`) หรือทำ `supabase/seed.sql`
   - CLI ไม่ได้ลง global → เรียกผ่าน `npx supabase ...`; ต้องเปิด Docker Desktop ก่อนทุกคำสั่ง supabase local
   - โครงสร้างใหม่หลังจากนี้ = migration ไฟล์ใหม่ต่อจาก squash (`npx supabase migration new <name>`) — อย่าแก้ไฟล์ squash
+
+## เงินค่าประกันการขาย — refund listing fee เมื่อการขายไม่สำเร็จ + rename — 2026-07-04
+- **Purpose:** เปลี่ยนความหมาย listing fee 5% จาก "ค่าธรรมเนียม" (platform เก็บเสมอ) เป็น **"เงินค่าประกันการขาย"** — คืนเข้า wallet ผู้ขายอัตโนมัติเมื่อการขายไม่สำเร็จ 2 เคส: ① ไม่มีคน bid จนหมดเวลา (`endAuction` → `cancelled`) ② ผู้ชนะไม่ชำระเงินตามกำหนด (`expire_unpaid_auction` → `cancelled`); ขายสำเร็จ → platform เก็บเหมือนเดิม; state lifecycle ไม่เปลี่ยน + rename คำใน UI ทุกจุดที่หมายถึง listing fee
+- **Location:**
+  - Migration (ใหม่): `supabase/migrations/20260704000000_refund_listing_fee.sql` — RPC `refund_listing_fee(p_product_id)`
+  - `app/lib/auction/reconcile.js` — helper `refundListingFee(productId)` + call site ใน `endAuction` (branch `!winningBid`) และ `expireUnpaidAuction` (หลัง `data.expired`)
+  - Rename UI: `app/(authenticated)/user/add-product/components/AddProductForm.jsx` (step 3 + เพิ่มคำอธิบาย "ได้รับคืนเข้ากระเป๋าเงินหากการขายไม่สำเร็จ"), `AddProductSteps.jsx`, `CardAddProductPreview.jsx`, `app/components/payment/WalletListingBtn.jsx`, `app/admin/products/components/Form.jsx` (การ์ด + tooltip ปุ่มอนุมัติ), `app/admin/settings/page.jsx`
+- **Inputs/Outputs:**
+  - `refund_listing_fee(p_product_id)` (RPC, SECURITY DEFINER, **service_role เท่านั้น** — REVOKE anon/authenticated) — หา `payments` `purpose='listing_fee'` + `payment_status='success'` ล่าสุดของ product → lock `FOR UPDATE` (serialize การเรียกซ้ำพร้อมกัน) → idempotent ผ่าน `EXISTS wallet_transactions WHERE reference_id=payment.id AND type='refund'` → credit `wallet_balance` ผู้ขาย + insert `wallet_transactions(type='refund', note='listing fee refund')` → คืน `{refunded, seller_id, amount, balance_after}` หรือ `{no_payment}`/`{already_processed}`
+  - `refundListingFee(productId)` (reconcile.js) — เรียก RPC; ถ้า `refunded` → insert `notifications(type='payment', "คืนเงินค่าประกันการขายแล้ว")` + broadcast `wallet-{seller}`
+- **Gotchas:**
+  - **ต้องรัน migration `20260704000000` ก่อน** — ไม่งั้น RPC ไม่มี → refund fail เงียบ (log error แต่ auction จบปกติ)
+  - **idempotent ผูกกับ payment.id** ใน `wallet_transactions.reference_id` — reconcile ถูกยิงซ้ำ (client + cron พร้อมกัน) ไม่ credit ซ้ำ
+  - **"ค่าธรรมเนียมการประมูล 5%" ฝั่งผู้ซื้อ (checkout/payment/reports) ไม่ถูก rename** — คนละเงินกับ listing fee
+  - **⚠️ พบระหว่างทำ (ยังไม่แก้):** RPC เงินตัวอื่นใน squash schema (`refund_bid_deposit`, `place_bid_deposit`, ฯลฯ) มี `GRANT ... TO anon, authenticated` — user ที่ login เรียก `supabase.rpc('refund_bid_deposit', ...)` ตรงได้ → **คืนมัดจำตัวเองก่อนประมูลจบ = หนี forfeit ได้** ขัดกับ docs ที่บอก grant service_role เท่านั้น; RPC ใหม่ทั้ง 2 ไฟล์วันนี้ REVOKE แล้ว แต่ตัวเก่าค้างเป็นงาน audit [[rpc-grants-audit]]
+  - `npm run build` ผ่าน
+
+## Forfeit deposit split — มัดจำที่ริบแบ่ง 15% platform / 5% ผู้ขาย — 2026-07-04
+- **Purpose:** เคสผู้ชนะไม่ชำระเงินตามกำหนด: เดิมมัดจำ 20% ที่ริบถูก credit ให้ผู้ขาย**เต็มจำนวน** → เปลี่ยนเป็นแบ่งตามสัดส่วนของราคาสินค้า: **15% เข้าแพลตฟอร์ม + 5% ให้ผู้ขาย** (ผู้ขายได้ 5/20 = 1/4 ของยอดมัดจำ); รวมกับ feature ก่อนหน้า สรุปผู้ขายได้ 2 ก้อน: เงินค่าประกันการขายคืน + 5% จากมัดจำผู้ซื้อ
+- **Location:**
+  - Migration (ใหม่): `supabase/migrations/20260704010000_forfeit_deposit_split.sql` — `CREATE OR REPLACE expire_unpaid_auction` + REVOKE anon/authenticated
+  - `app/lib/auction/reconcile.js` — `expireUnpaidAuction()` notification ผู้ขายใช้ `seller_compensation`
+- **Inputs/Outputs:**
+  - `expire_unpaid_auction` เดิม credit `v_deposit_amount` เต็ม → เปลี่ยนเป็น `v_seller_comp = ROUND(deposit × 5.0/20.0, 2)`; insert `wallet_transactions(type='sale', note='forfeited deposit compensation (5% of 20%)')`; return เพิ่ม `seller_compensation` (ควบคู่ `deposit_amount` เดิม)
+  - reconcile.js: notification ผู้ชนะยังแจ้ง**ริบเต็มยอด** (`deposit_amount`); notification ผู้ขายแจ้ง `"ระบบโอนค่าชดเชย ฿X (ส่วนแบ่ง 5% จากเงินมัดจำผู้ซื้อ)"`; broadcast `wallet-{seller}` ผูกกับ `sellerComp > 0`
+- **Gotchas:**
+  - **5% คิดจากยอดมัดจำจริง ณ ตอนวาง** (มัดจำ fix ที่ 20% ของราคาตอนวาง ไม่ขยับตามราคาที่บิดขึ้น) — ถ้าราคาปิดสูงกว่าตอนวางมัดจำ ส่วนแบ่งผู้ขายจะน้อยกว่า 5% ของราคาปิด
+  - **migration ต้องรันตามลำดับ** — `20260704000000` (refund_listing_fee) ก่อน `20260704010000`
+  - **ไม่ชน idempotency ของ `credit_seller_proceeds`** — ทั้งคู่ใช้ `type='sale'` + `reference_id=auction_result_id` แต่ paid vs canceled เป็น path exclusive กัน (ไม่มีทางเกิดทั้งคู่)
+  - เงินฝั่ง platform (15%) **ไม่ move ที่ไหน** — เงินถูกตัดจาก wallet ผู้ชนะตั้งแต่ตอนวางมัดจำแล้ว การ "เก็บ" = แค่ไม่ credit ให้ใคร (ไม่มี platform ledger)
+  - `npm run build` ผ่าน

@@ -80,6 +80,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - **⚠️ Trigger เป็น client-side อย่างเดียว** → ถ้าหมดเวลาแต่ไม่มีใครเปิดหน้า product detail สถานะจะค้างที่ `active`. **Reconciliation**: `endExpiredActiveAuctions()` ใน `products.service.js` หาสินค้า `state='active'` ที่ `auction_end_time < now()` (สินค้าตัวเอง + สินค้าที่ user เคย bid) แล้วยิง `/api/auction/end` ให้ครบ — เรียกตอน mount หน้า `/user/selling`; ถ้า `ended > 0` bump `refreshKey` re-fetch list + counts (ยังไม่มี server-side cron — ค้างได้ถ้าไม่มีใครเปิดหน้า selling/detail เลย)
 - **`auction_results` มี `UNIQUE(product_id)`** (migration `20260702000000_bid_deposits.sql`) — กัน endpoint ถูกยิงซ้ำพร้อมกัน (เช่น timer หมดพร้อมกันหลาย tab) สร้าง `auction_results` ซ้ำ; ถ้า insert ชน unique → return `{ ended: true }` ทันทีไม่ทำ step ถัดไปซ้ำ
 - **จัดการเงินมัดจำ (bid deposit)** — หลัง set `is_winning`/insert notifications: ดึง `bid_deposits` ที่ `status='held'` ของ product ทั้งหมด → ของผู้ชนะ mark `status='applied'` (หักออกจากยอดชำระภายหลัง), ที่เหลือ (คนแพ้ + คนวางมัดจำไว้แต่ไม่เคย bid จริง) เรียก RPC `refund_bid_deposit` คืนเข้า wallet + insert notification (`type='payment'`, "คืนเงินมัดจำแล้ว") + broadcast `wallet-{userId}` ดู [Bid Deposit](#bid-deposit-เงินมัดจำก่อนประมูล)
+- **ไม่มีคน bid → `cancelled` + คืนเงินค่าประกันการขาย** (migration `20260704000000_refund_listing_fee.sql`) — `refundListingFee(productId)` ใน `reconcile.js` เรียก RPC `refund_listing_fee(p_product_id)` (SECURITY DEFINER, service_role เท่านั้น): หา `payments` `listing_fee`+`success` ล่าสุด → idempotent ผ่าน `wallet_transactions(reference_id=payment.id, type='refund')` → credit wallet ผู้ขาย + notification + broadcast `wallet-{seller}`; ขายสำเร็จ → ไม่คืน (platform เก็บ)
 
 ## Favorites
 
@@ -159,7 +160,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
 
 - **Migration**: `supabase/migrations/20260702100000_payment_deadline.sql` — `auction_results.payment_due_at timestamptz` + `bid_deposits` เพิ่มสถานะ `'forfeited'` + `forfeited_at` + RPC `expire_unpaid_auction` + **`CREATE OR REPLACE charge_wallet`** (เพิ่ม lock+guard)
 - **Rule**: ผู้ชนะมีเวลา **3 วัน** หลังปิดประมูล (set `payment_due_at = now + 3 วัน` ตอน insert `auction_results` ใน `/api/auction/end`) เพื่อชำระค่าประมูล; เกินกำหนดยังไม่จ่าย → ยกเลิก
-- **RPC `expire_unpaid_auction(p_auction_result_id)`** (SECURITY DEFINER, service_role เท่านั้น) — lock `auction_results` `FOR UPDATE`; idempotent (`payment_status<>'pending'` → `{already_processed}`); ยังไม่ครบกำหนด → `{not_due:true}`; มิฉะนั้น: `payment_status='canceled'` + ริบมัดจำผู้ชนะ (`applied`/`held`→`forfeited`) + product `sold→cancelled` → คืน `{expired, winner_id, seller_id, product_id, deposit_amount}`
+- **RPC `expire_unpaid_auction(p_auction_result_id)`** (SECURITY DEFINER, service_role เท่านั้น — REVOKE anon/authenticated ใน `20260704010000`) — lock `auction_results` `FOR UPDATE`; idempotent (`payment_status<>'pending'` → `{already_processed}`); ยังไม่ครบกำหนด → `{not_due:true}`; มิฉะนั้น: `payment_status='canceled'` + ริบมัดจำผู้ชนะ (`applied`/`held`→`forfeited`) + product `sold→cancelled` → คืน `{expired, winner_id, seller_id, product_id, deposit_amount, seller_compensation}`
 - **API**: `POST /api/auction/expire-unpaid` (`app/api/auction/expire-unpaid/route.js`) — `rateLimit(30/min)`, **ไม่มี requireUser** (guard อยู่ใน RPC ทั้งหมด เหมือน `/api/auction/end` — client ส่ง id ปลอมไม่มีผลเพราะ RPC เช็ค due_at+status); `expired=true` → insert notifications ให้ winner + seller
 - **Reconcile**: `expireUnpaidWonAuctions()` ใน `products.service.js` — หา pending + overdue ทั้งฝั่ง `winner_id` และ `products.seller_id` แล้ว POST expire; เรียกตอน mount `/user/selling` คู่กับ `endExpiredActiveAuctions()` (**ไม่มี server cron** — ค้างได้ถ้าไม่มีใครเปิดหน้า)
 - **UI**: `CardSellingProduct` countdown `paymentDueAt` (ใต้ tag ผู้ขาย / ใต้ปุ่มผู้ซื้อ); checkout banner + ล็อกปุ่มเมื่อ `payExpired`
@@ -167,7 +168,8 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - **⚠️ TOCTOU race ที่ปิดไปแล้ว**:
   1. `charge_wallet` เพิ่ม `SELECT ... FOR UPDATE auction_results` + เช็คสถานะ (serialize กับ `expire_unpaid_auction` ที่ lock row เดียวกัน) — กันผู้ชนะโดนตัดค่าประมูล "และ" ริบมัดจำพร้อมกัน
   2. webhook flip `pending→paid` เท่านั้น (`.eq("payment_status","pending")`) — กัน charge async ที่สำเร็จหลัง cancel ปลุก auction กลับมา paid; 0 row → log (ต้อง refund มือ)
-- **⚠️ มัดจำที่ริบ platform เก็บไว้** — ยังไม่ credit ให้ผู้ขาย (จะทำตอน seller payout)
+- **มัดจำที่ริบแบ่ง 15% platform / 5% ผู้ขาย** (migration `20260704010000_forfeit_deposit_split.sql`) — มัดจำ = 20% ของราคา ณ ตอนวาง; `expire_unpaid_auction` credit ผู้ขาย `ROUND(deposit × 5/20)` (`wallet_transactions type='sale'`, note `'forfeited deposit compensation (5% of 20%)'`), อีก 15% platform เก็บ (เงินอยู่กับ platform อยู่แล้ว ไม่ move); ผู้ชนะเสียมัดจำเต็ม 20%
+- **ผู้ขายได้เงินค่าประกันการขาย (listing fee) คืนด้วย** — `expireUnpaidAuction()` ใน `reconcile.js` เรียก `refundListingFee(product_id)` หลัง expire (ดู [Auction End Flow](#auction-end-flow)) — สรุปเคสผิดนัด: ผู้ขายได้ listing fee คืน + 5% จากมัดจำผู้ซื้อ
 
 ## Realtime Bid (Supabase Broadcast)
 
@@ -336,7 +338,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - **Seller payout** (migration `20260703000000_seller_payout.sql`) — ผู้ซื้อชำระค่าประมูลสำเร็จ → ผู้ขายได้ `final_price` เข้า wallet อัตโนมัติ (platform เก็บค่าธรรมเนียม 5% + shipping fee + listing fee)
   - RPC `credit_seller_proceeds(p_auction_result_id)` (service_role) — lock auction_results, ต้อง `payment_status='paid'`, idempotent ผ่าน `wallet_transactions(reference_id=auction_result_id, type='sale')`, credit `final_price` + insert `wallet_transactions(type='sale')`
   - helper `settleSellerProceeds()` ใน `app/lib/payment/sellerPayout.js` — เรียก RPC + broadcast `wallet-{seller}` + notify; เรียกจาก **wallet/charge route** (หลัง charge) และ **webhook** (หลัง flip paid)
-  - **forfeit** → `expire_unpaid_auction` credit มัดจำที่ริบให้ผู้ขาย (`type='sale'`, "forfeited deposit compensation")
+  - **forfeit** → `expire_unpaid_auction` credit **5/20 ของมัดจำที่ริบ** (= 5% ของราคา ณ ตอนวางมัดจำ) ให้ผู้ขาย (`type='sale'`, "forfeited deposit compensation (5% of 20%)"); อีก 15% platform เก็บ — migration `20260704010000` (เดิมให้เต็ม); ผู้ขายได้ listing fee คืนแยกผ่าน `refund_listing_fee` ด้วย (ดู [Payment Deadline & Forfeit](#payment-deadline--forfeit-ผู้ชนะไม่จ่ายตามกำหนด))
   - `wallet_transactions.type` เพิ่ม `'sale'`/`'withdrawal'` (label/สีใน user + admin wallet page)
   - **⚠️ ผู้ขายได้ `final_price` เท่านั้น** — shipping_fee + 5% platform เก็บ (open decision: ยังไม่ reimburse ค่าส่งให้ผู้ขาย)
 - **Wallet withdrawal** (migration `20260703010000_wallet_withdrawal.sql`) — ถอนเงินเข้าบัญชีธนาคาร (จาก KYC)
@@ -409,6 +411,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
 
 ## Add Product Listing Fee
 
+- **คำเรียกใน UI = "เงินค่าประกันการขาย"** (rename จาก "ค่าธรรมเนียมลงขาย" — 2026-07-04) เพราะ**คืนให้ผู้ขายเมื่อการขายไม่สำเร็จ** (ไม่มีคน bid / ผู้ชนะไม่จ่าย) ผ่าน RPC `refund_listing_fee` — ดู [Auction End Flow](#auction-end-flow); โค้ด/DB ยังใช้ `listing_fee` เหมือนเดิม (`payments.purpose`) — เปลี่ยนเฉพาะคำแสดงผล
 - **Calc**: `5% ของ start_price` (calc ทั้ง server-side ใน `/api/payment/promptpay` + `/api/payment/wallet/listing-fee` และ client-side ใน [Form.jsx](<../app/(authenticated)/user/add-product/components/Form.jsx>) — ค่าต้องตรงกันเพื่อ UI แสดงถูก)
 - **🔒 จ่ายได้เฉพาะ seller ที่ `is_kyc='approved'`** — เช็ค 2 ชั้น:
   - **UI** (`Form.jsx`): `isKyc !== 'approved'` → กล่องส้มให้ KYC ก่อน (ซ่อนปุ่มจ่าย)
