@@ -44,6 +44,7 @@ function Page() {
         if (error) return notifyError(error);
         notifySuccess("สมัครสมาชิกสำเร็จ");
         router.push("/");
+        router.refresh(); // ล้าง Router Cache กัน prefetch redirect ค้างจากตอน logged-out
     };
 
     return (

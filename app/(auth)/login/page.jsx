@@ -33,6 +33,7 @@ function Page() {
         const { error } = await login(values.email, values.password);
         if (error) return notifyError(error);
         router.push("/");
+        router.refresh(); // ล้าง Next.js Router Cache (กัน prefetch redirect→/login ตอน logged-out ค้าง)
     };
 
     const handleSendOtp = async () => {
@@ -55,6 +56,7 @@ function Page() {
         setOtpLoading(false);
         if (error) return notifyError(error);
         router.push("/");
+        router.refresh(); // ล้าง Router Cache หลัง OTP login เช่นเดียวกับ password
     };
 
     const switchMode = (next) => {
