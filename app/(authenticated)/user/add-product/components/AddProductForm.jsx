@@ -22,7 +22,15 @@ import ListingFeePayment from "@/app/components/payment/ListingFeePayment";
 import ProductEvaluation from "./ProductEvaluation";
 import UseButton from "@/app/components/inputs/UseButton";
 
-function AddProductForm({ activeStep, control, categoryList, setValue, isKyc = "unknown", feePayment = null, refreshFeePayment }) {
+function AddProductForm({
+    activeStep,
+    control,
+    categoryList,
+    setValue,
+    isKyc = "unknown",
+    feePayment = null,
+    refreshFeePayment,
+}) {
     const watchState = useWatch({ control, name: "state" });
     const watchCategoryId = useWatch({ control, name: "categoryId" });
     const watchStartPrice = useWatch({ control, name: "startPrice" });
@@ -64,7 +72,8 @@ function AddProductForm({ activeStep, control, categoryList, setValue, isKyc = "
                                 name="images_url"
                                 title="ลากและวางรูปภาพลงที่นี่"
                                 multiple
-                                maxCount={6}
+                                maxCount={10}
+                                description="อัปโหลดรูปภาพอย่างน้อย 5 รูป และไม่เกิน 10 รูป"
                                 isDrag
                                 customRequest={(fileData) =>
                                     handleLocalPreview({ fileData: fileData, name: "images_url", setValue: setValue })
@@ -89,6 +98,8 @@ function AddProductForm({ activeStep, control, categoryList, setValue, isKyc = "
                                 maxCount={1}
                                 isDrag
                                 acceptVideo
+                                textFileType="MP4"
+                                textFileSize="ขนาดไฟล์ไม่เกิน 5MB ความยาว 15 - 30 วินาที"
                                 customRequest={(fileData) =>
                                     handleLocalPreview({ fileData, name: "video_url", setValue, acceptVideo: true })
                                 }
@@ -102,7 +113,9 @@ function AddProductForm({ activeStep, control, categoryList, setValue, isKyc = "
                                     <EditFilled className="text-orange-600!" />
                                     ตั้งค่าการประมูล
                                 </h2>
-                                <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">ระบุรายละเอียดเบื้องต้นของสินค้า</p>
+                                <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+                                    ระบุรายละเอียดเบื้องต้นของสินค้า
+                                </p>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                 <InputText control={control} name="title" label="ชื่อสินค้า" size="large" />
@@ -133,7 +146,9 @@ function AddProductForm({ activeStep, control, categoryList, setValue, isKyc = "
                                     <FileTextFilled className="text-orange-600!" />
                                     รายละเอียดสินค้า
                                 </h2>
-                                <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">ระบุข้อมูลให้ครบถ้วนเพื่อดึงดูดผู้ประมูล</p>
+                                <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+                                    ระบุข้อมูลให้ครบถ้วนเพื่อดึงดูดผู้ประมูล
+                                </p>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                 <UseSelect
@@ -198,7 +213,9 @@ function AddProductForm({ activeStep, control, categoryList, setValue, isKyc = "
                         <div className="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-900 rounded-xl p-4 flex items-center gap-3">
                             <CheckCircleFilled className="text-2xl! text-green-600!" />
                             <div>
-                                <p className="font-semibold text-green-700 dark:text-green-400">ชำระเงินค่าประกันการขายเรียบร้อยแล้ว</p>
+                                <p className="font-semibold text-green-700 dark:text-green-400">
+                                    ชำระเงินค่าประกันการขายเรียบร้อยแล้ว
+                                </p>
                                 <p className="text-xs text-slate-600 dark:text-slate-400">
                                     ฿{Number(feePayment.amount).toLocaleString()} •{" "}
                                     {feePayment.payment_method?.toUpperCase()}

@@ -9,7 +9,7 @@ import { useMemo, useState } from "react";
 function VideoPreviewItem({ file, onRemove }) {
     const src = useMemo(
         () => file.url || (file.originFileObj ? URL.createObjectURL(file.originFileObj) : null),
-        [file.url, file.originFileObj]
+        [file.url, file.originFileObj],
     );
     return (
         <div className="group relative w-full h-full overflow-hidden rounded-lg border border-slate-200 bg-black">
@@ -39,8 +39,11 @@ function UseUpload({
     textFileSize = "ขนาดไฟล์ไม่เกิน 2MB",
     acceptVideo = false,
     disabled = false,
+    description = ""
 }) {
     const [fileListData, setFileListData] = useState([]);
+    const defDescription = `อัปโหลด${acceptVideo ? "วิดีโอ" : "รูปภาพ"}ได้สูงสุด ${maxCount} รายการ`;
+
     return (
         <Controller
             name={name}
@@ -70,9 +73,7 @@ function UseUpload({
                             accept={acceptVideo ? "video/*" : "image/*"}
                             itemRender={
                                 acceptVideo
-                                    ? (originNode, file, fileList, { remove }) => (
-                                          <VideoPreviewItem file={file} onRemove={remove} />
-                                      )
+                                    ? (file, { remove }) => <VideoPreviewItem file={file} onRemove={remove} />
                                     : undefined
                             }
                             disabled={disabled}
@@ -84,7 +85,9 @@ function UseUpload({
                                     </div>
                                     <p className="text-xl font-bold">{title}</p>
                                     <div className="text-sm grid gap-1 text-[#c7c7c7]">
-                                        <p>อัปโหลดรูปภาพได้สูงสุด {maxCount} รายการ</p>
+                                        <p>
+                                            {description || defDescription}
+                                        </p>
                                         <p>
                                             {textFileType} {textFileSize}
                                         </p>
