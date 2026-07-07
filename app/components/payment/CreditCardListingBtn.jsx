@@ -4,21 +4,17 @@ import { CreditCardFilled } from "@ant-design/icons";
 import PaymentMethodCard from "./PaymentMethodCard";
 import OmiseCardForm from "./OmiseCardForm";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
+import { apiPost } from "@/app/lib/api";
 
 function CreditCardListingBtn({ productId, amount, onSuccess }) {
     const handleToken = async (token) => {
-        const res = await fetch("/api/payment/credit-card", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ omiseToken: token, purpose: "listing_fee", productId }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-            notifyError(new Error(data?.error || "ชำระเงินไม่สำเร็จ"));
-            return;
+        try {
+            const data = await apiPost("/api/payment/credit-card", { omiseToken: token, purpose: "listing_fee", productId });
+            notifySuccess("ส่งคำสั่งชำระเงินแล้ว กำลังตรวจสอบสถานะ");
+            onSuccess?.(data);
+        } catch (err) {
+            notifyError(err);
         }
-        notifySuccess("ส่งคำสั่งชำระเงินแล้ว กำลังตรวจสอบสถานะ");
-        onSuccess?.(data);
     };
 
     return (

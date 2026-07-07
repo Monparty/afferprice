@@ -3,12 +3,13 @@ import UseButton from "@/app/components/inputs/UseButton";
 import UseTag from "@/app/components/utils/UseTag";
 import { CarOutlined, FieldTimeOutlined, InboxOutlined, MoreOutlined, TeamOutlined, WalletOutlined } from "@ant-design/icons";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import imageNotFound from "../../../public/images/imageNotFound.png";
 import UsePopover from "./UsePopover";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatCountdown } from "@/app/utils/dateUtils";
+import { apiPost } from "@/app/lib/api";
 import dayjs from "dayjs";
 
 function getPopoverAction(value) {
@@ -47,11 +48,12 @@ function getPopoverAction(value) {
     return null;
 }
 
-function CardSellingProduct({ value }) {
+function CardSellingProduct({ value, onAuctionEnded }) {
     const router = useRouter();
     const action = getPopoverAction(value);
     const [countdown, setCountdown] = useState(() => formatCountdown(value.auction_end_time));
     const [payCountdown, setPayCountdown] = useState(() => formatCountdown(value.paymentDueAt));
+    const endFiredRef = useRef(false);
 
     // ประมูลมีผู้ชนะ — แยก UI ตามฝั่ง (ผู้ขาย/ผู้ซื้อ) + สถานะชำระเงิน
     const isPaid = value.paymentStatus === "paid";
@@ -70,6 +72,16 @@ function CardSellingProduct({ value }) {
         const id = setInterval(tick, 1000);
         return () => clearInterval(id);
     }, [value.auction_end_time]);
+
+    // countdown ถึง 0 ขณะยัง "กำลังประมูล" → ปิดประมูลทันที (endpoint idempotent —
+    // ไม่มี bid: คืนเงินค่าประกันการขายให้ผู้ขาย / มี bid: สร้างผลประมูล) แล้วให้ parent refresh list
+    useEffect(() => {
+        if (!countdown?.ended || value.stateName !== "กำลังประมูล" || endFiredRef.current) return;
+        endFiredRef.current = true;
+        apiPost("/api/auction/end", { productId: value.id })
+            .then(() => onAuctionEnded?.())
+            .catch(() => {});
+    }, [countdown?.ended, value.stateName, value.id, onAuctionEnded]);
 
     // นับถอยหลังกำหนดชำระเงินของผู้ชนะ (แสดงเฉพาะตอนรอชำระ)
     useEffect(() => {

@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase/client";
+import { apiPost } from "../lib/api";
 
 export async function getProducts() {
     return supabase.from("products").select("*");
@@ -124,15 +125,7 @@ export async function endExpiredActiveAuctions() {
     const ids = [...new Set([...(ownExpired ?? []), ...bidExpired].map((p) => p.id))];
     if (!ids.length) return { ended: 0 };
 
-    await Promise.all(
-        ids.map((id) =>
-            fetch("/api/auction/end", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ productId: id }),
-            }).catch(() => {})
-        )
-    );
+    await Promise.all(ids.map((id) => apiPost("/api/auction/end", { productId: id }).catch(() => {})));
     return { ended: ids.length };
 }
 
@@ -162,15 +155,7 @@ export async function expireUnpaidWonAuctions() {
     const ids = [...new Set([...(wonExpired ?? []), ...(sellerExpired ?? [])].map((r) => r.id))];
     if (!ids.length) return { expired: 0 };
 
-    await Promise.all(
-        ids.map((id) =>
-            fetch("/api/auction/expire-unpaid", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ auctionResultId: id }),
-            }).catch(() => {})
-        )
-    );
+    await Promise.all(ids.map((id) => apiPost("/api/auction/expire-unpaid", { auctionResultId: id }).catch(() => {})));
     return { expired: ids.length };
 }
 

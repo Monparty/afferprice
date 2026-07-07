@@ -10,6 +10,7 @@ import { getMyWalletBalance, subscribeWallet } from "@/app/services/wallet.servi
 import { setWalletBalance as setWalletBalanceAction } from "@/app/features/user/userSlice";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import { supabase } from "@/app/lib/supabase/client";
+import { apiPost } from "@/app/lib/api";
 
 function WalletListingBtn({ productId, amount, onSuccess }) {
     const dispatch = useDispatch();
@@ -41,16 +42,7 @@ function WalletListingBtn({ productId, amount, onSuccess }) {
     const handlePay = async () => {
         setSubmitting(true);
         try {
-            const res = await fetch("/api/payment/wallet/listing-fee", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ productId }),
-            });
-            const data = await res.json();
-            if (!res.ok) {
-                notifyError(new Error(data?.error || "ชำระเงินไม่สำเร็จ"));
-                return;
-            }
+            const data = await apiPost("/api/payment/wallet/listing-fee", { productId });
             if (typeof data?.balance_after === "number") {
                 dispatch(setWalletBalanceAction(data.balance_after));
                 setBalance(data.balance_after);

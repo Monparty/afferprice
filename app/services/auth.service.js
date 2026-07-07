@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase/client";
+import { apiPost } from "../lib/api";
 
 export const subscribeAuth = (callback) => {
     const {
@@ -27,20 +28,15 @@ export const register = async ({ email, password, firstName, lastName, phone, ge
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return { error };
 
-    const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+    try {
+        await apiPost("/api/auth/register", {
             first_name: firstName,
             last_name: lastName,
             phone,
             gender,
-        }),
-    });
-
-    if (!res.ok) {
-        const { error: msg } = await res.json();
-        return { error: new Error(msg) };
+        });
+    } catch (err) {
+        return { error: err };
     }
 
     return { data };

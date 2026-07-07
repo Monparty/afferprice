@@ -1,4 +1,5 @@
 import { supabase } from "@/app/lib/supabase/client";
+import { apiPostSafe } from "@/app/lib/api";
 
 // อ่านเงินมัดจำของตัวเองสำหรับสินค้านั้น (RLS "own deposit read" — เห็นเฉพาะของตัวเอง)
 export async function getMyBidDeposit(productId) {
@@ -16,12 +17,5 @@ export async function getMyBidDeposit(productId) {
 
 // วางเงินมัดจำ 20% ของราคาปัจจุบัน (ยอดคำนวณฝั่ง server)
 export async function placeBidDeposit(productId) {
-    const res = await fetch("/api/bid/deposit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId }),
-    });
-    const data = await res.json();
-    if (!res.ok) return { data: null, error: { message: data.error || "internal_error" } };
-    return { data, error: null };
+    return apiPostSafe("/api/bid/deposit", { productId });
 }

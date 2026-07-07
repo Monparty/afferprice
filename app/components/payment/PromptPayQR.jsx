@@ -5,6 +5,7 @@ import UseModal from "../utils/UseModal";
 import UseButton from "../inputs/UseButton";
 import UseSkeleton from "../utils/UseSkeleton";
 import { notifyError } from "@/app/providers/NotificationProvider";
+import { apiPost } from "@/app/lib/api";
 
 function PromptPayQR({ amount, purpose = "topup", productId, auctionResultId, label = "ชำระด้วย PromptPay", wFull = false }) {
     const [open, setOpen] = useState(false);
@@ -15,17 +16,7 @@ function PromptPayQR({ amount, purpose = "topup", productId, auctionResultId, la
         setOpen(true);
         setLoading(true);
         try {
-            const res = await fetch("/api/payment/promptpay", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ amount, purpose, productId, auctionResultId }),
-            });
-            const data = await res.json();
-            if (!res.ok) {
-                notifyError(new Error(data?.error || "เกิดข้อผิดพลาด"));
-                setOpen(false);
-                return;
-            }
+            const data = await apiPost("/api/payment/promptpay", { amount, purpose, productId, auctionResultId });
             setQrData(data);
         } catch (err) {
             notifyError(err);

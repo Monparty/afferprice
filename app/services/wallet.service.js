@@ -1,4 +1,5 @@
 import { supabase } from "@/app/lib/supabase/client";
+import { apiPostSafe } from "@/app/lib/api";
 
 export async function getMyWalletBalance() {
     const {
@@ -35,12 +36,5 @@ export async function getMyWithdrawals({ limit = 20 } = {}) {
 
 // ขอถอนเงิน (ยอดจริง server เช็คกับ balance) → { data, error }
 export async function requestWithdrawal(amount) {
-    const res = await fetch("/api/wallet/withdraw", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount }),
-    });
-    const data = await res.json();
-    if (!res.ok) return { data: null, error: { message: data.error || "internal_error" } };
-    return { data, error: null };
+    return apiPostSafe("/api/wallet/withdraw", { amount });
 }

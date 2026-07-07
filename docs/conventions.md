@@ -32,6 +32,14 @@ Project-specific coding style and reusable patterns. Standard library behavior i
 - **method ครอบ 3 flow:** ช่องทางเดียวควรเสียบได้ทั้ง `listing_fee` (ListingFeePayment), `auction` (checkout picker → payment page `[id]`), `topup` (wallet TopupModal) — ต่างกันแค่ `purpose` + id ที่ส่งเข้า route
 - **คำเรียก listing fee ใน UI = "เงินค่าประกันการขาย"** (rename 2026-07-04 — คืนให้ผู้ขายเมื่อการขายไม่สำเร็จ) — ห้ามใช้ "ค่าธรรมเนียมลงขาย" ใน UI ใหม่; โค้ด/DB ยังใช้ `listing_fee` เหมือนเดิม. อย่าสับสนกับ "ค่าธรรมเนียมการประมูล 5%" ฝั่งผู้ซื้อ (`final_price*1.05`) ซึ่งเป็นคนละเงิน — คำนั้นคงเดิม.
 
+## Client → internal API calls
+
+- **ห้ามเขียน raw `fetch("/api/...", {method:"POST", headers, body: JSON.stringify(...)})` boilerplate ใหม่ฝั่ง client** — ใช้ `apiPost(url, body)` / `apiPostSafe(url, body)` จาก `app/lib/api.js` เสมอ:
+  - `apiPost(url, body)` — คืน parsed JSON ตรง ๆ ถ้าสำเร็จ; HTTP `!ok` → `throw new Error(data?.error || "")` (message = error code จาก server) — ใช้กับจุดที่จะ `try/catch` + `notifyError(err)` เอง หรือ fire-and-forget ด้วย `.catch(() => {})`
+  - `apiPostSafe(url, body)` — wrap ด้วย try/catch ไม่ throw คืน `{ data, error }` ตาม convention service layer เดิม — ใช้ในไฟล์ `*.service.js`
+  - **route ที่ถูกเรียกต้องคืน error เป็น string code เสมอ** (`{ error: "some_code" }`) ไม่ใช่ object — `apiPost` ทำ `data?.error || ""` ตรง ๆ ไม่ serialize (สอดคล้อง convention route เดิมทั้งหมดอยู่แล้ว)
+  - **client-side เท่านั้น** (relative URL `/api/...`) — คนละ layer กับ `omiseFetch`/`omiseGet` (`app/lib/payment/omise.js`) ที่ใช้ฝั่ง server ยิงออกไป Omise โดยตรง (ดู [Client payment helpers](#client-payment-helpers-omise) ด้านล่าง) — **อย่าใช้ `apiPost` แทน `omiseFetch` หรือกลับกัน**
+
 ## Client payment helpers (Omise)
 
 - **บัตรเครดิต/เดบิต** → `app/components/payment/OmiseCardForm.jsx` — โหลด Omise.js ผ่าน `next/script`, `createToken('card', …)` ฝั่ง client (PAN ไม่เข้า server) แล้ว callback `onToken(tokenId)`; **parent เป็นคนยิง `/api/payment/credit-card`** เอง (คุม `purpose`/ids). ต้องมี env `NEXT_PUBLIC_OMISE_PUBLIC_KEY` + CSP `connect-src https://*.omise.co` (vault).

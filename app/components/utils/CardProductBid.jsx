@@ -19,6 +19,7 @@ import { insertBid, getHighestBid } from "@/app/services/bids.service";
 import { getMyBidDeposit, placeBidDeposit } from "@/app/services/deposits.service";
 import { getMyWalletBalance } from "@/app/services/wallet.service";
 import { supabase } from "@/app/lib/supabase/client";
+import { apiPost } from "@/app/lib/api";
 import { updateProductPrice } from "@/app/services/products.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
 import { fetchUser } from "@/app/features/user/userSlice";
@@ -84,11 +85,7 @@ function CardProductBid({ product, onBidSuccess }) {
 
     useEffect(() => {
         if (!ended || !product?.id) return;
-        fetch("/api/auction/end", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ productId: product.id }),
-        });
+        apiPost("/api/auction/end", { productId: product.id }).catch(() => {});
     }, [ended, product?.id]);
 
     useEffect(() => {

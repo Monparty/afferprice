@@ -19,6 +19,7 @@ import UseTag from "@/app/components/utils/UseTag";
 import OmiseCardForm from "@/app/components/payment/OmiseCardForm";
 import { startOmiseRedirect } from "@/app/components/payment/redirectPay";
 import { supabase } from "@/app/lib/supabase/client";
+import { apiPost } from "@/app/lib/api";
 import { getMyWalletBalance, getMyTransactions, subscribeWallet, getMyWithdrawals, requestWithdrawal } from "@/app/services/wallet.service";
 import { setWalletBalance } from "@/app/features/user/userSlice";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
@@ -69,13 +70,7 @@ function TopupModal({ open, onClose, userId }) {
         setLoading(true);
         try {
             if (method === "promptpay") {
-                const r = await fetch("/api/payment/promptpay", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ amount, purpose: "topup" }),
-                });
-                const d = await r.json();
-                if (d.error) return notifyError(d.error);
+                const d = await apiPost("/api/payment/promptpay", { amount, purpose: "topup" });
                 setQrData(d);
             } else if (method === "truemoney") {
                 if (!/^0\d{9}$/.test(phone)) return notifyError("กรุณากรอกเบอร์ที่ผูกกับ TrueMoney (10 หลัก)");
@@ -83,13 +78,7 @@ function TopupModal({ open, onClose, userId }) {
             } else if (method === "linepay") {
                 await startOmiseRedirect({ sourceType: "rabbit_linepay", purpose: "topup", amount });
             } else if (method === "test") {
-                const r = await fetch("/api/payment/test-topup", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ amount }),
-                });
-                const d = await r.json();
-                if (!r.ok || d.error) return notifyError(new Error(d.error || "เติมเงินไม่สำเร็จ"));
+                await apiPost("/api/payment/test-topup", { amount });
                 notifySuccess(`เติมเงินทดสอบสำเร็จ ${formatPrice(amount)}`);
                 handleClose();
             }
@@ -102,15 +91,10 @@ function TopupModal({ open, onClose, userId }) {
 
     // บัตรเครดิต/เดบิต topup — charge ตรง แล้ว webhook เครดิต wallet ภายหลัง
     const handleCardToken = async (token) => {
-        const res = await fetch("/api/payment/credit-card", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ omiseToken: token, purpose: "topup", amount }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-            notifyError(new Error(data?.error || "เติมเงินไม่สำเร็จ"));
-            return;
+        try {
+            await apiPost("/api/payment/credit-card", { omiseToken: token, purpose: "topup", amount });
+        } catch (err) {
+            return notifyError(err);
         }
         notifySuccess("ส่งคำสั่งเติมเงินแล้ว ยอดจะอัปเดตเมื่อชำระสำเร็จ");
         handleClose();

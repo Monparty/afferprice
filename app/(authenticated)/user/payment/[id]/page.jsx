@@ -15,6 +15,7 @@ import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { supabase } from "@/app/lib/supabase/client";
+import { apiPost } from "@/app/lib/api";
 import { getAuctionResultById } from "@/app/services/payment.service";
 import { getMyBidDeposit } from "@/app/services/deposits.service";
 import { getMyWalletBalance } from "@/app/services/wallet.service";
@@ -74,12 +75,7 @@ function Page() {
         if (!result || !userId) return;
         const finalPrice = Number(result.final_price ?? 0);
         const total = Math.round(finalPrice + finalPrice * AUCTION_FEE_RATE);
-        fetch("/api/payment/promptpay", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ auctionResultId: id }),
-        })
-            .then((r) => r.json())
+        apiPost("/api/payment/promptpay", { auctionResultId: id })
             .then(setQrData)
             .catch(() => {});
     }, [result, userId, method, id]);
@@ -95,15 +91,12 @@ function Page() {
         if (!userId || !result) return;
         if (walletBalance < total) return router.push("/user/wallet");
         setWalletSubmitting(true);
-        const r = await fetch("/api/payment/wallet/charge", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ auctionResultId: id }),
-        });
-        const d = await r.json();
-        if (d.error) {
+        let d;
+        try {
+            d = await apiPost("/api/payment/wallet/charge", { auctionResultId: id });
+        } catch (err) {
             setWalletSubmitting(false);
-            return notifyError(d.error);
+            return notifyError(err);
         }
         setWalletBalanceLocal(d.balance_after);
         dispatch(setWalletBalance(d.balance_after));
@@ -112,15 +105,10 @@ function Page() {
     };
 
     const handleCardToken = async (token) => {
-        const res = await fetch("/api/payment/credit-card", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ omiseToken: token, purpose: "auction", auctionResultId: id }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-            notifyError(new Error(data?.error || "ชำระเงินไม่สำเร็จ"));
-            return;
+        try {
+            await apiPost("/api/payment/credit-card", { omiseToken: token, purpose: "auction", auctionResultId: id });
+        } catch (err) {
+            return notifyError(err);
         }
         notifySuccess("ส่งคำสั่งชำระเงินแล้ว กำลังตรวจสอบสถานะ");
         router.push("/user/selling");

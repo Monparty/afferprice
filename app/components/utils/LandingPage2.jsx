@@ -937,64 +937,6 @@ function LandingPage2() {
                     </div>
                 </section>
 
-                {/* ============ Trust & Authentication ============ */}
-                <section className="mt-24 bg-white border border-[#E8E5DE] rounded-[28px] p-6 sm:p-10 lg:p-14 grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-10 lg:gap-16 items-center">
-                    <div className="ap-trust-visual relative aspect-square max-w-md mx-auto w-full rounded-[28px] overflow-hidden grid place-items-center">
-                        <div className="ap-seal relative w-[200px] h-[200px] rounded-full bg-white grid place-items-center border border-[#E8E5DE] shadow-[0_32px_80px_-40px_rgba(20,18,15,.35),0_4px_16px_rgba(20,18,15,.06)]">
-                            <div className="ap-seal-inner relative w-[140px] h-[140px] rounded-full bg-[#FFEEDF] text-[#C94800] grid place-items-center text-center font-mono text-[11px] font-medium tracking-[.1em] leading-[1.3]">
-                                <div>
-                                    <svg
-                                        viewBox="0 0 24 24"
-                                        width="32"
-                                        height="32"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="1.6"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        className="block mx-auto mb-2"
-                                    >
-                                        <path d="M12 2 4 5v6c0 5 3.5 9 8 11 4.5-2 8-6 8-11V5l-8-3Z" />
-                                        <path d="m9 12 2 2 4-4" />
-                                    </svg>
-                                    AFFERPRICE
-                                    <br />
-                                    VERIFIED
-                                    <br />
-                                    AUTHENTIC
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <span className="inline-flex items-center gap-2 text-[12px] font-semibold tracking-[.12em] uppercase text-[#8B857E]">
-                            ตรวจสอบและรับประกันของแท้
-                        </span>
-                        <h3 className="mt-3 mb-3 text-2xl sm:text-[32px] font-semibold tracking-[-.02em] leading-[1.15]">
-                            ทุกชิ้นผ่านการตรวจสอบ
-                            <br />
-                            โดยผู้เชี่ยวชาญ
-                        </h3>
-                        <p className="mt-0 mb-8 text-[15px] leading-[1.7] text-[#4A4641]">
-                            นักประเมินของเรามีประสบการณ์เฉลี่ย 15+ ปี ในแต่ละหมวด — การ์ดสะสม, นาฬิกา, พระเครื่อง,
-                            เครื่องประดับ และศิลปะ พร้อมระบบยืนยันความแท้แบบ multi-step ก่อนเปิดประมูลทุกครั้ง
-                        </p>
-                        <div className="flex flex-col gap-5">
-                            {TRUST.map((t, i) => (
-                                <div key={i} className="grid grid-cols-[42px_1fr] gap-4.5">
-                                    <div className="w-[42px] h-[42px] rounded-lg bg-[#F4F3EE] text-[#161412] grid place-items-center shrink-0">
-                                        {t.icon}
-                                    </div>
-                                    <div>
-                                        <h5 className="m-0 mb-1 text-[15px] font-semibold">{t.title}</h5>
-                                        <p className="m-0 text-[14px] text-[#8B857E] leading-[1.55]">{t.text}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-
                 {/* ============ Testimonials / Reviews ============ */}
                 <section className="mt-24">
                     <SectionHead eyebrow="รีวิวจากนักสะสม" title="นักสะสมตัวจริงไว้ใจเรา" more="รีวิวทั้งหมด" />

@@ -67,7 +67,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
 
 ## Auction End Flow
 
-- **Trigger**: client-side — เมื่อ timer ใน `CardProductBid` นับถอยหลังถึง 0 → `POST /api/auction/end`
+- **Trigger**: client-side, 3 จุด — ① timer ใน `CardProductBid` (หน้า product detail) นับถอยหลังถึง 0 ② `CardSellingProduct` (หน้า `/user/selling`) countdown ถึง 0 ขณะการ์ดยัง `stateName === "กำลังประมูล"` → ยิงทันที (guard ด้วย `useRef` กันยิงซ้ำในการ์ดเดียวกัน, ดู [Selling Page](#selling-page-userselling)) ③ `endExpiredActiveAuctions()` reconcile ตอน mount หน้า selling — ทั้ง 3 จุดยิง `POST /api/auction/end`
 - **API route**: `app/api/auction/end/route.js` (ใช้ `supabaseAdmin`)
   1. ตรวจ `auction_end_time < now()` และ `state = active` (กัน early call)
   2. Idempotency — ถ้า `auction_results` มี record อยู่แล้วให้ return ออก
@@ -77,7 +77,9 @@ Schema defined in `db/00_schema.sql`. Key tables:
      - มีผู้ชนะ → `'sold'`
      - ไม่มี bid → `'cancelled'`
 - **`auction_end_time`** ถูก set โดย admin ตอน approve เท่านั้น (ไม่ set ตอน draft save)
-- **⚠️ Trigger เป็น client-side อย่างเดียว** → ถ้าหมดเวลาแต่ไม่มีใครเปิดหน้า product detail สถานะจะค้างที่ `active`. **Reconciliation**: `endExpiredActiveAuctions()` ใน `products.service.js` หาสินค้า `state='active'` ที่ `auction_end_time < now()` (สินค้าตัวเอง + สินค้าที่ user เคย bid) แล้วยิง `/api/auction/end` ให้ครบ — เรียกตอน mount หน้า `/user/selling`; ถ้า `ended > 0` bump `refreshKey` re-fetch list + counts (ยังไม่มี server-side cron — ค้างได้ถ้าไม่มีใครเปิดหน้า selling/detail เลย)
+- **⚠️ Trigger เป็น client-side ทั้งหมด (ไม่มี server cron ผูกไว้เสมอ)** → ถ้าหมดเวลาแต่ไม่มีใครเปิดหน้า product detail หรือ selling เลย สถานะจะค้างที่ `active`. **Reconciliation**: `endExpiredActiveAuctions()` ใน `products.service.js` หาสินค้า `state='active'` ที่ `auction_end_time < now()` (สินค้าตัวเอง + สินค้าที่ user เคย bid) แล้วยิง `/api/auction/end` ให้ครบ — เรียกตอน mount หน้า `/user/selling`; ถ้า `ended > 0` bump `refreshKey` re-fetch list + counts
+- **`CardSellingProduct` self-trigger** (เพิ่ม 2026-07-07, ดู [Selling Page](#selling-page-userselling)) — เดิม `endExpiredActiveAuctions()` ยิงแค่ตอน **mount** หน้า selling; ถ้านั่งเปิดหน้าค้างไว้จนสินค้าหมดเวลาในหน้าจอ (ไม่ reload) จะไม่มีอะไรยิง ปิดประมูลค้าง — เพิ่ม `useEffect` ในการ์ดเองตรวจ `countdown.ended` แล้วยิง `/api/auction/end` ทันที + callback `onAuctionEnded` ให้ parent refresh (แก้บั๊กเงินค่าประกันการขาย/มัดจำไม่คืนเพราะไม่เคย trigger ปิดประมูลเลย ทั้งที่ `refundListingFee`/RPC ทำงานถูกต้องอยู่แล้ว)
+- **ยังไม่มี server-side cron ตั้งอยู่จริงบน env** (`CRON_SECRET` ยังไม่ได้ตั้ง ดู [Server Reconcile Cron](#server-reconcile-cron)) — ค้างได้ถ้าไม่มีใครเปิดหน้า selling/detail เลย
 - **`auction_results` มี `UNIQUE(product_id)`** (migration `20260702000000_bid_deposits.sql`) — กัน endpoint ถูกยิงซ้ำพร้อมกัน (เช่น timer หมดพร้อมกันหลาย tab) สร้าง `auction_results` ซ้ำ; ถ้า insert ชน unique → return `{ ended: true }` ทันทีไม่ทำ step ถัดไปซ้ำ
 - **จัดการเงินมัดจำ (bid deposit)** — หลัง set `is_winning`/insert notifications: ดึง `bid_deposits` ที่ `status='held'` ของ product ทั้งหมด → ของผู้ชนะ mark `status='applied'` (หักออกจากยอดชำระภายหลัง), ที่เหลือ (คนแพ้ + คนวางมัดจำไว้แต่ไม่เคย bid จริง) เรียก RPC `refund_bid_deposit` คืนเข้า wallet + insert notification (`type='payment'`, "คืนเงินมัดจำแล้ว") + broadcast `wallet-{userId}` ดู [Bid Deposit](#bid-deposit-เงินมัดจำก่อนประมูล)
 - **ไม่มีคน bid → `cancelled` + คืนเงินค่าประกันการขาย** (migration `20260704000000_refund_listing_fee.sql`) — `refundListingFee(productId)` ใน `reconcile.js` เรียก RPC `refund_listing_fee(p_product_id)` (SECURITY DEFINER, service_role เท่านั้น): หา `payments` `listing_fee`+`success` ล่าสุด → idempotent ผ่าน `wallet_transactions(reference_id=payment.id, type='refund')` → credit wallet ผู้ขาย + notification + broadcast `wallet-{seller}`; ขายสำเร็จ → ไม่คืน (platform เก็บ)
@@ -235,6 +237,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
 ## Selling Page (`/user/selling`)
 
 - **Auto-reconcile สถานะค้าง**: on mount เรียก `endExpiredActiveAuctions()` ปิดประมูลที่หมดเวลาแต่ค้างที่ `active` (ดู [Auction End Flow](#auction-end-flow)); ถ้ามีการเปลี่ยนสถานะ bump `refreshKey` → effect fetch products + counts re-run (ทั้ง 2 effect depend on `refreshKey`)
+- **Live self-trigger**: ทุก `CardSellingProduct` ได้ prop `onAuctionEnded={() => setRefreshKey((k) => k + 1)}` — เมื่อการ์ดที่ยัง `stateName === "กำลังประมูล"` นับถอยหลังถึง 0 ระหว่างเปิดหน้าค้างไว้ (ไม่ต้อง mount ใหม่) การ์ดยิง `/api/auction/end` เองแล้วเรียก callback ให้ list/counts refetch — ครอบเคสที่ `endExpiredActiveAuctions()` (mount-only) พลาดไป (ดู [Auction End Flow](#auction-end-flow))
 - `getProductsByState(state)` join `auction_results(id, payment_status, winner_id)` + `bids(id, bid_price, user_id)` (user_id ใช้คำนวณจำนวนผู้ประมูล distinct)
 - Tab พิเศษ:
   - `won` (สินค้าที่ฉันชนะ) → `getWonProductsByUser()` query `auction_results` ด้วย `winner_id` + **`products!inner` filter `state='sold'`** (เฉพาะที่ผู้ขายยังไม่จัดส่ง — จัดส่งแล้วย้ายไป tab `order`)
@@ -254,6 +257,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
   - `isLost` → stateName "ประมูลไม่ชนะ" + popover "ดูสินค้า"
   - `bidders_count` → จำนวนผู้ประมูลแบบ distinct (`new Set(bids.map(b => b.user_id))`)
   - `auction_end_time` → countdown แบบ realtime (`setInterval` 1s) — `> 1 วัน`: `X วัน HH ชม.`; มิฉะนั้น `HH:MM:SS`; หมดเวลา: `หมดเวลา`
+  - `onAuctionEnded` (optional callback) — เรียกหลังการ์ด self-trigger ปิดประมูลสำเร็จ (ดู "Live self-trigger" ด้านบน + [Auction End Flow](#auction-end-flow))
 
 ## Shipment Flow
 

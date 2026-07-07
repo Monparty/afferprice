@@ -138,6 +138,7 @@ function Page() {
                     return (
                         <CardSellingProduct
                             key={productData?.id}
+                            onAuctionEnded={() => setRefreshKey((k) => k + 1)}
                             value={{
                                 id: productData?.id,
                                 stateName: isWonTab ? "สินค้าที่ฉันชนะ" : isLost ? "ประมูลไม่ชนะ" : name,

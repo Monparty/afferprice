@@ -177,7 +177,6 @@ function Form({ id, mode, onSubmit }) {
                         { value: "cancelled", label: "ยกเลิก" },
                     ]}
                 />
-                <UseSwitch {...inputProps} name="status" label="สถานะการใช้งาน" />
                 {watchState === "rejected" && (
                     <UseTextArea {...inputProps} name="rejectedRemark" label="เหตุผลที่ไม่อนุมัติ" />
                 )}
