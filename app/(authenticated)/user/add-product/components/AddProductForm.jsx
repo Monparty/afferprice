@@ -51,7 +51,7 @@ function AddProductForm({
                         <ExclamationCircleFilled className="text-orange-600!" />
                         สินค้าของคุณไม่ผ่านการอนุมัติเนื่องจาก
                     </h2>
-                    <UseTextArea control={control} name="rejected_remark" size="large" disabled />
+                    <UseTextArea control={control} name="rejected_remark" className="text-red-500! font-bold" size="large" disabled />
                 </div>
             )}
             {activeStep !== 3 && (

@@ -36,8 +36,7 @@ const KYC_TAG = {
 };
 
 // แปลง row ใน user_addresses → ข้อความที่อยู่ (เก็บลง profiles.address ที่ submit_kyc บังคับ)
-const composeAddress = (a) =>
-    [a?.address_line, a?.district, a?.province, a?.postal_code].filter(Boolean).join(" ");
+const composeAddress = (a) => [a?.address_line, a?.district, a?.province, a?.postal_code].filter(Boolean).join(" ");
 
 function SectionHeading({ no, children }) {
     return (
@@ -272,7 +271,9 @@ function KycVerificationForm({ setIsOpenModalProfile, onKycSubmitted, onSubmitSa
                     />
                 </div>
                 {addresses.length === 0 ? (
-                    <p className="text-sm text-gray-400">ยังไม่มีที่อยู่ กรุณาเพิ่มที่อยู่</p>
+                    <div className="flex justify-center items-center text-md border-[#d9d9d9] border rounded-md h-20 text-gray-400 p-2 bg-gray-50">
+                        ยังไม่มีที่อยู่ กรุณาเพิ่มที่อยู่
+                    </div>
                 ) : (
                     <div className="grid gap-3">
                         {addresses.map((addr) => {
