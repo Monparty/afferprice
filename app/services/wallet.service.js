@@ -17,12 +17,26 @@ export async function getMyTransactions({ limit = 50 } = {}) {
         .limit(limit);
 }
 
+// subscription รวมศูนย์ — realtime-js reuse channel instance เดิมเมื่อ topic ซ้ำ
+// ถ้าแต่ละ component สร้าง/removeChannel เองตรง ๆ ตัวที่ unmount ก่อน (เช่นหน้า /user/wallet)
+// จะฆ่า channel ที่ AppHeader ยังใช้อยู่ → pill หยุดอัปเดตจนต้อง reload
+let walletChannel = null;
+let walletChannelUserId = null;
+const walletListeners = new Set();
+
 export function subscribeWallet(userId, onUpdate) {
-    const ch = supabase
-        .channel(`wallet-${userId}`)
-        .on("broadcast", { event: "update" }, (p) => onUpdate(p.payload))
-        .subscribe();
-    return () => supabase.removeChannel(ch);
+    if (walletChannelUserId !== userId) {
+        if (walletChannel) supabase.removeChannel(walletChannel);
+        walletChannelUserId = userId;
+        walletChannel = supabase
+            .channel(`wallet-${userId}`)
+            .on("broadcast", { event: "update" }, (p) => walletListeners.forEach((fn) => fn(p.payload)))
+            .subscribe();
+    }
+    walletListeners.add(onUpdate);
+    return () => {
+        walletListeners.delete(onUpdate);
+    };
 }
 
 // คำขอถอนเงินของตัวเอง (RLS "own withdrawal read")

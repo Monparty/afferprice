@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
@@ -15,10 +15,9 @@ import {
     SafetyCertificateFilled,
     WalletFilled,
 } from "@ant-design/icons";
-import { insertBid, getHighestBid } from "@/app/services/bids.service";
+import { insertBid, getHighestBid, subscribeBidChannel, sendBidBroadcast } from "@/app/services/bids.service";
 import { getMyBidDeposit, placeBidDeposit } from "@/app/services/deposits.service";
 import { getMyWalletBalance } from "@/app/services/wallet.service";
-import { supabase } from "@/app/lib/supabase/client";
 import { apiPost } from "@/app/lib/api";
 import { updateProductPrice } from "@/app/services/products.service";
 import { notifyError, notifySuccess } from "@/app/providers/NotificationProvider";
@@ -49,7 +48,6 @@ function CardProductBid({ product, onBidSuccess }) {
     const [deposit, setDeposit] = useState(null);
     const [depositLoading, setDepositLoading] = useState(false);
     const [walletBalance, setWalletBalance] = useState(null);
-    const channelRef = useRef(null);
 
     // เงินมัดจำของ user สำหรับสินค้านี้ + ยอด wallet (ไว้เช็คว่าพอวางมัดจำไหม)
     useEffect(() => {
@@ -70,17 +68,10 @@ function CardProductBid({ product, onBidSuccess }) {
             if (data?.bid_price) setCurrentPrice(data.bid_price);
             if (data?.user_id) setHighestBidderId(data.user_id);
         });
-        const ch = supabase
-            .channel(`bid-${product.id}`)
-            .on("broadcast", { event: "new_bid" }, ({ payload }) => {
-                setCurrentPrice(payload.price);
-                if (payload.userId) setHighestBidderId(payload.userId);
-            })
-            .subscribe();
-        channelRef.current = ch;
-        return () => {
-            supabase.removeChannel(ch);
-        };
+        return subscribeBidChannel(product.id, (payload) => {
+            setCurrentPrice(payload.price);
+            if (payload.userId) setHighestBidderId(payload.userId);
+        });
     }, [product?.id]);
 
     useEffect(() => {
@@ -138,11 +129,7 @@ function CardProductBid({ product, onBidSuccess }) {
         await updateProductPrice(product.id, bidPrice);
         setCurrentPrice(bidPrice);
         setHighestBidderId(userData.id);
-        channelRef.current?.send({
-            type: "broadcast",
-            event: "new_bid",
-            payload: { price: bidPrice, userId: userData.id },
-        });
+        sendBidBroadcast(product.id, { price: bidPrice, userId: userData.id });
         onBidSuccess?.();
         setValue("bidPrice", null);
         notifySuccess("วางประมูลสำเร็จ");

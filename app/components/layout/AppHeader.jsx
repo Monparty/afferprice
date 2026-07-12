@@ -31,7 +31,7 @@ import { getSellerProducts } from "@/app/services/products.service";
 import { notifyError } from "@/app/providers/NotificationProvider";
 import { useTheme } from "@/app/providers/ThemeProvider";
 import UseAutoComplete from "../inputs/UseAutoComplete";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { clearUser, setWalletBalance } from "@/app/features/user/userSlice";
 import { getMyWalletBalance, subscribeWallet } from "@/app/services/wallet.service";
 
@@ -104,6 +104,13 @@ function AppHeader() {
         setWalletBalanceLocal(bal);
         dispatch(setWalletBalance(bal));
     };
+
+    // sync กับหน้าที่ dispatch setWalletBalance เอง (เช่น payment page หลังตัด wallet) — เห็นยอดใหม่ทันทีไม่ต้องรอ broadcast
+    const reduxWalletBalance = useSelector((state) => state.user.data?.wallet_balance);
+    useEffect(() => {
+        if (reduxWalletBalance == null) return;
+        setWalletBalanceLocal(Number(reduxWalletBalance));
+    }, [reduxWalletBalance]);
 
     useEffect(() => {
         if (!user) return;

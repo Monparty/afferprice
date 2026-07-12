@@ -271,7 +271,7 @@ function KycVerificationForm({ setIsOpenModalProfile, onKycSubmitted, onSubmitSa
                     />
                 </div>
                 {addresses.length === 0 ? (
-                    <div className="flex justify-center items-center text-md border-[#d9d9d9] border rounded-md h-20 text-gray-400 p-2 bg-gray-50">
+                    <div className="flex justify-center items-center text-md border-[#d9d9d9] border rounded-md h-20 text-gray-400 p-2 bg-gray-50 dark:bg-[#282828] dark:border-zinc-700">
                         ยังไม่มีที่อยู่ กรุณาเพิ่มที่อยู่
                     </div>
                 ) : (

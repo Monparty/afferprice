@@ -1,6 +1,6 @@
 "use client";
 
-import { supabase } from "@/app/lib/supabase/client";
+import { subscribeBidChannel } from "@/app/services/bids.service";
 import { useEffect, useState } from "react";
 
 export function useRealtimePrice(productId, initialPrice) {
@@ -12,14 +12,9 @@ export function useRealtimePrice(productId, initialPrice) {
 
     useEffect(() => {
         if (!productId) return;
-        const channel = supabase
-            .channel(`bid-${productId}`)
-            .on("broadcast", { event: "new_bid" }, ({ payload }) => {
-                setPrice(payload.price);
-            })
-            .subscribe();
-
-        return () => supabase.removeChannel(channel);
+        return subscribeBidChannel(productId, (payload) => {
+            setPrice(payload.price);
+        });
     }, [productId]);
 
     return price;

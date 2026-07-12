@@ -191,6 +191,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
   2. หลัง bid สำเร็จ → `channelRef.current?.send({ type: "broadcast", event: "new_bid", payload: { price } })`
   3. `ProductDetail` subscribe channel เดียวกัน → รับ event → `fetchBids(id)` (refresh bid list)
 - **ผล**: ทุก tab ที่เปิดหน้าเดียวกันเห็นราคาและรายชื่อผู้ประมูลอัปเดตทันทีโดยไม่ต้อง reload
+- **⚠️ Subscription รวมศูนย์ (แก้ 2026-07-13)** — เดิม flow ข้างบน แต่ละ component (`CardProductBid`/`ProductDetail`/listing cards ผ่าน `useRealtimePrice`) เรียก `supabase.channel("bid-{id}")` + `removeChannel()` เองตรง ๆ; `@supabase/supabase-js` (realtime-js) คืน channel instance เดิมถ้า topic ซ้ำ → component ที่ unmount ก่อน (เช่นปิด modal zoom, สลับ filter หมวดที่มีสินค้าเดียวกันหลาย section) ฆ่า channel ที่ component อื่นยังฟังอยู่ → ราคาค้างจนต้อง reload. ตอนนี้ทุกจุด subscribe ผ่าน `subscribeBidChannel(productId, onNewBid)` และยิงผ่าน `sendBidBroadcast(productId, payload)` (ทั้งคู่ใน `app/services/bids.service.js`, shared channel + ref-count + หน่วง 1 วิก่อน remove จริง) แทนขั้นตอน "subscribe channel on mount" / "`channelRef.current?.send`" ที่อธิบายไว้ข้างบน — ไม่มีจุดไหนใน `app/` เรียก `supabase.channel("bid-*")`/`removeChannel` ตรง ๆ อีก (ดู [conventions.md](conventions.md#realtime-broadcast-channel-subscription))
 
 ### useRealtimePrice Hook
 
@@ -199,6 +200,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
 - Subscribe `bid-{productId}` broadcast channel → รับ `new_bid` event → update `livePrice` state อัตโนมัติ
 - **ใช้ใน**: `CardProduct`, `CardProductLive`, `CardZoomImage`, `CardHighlight` — ทุก listing card ที่แสดงราคา
 - **Client**: ใช้ `supabase` singleton จาก `app/lib/supabase/client.js` (ไม่ต้อง import `createClient` จาก `@supabase/supabase-js` โดยตรง)
+- **Update 2026-07-13**: เลิก subscribe channel ตรง ๆ ในไฟล์นี้ — เปลี่ยนเป็นเรียก `subscribeBidChannel(productId, onNewBid)` จาก `app/services/bids.service.js` (shared channel รวมกับ `CardProductBid`/`ProductDetail`; ดูเหตุผลใน bullet ด้านบน "Subscription รวมศูนย์")
 
 ## Admin Menu & Pages
 
@@ -328,6 +330,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
   - `place_bid_deposit(p_user_id, p_product_id)` — atomic ตัด wallet วางมัดจำ 20% ของราคาปัจจุบัน ก่อนประมูลครั้งแรก; `charge_wallet_listing` และตัวนี้ต่างกันที่ผูกกับ `bid_deposits` แทน `payments` (คนละ audit trail)
   - `refund_bid_deposit(p_deposit_id)` — idempotent คืนมัดจำเข้า wallet (เฉพาะ `status='held'`); เรียกจาก `/api/auction/end` ตอนปิดประมูล (ดู [Bid Deposit](#bid-deposit-เงินมัดจำก่อนประมูล))
 - **Service**: `app/services/wallet.service.js` — `getMyWalletBalance()`, `getMyTransactions({limit})`, `subscribeWallet(userId, onUpdate)` (broadcast channel `wallet-{userId}`)
+  - **⚠️ `subscribeWallet` เป็น shared subscription (แก้ 2026-07-13)** — เดิมแต่ละ caller (`AppHeader`, `/user/wallet`, `WalletListingBtn`) เปิด/ปิด channel `wallet-{userId}` เอง; component ที่ unmount ก่อน (เช่นออกจากหน้า `/user/wallet`) จะ `removeChannel()` ทับ channel ที่ `AppHeader` ยังฟังอยู่ (topic ซ้ำ = instance เดิมใน realtime-js) → pill บน header หยุดรับ broadcast จนต้อง reload. ตอนนี้เป็น module-level channel เดียวต่อ user + `Set` ของ listeners ภายในไฟล์นี้ — signature เรียกใช้เหมือนเดิมทุกจุด (ดู [conventions.md](conventions.md#realtime-broadcast-channel-subscription))
 - **API routes**:
   - `POST /api/payment/wallet/charge` — เรียก `charge_wallet` RPC + broadcast `wallet-{userId}` update
   - `POST /api/payment/wallet/listing-fee` — body `{ productId }`; server verify seller_id ตรงกับ session + calc 5% ของ `start_price` → เรียก `charge_wallet_listing` RPC + broadcast `wallet-{userId}` update
@@ -339,6 +342,7 @@ Schema defined in `db/00_schema.sql`. Key tables:
   - `fetchWallet()` → `getMyWalletBalance()` + `dispatch(setWalletBalance(bal))` (sync Redux ให้หน้าอื่นใช้)
   - Subscribe `wallet-{user.id}` channel ใน useEffect ที่ depend on `user` → refresh on broadcast
   - Pill แสดงระหว่าง DarkModeToggle และ notification bell, link → `/user/wallet`
+  - **เพิ่ม 2026-07-13**: `useSelector((state) => state.user.data?.wallet_balance)` + `useEffect` sync ลง local state เมื่อค่า Redux เปลี่ยน — หน้าที่ dispatch `setWalletBalance` เอง (เช่น payment page หลังตัด wallet) อัปเดต pill ทันทีไม่ต้องรอ broadcast round-trip (ใช้ได้เฉพาะหลัง `fetchUser` เคย dispatch แล้ว เพราะ reducer no-op ถ้า `state.user.data` เป็น null)
 - **หน้า wallet** (`app/(authenticated)/user/wallet/page.jsx`):
   - **ใช้ `supabase.auth.getUser()` ตรง ๆ** — ไม่พึ่ง Redux เพราะ `fetchUser` ไม่ได้ถูก dispatch ทุกหน้า
   - 3 sections: balance card (gradient orange), top-up modal, transaction list

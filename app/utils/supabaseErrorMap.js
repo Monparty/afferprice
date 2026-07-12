@@ -20,6 +20,7 @@ const errorMap = [
     { match: /missing_(documents|kyc_fields)/i, thai: "กรุณากรอกข้อมูลและอัปโหลดเอกสารยืนยันตัวตนให้ครบถ้วน" },
     { match: /invalid_kyc_state/i, thai: "ไม่สามารถส่งยืนยันตัวตนซ้ำได้ในสถานะปัจจุบัน" },
     { match: /profiles_national_id_check/i, thai: "เลขประจำตัวประชาชนต้องเป็นตัวเลข 13 หลัก" },
+    { match: /invalid_birth_date/i, thai: "วันเดือนปีเกิดไม่ถูกต้อง" },
     // Bid deposit
     { match: /deposit_required/i, thai: "กรุณาวางเงินมัดจำ 20% ก่อนเข้าร่วมประมูล" },
     { match: /already_deposited/i, thai: "คุณได้วางเงินมัดจำสินค้านี้แล้ว" },

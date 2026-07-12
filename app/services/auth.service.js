@@ -24,7 +24,7 @@ export const updateUser = (email) => supabase.auth.updateUser({ email });
 
 export const updatePassword = (password) => supabase.auth.updateUser({ password });
 
-export const register = async ({ email, password, firstName, lastName, phone, gender }) => {
+export const register = async ({ email, password, firstName, lastName, phone, gender, birthDay, birthMonth, birthYear }) => {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return { error };
 
@@ -34,6 +34,10 @@ export const register = async ({ email, password, firstName, lastName, phone, ge
             last_name: lastName,
             phone,
             gender,
+            birth_date:
+                birthYear && birthMonth && birthDay
+                    ? `${birthYear}-${birthMonth}-${String(birthDay).padStart(2, "0")}`
+                    : null,
         });
     } catch (err) {
         return { error: err };

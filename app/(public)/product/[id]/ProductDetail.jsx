@@ -9,8 +9,7 @@ import BidHistory from "./BidHistory";
 import { useParams } from "next/navigation";
 import { notifyError } from "@/app/providers/NotificationProvider";
 import { getProductById, getProductConditions, getAuctionDurations } from "@/app/services/products.service";
-import { getBidsByProduct } from "@/app/services/bids.service";
-import { supabase } from "@/app/lib/supabase/client";
+import { getBidsByProduct, subscribeBidChannel } from "@/app/services/bids.service";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 
@@ -42,15 +41,9 @@ export default function ProductDetail() {
         onGetProductById();
         fetchBids(id);
 
-        const ch = supabase
-            .channel(`bid-${id}`)
-            .on("broadcast", { event: "new_bid" }, () => {
-                fetchBids(id);
-            })
-            .subscribe();
-        return () => {
-            supabase.removeChannel(ch);
-        };
+        return subscribeBidChannel(id, () => {
+            fetchBids(id);
+        });
     }, [id]);
 
     const formatProductImage = product?.images_url?.map((item) => ({

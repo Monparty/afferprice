@@ -11,6 +11,7 @@ import {
     CreditCardOutlined,
     ExceptionOutlined,
     FileTextOutlined,
+    FolderOutlined,
     HistoryOutlined,
     InboxOutlined,
     LogoutOutlined,
@@ -24,6 +25,7 @@ import {
     ShoppingCartOutlined,
     UserOutlined,
     WalletOutlined,
+    CalendarOutlined,
 } from "@ant-design/icons";
 import UseAvatar from "@/app/components/utils/UseAvatar";
 import UsePopover from "@/app/components/utils/UsePopover";
@@ -53,13 +55,43 @@ const menus = [
     { url: ROUTES.ADMIN_NOTIFICATIONS, label: "การแจ้งเตือน", icon: <NotificationOutlined className="text-lg!" /> },
     { url: ROUTES.ADMIN_REPORTS, label: "รายงาน", icon: <FileTextOutlined className="text-lg!" /> },
     { url: ROUTES.ADMIN_ISSUES, label: "ระบบแจ้งปัญหา", icon: <ExceptionOutlined className="text-lg!" /> },
-    { url: ROUTES.ADMIN_SETTINGS, label: "การตั้งค่า", icon: <SettingOutlined className="text-lg!" /> },
+];
+
+// เมนูแบบ Accordion (กลุ่ม + เมนูย่อย) — เพิ่ม/แก้กลุ่มที่ array นี้ที่เดียว ไม่กระทบ menus ด้านบน
+// ตอนนี้เป็นกลุ่มตัวอย่าง (ลิงก์ซ้ำกับเมนูบน) — แทนที่ด้วยเมนูจริงได้เลย
+const accordionMenus = [
+    {
+        key: "setting",
+        label: "การตั้งค่า",
+        icon: <SettingOutlined className="text-lg!" />,
+        children: [
+            { url: ROUTES.ADMIN_SETTINGS, label: "ภาพรวม", icon: <SettingOutlined className="text-lg!" /> },
+            {
+                url: ROUTES.ADMIN_REPORTS,
+                label: "จัดการสภาพสินค้า",
+                icon: <ShoppingCartOutlined className="text-lg!" />,
+            },
+            {
+                url: ROUTES.ADMIN_ISSUES,
+                label: "จัดการระยะเวลาประมูล",
+                icon: <CalendarOutlined className="text-lg!" />,
+            },
+        ],
+    },
 ];
 
 function AdminLayout({ children }) {
     const router = useRouter();
     const pathname = usePathname();
-    const headerName = menus.find((item) => item.url.split("/")[2] === pathname.split("/")[2])?.label || "";
+    const activeSegment = pathname.split("/")[2];
+    // รวมเมนูย่อยใน accordion ด้วย เพื่อให้ header แสดงชื่อหน้าถูกต้องเมื่ออยู่ในเมนูกลุ่ม
+    const allMenuItems = [...menus, ...accordionMenus.flatMap((group) => group.children)];
+    const headerName = allMenuItems.find((item) => item.url.split("/")[2] === activeSegment)?.label || "";
+
+    // เปิดกลุ่ม accordion ที่มีเมนูย่อย active ค้างไว้ตั้งแต่โหลดหน้า
+    const defaultOpenGroups = accordionMenus
+        .filter((group) => group.children.some((menu) => menu.url.split("/")[2] === activeSegment))
+        .map((group) => group.key);
 
     // จำนวน badge ต่อเมนู (keyed by route) — refetch เมื่อเปลี่ยนหน้าเพื่อให้ค่าอัปเดตหลัง admin จัดการ
     const [badgeCounts, setBadgeCounts] = useState({});
@@ -109,7 +141,7 @@ function AdminLayout({ children }) {
                 <Image src={afferpriceLogo} width={34} height={34} alt="Afferprice Logo" />
                 <h1 className="text-xl font-semibold">Afferprice</h1>
             </Link>
-            <div className="grid gap-3 flex-1">
+            <div className="grid gap-3 flex-1 mb-3">
                 {menus.map((menu, index) => (
                     <Link
                         key={index}
@@ -125,6 +157,36 @@ function AdminLayout({ children }) {
                         )}
                     </Link>
                 ))}
+                {/* เมนูแบบ Accordion — config ที่ accordionMenus ด้านบนของไฟล์ */}
+                <UseCollapse
+                    ghost
+                    expandIconPosition="end"
+                    defaultActiveKey={defaultOpenGroups}
+                    className="text-base! [&_.ant-collapse-header]:p-2! [&_.ant-collapse-header]:items-center! [&_.ant-collapse-header]:rounded-lg! [&_.ant-collapse-header]:text-white! [&_.ant-collapse-header:hover]:bg-orange-500/25 [&_.ant-collapse-header:hover]:text-orange-500! [&_.ant-collapse-content-box]:py-0! [&_.ant-collapse-content-box]:pr-0! [&_.ant-collapse-content-box]:pl-4! [&_.ant-collapse-body]:py-2!"
+                    items={accordionMenus.map((group) => ({
+                        key: group.key,
+                        label: (
+                            <span className="flex items-center gap-3">
+                                {group.icon}
+                                <span className="truncate">{group.label}</span>
+                            </span>
+                        ),
+                        children: (
+                            <div className="grid gap-2 text-white">
+                                {group.children.map((menu, index) => (
+                                    <Link
+                                        key={index}
+                                        href={menu.url}
+                                        className={`${activeSegment === menu.url.split("/")[2] ? "bg-orange-500/25 text-orange-500" : ""} flex items-center gap-3 p-2 truncate hover:bg-orange-500/25!  hover:text-orange-500 text-white! border-l rounded-r-lg`}
+                                    >
+                                        {menu.icon}
+                                        <span className="truncate">{menu.label}</span>
+                                    </Link>
+                                ))}
+                            </div>
+                        ),
+                    }))}
+                />
             </div>
             <div className="border-t border-slate-500 pt-3 shrink-0">
                 <UsePopover

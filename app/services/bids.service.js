@@ -44,3 +44,40 @@ export async function getHighestBid(productId) {
         .limit(1)
         .single();
 }
+
+// channel `bid-{productId}` แบบรวมศูนย์ — realtime-js reuse channel instance เดิมเมื่อ topic ซ้ำ
+// ถ้าแต่ละ component สร้าง/removeChannel เองตรง ๆ ตัวที่ unmount ก่อน (เช่นการ์ดใบอื่นของสินค้าเดียวกัน)
+// จะฆ่า channel ที่ตัวอื่นยังฟังอยู่ → ราคา realtime ค้างจนต้อง reload (บั๊กเดียวกับ subscribeWallet)
+const bidChannels = new Map(); // productId -> { ch, listeners, removeTimer }
+
+export function subscribeBidChannel(productId, onNewBid) {
+    let entry = bidChannels.get(productId);
+    if (entry?.removeTimer) {
+        clearTimeout(entry.removeTimer);
+        entry.removeTimer = null;
+    }
+    if (!entry) {
+        const listeners = new Set();
+        const ch = supabase
+            .channel(`bid-${productId}`)
+            .on("broadcast", { event: "new_bid" }, ({ payload }) => listeners.forEach((fn) => fn(payload)))
+            .subscribe();
+        entry = { ch, listeners, removeTimer: null };
+        bidChannels.set(productId, entry);
+    }
+    entry.listeners.add(onNewBid);
+    return () => {
+        entry.listeners.delete(onNewBid);
+        if (entry.listeners.size > 0 || entry.removeTimer || bidChannels.get(productId) !== entry) return;
+        // หน่วงก่อนถอด channel จริง — กัน remove แล้วสร้าง topic เดิมซ้ำทันที (จะได้ instance เก่าที่กำลังตาย)
+        entry.removeTimer = setTimeout(() => {
+            bidChannels.delete(productId);
+            supabase.removeChannel(entry.ch);
+        }, 1000);
+    };
+}
+
+// ยิง new_bid ผ่าน channel ที่ subscribe อยู่ (ผู้ส่งไม่ได้รับ event ตัวเอง — call site set state เองอยู่แล้ว)
+export function sendBidBroadcast(productId, payload) {
+    bidChannels.get(productId)?.ch.send({ type: "broadcast", event: "new_bid", payload });
+}

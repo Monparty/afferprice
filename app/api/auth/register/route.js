@@ -6,6 +6,14 @@ import { NextResponse } from "next/server";
 const ALLOWED_GENDERS = new Set(["M", "F", "O"]);
 const PHONE_RE = /^0[0-9]{9}$/;
 const NAME_MAX = 80;
+const BIRTH_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+// ตรวจว่าเป็นวันที่จริง (กัน 2026-02-30) และไม่เป็นอนาคต
+const isValidBirthDate = (s) => {
+    if (typeof s !== "string" || !BIRTH_DATE_RE.test(s)) return false;
+    const d = new Date(`${s}T00:00:00Z`);
+    return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s && d.getTime() <= Date.now();
+};
 
 export async function POST(request) {
     try {
@@ -14,7 +22,7 @@ export async function POST(request) {
             return NextResponse.json({ error: "rate_limited" }, { status: 429, headers: { "Retry-After": String(rl.retryAfter) } });
         }
         const user = await requireUser();
-        const { first_name, last_name, phone, gender } = await request.json();
+        const { first_name, last_name, phone, gender, birth_date } = await request.json();
 
         if (typeof first_name !== "string" || !first_name.trim() || first_name.length > NAME_MAX) {
             return NextResponse.json({ error: "invalid_first_name" }, { status: 400 });
@@ -28,6 +36,9 @@ export async function POST(request) {
         if (!ALLOWED_GENDERS.has(gender)) {
             return NextResponse.json({ error: "invalid_gender" }, { status: 400 });
         }
+        if (birth_date != null && !isValidBirthDate(birth_date)) {
+            return NextResponse.json({ error: "invalid_birth_date" }, { status: 400 });
+        }
 
         const { error } = await supabaseAdmin.from("profiles").upsert(
             {
@@ -36,6 +47,7 @@ export async function POST(request) {
                 last_name: last_name.trim(),
                 phone,
                 gender,
+                birth_date: birth_date ?? null,
             },
             { onConflict: "id" },
         );
