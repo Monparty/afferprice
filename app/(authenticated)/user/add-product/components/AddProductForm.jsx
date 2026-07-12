@@ -14,13 +14,17 @@ import {
     VideoCameraFilled,
 } from "@ant-design/icons";
 import UseSelectCard from "@/app/components/inputs/UseSelectCard";
-import { Activity } from "react";
+import { getProductConditions, getAuctionDurations } from "@/app/services/products.service";
+import { Activity, useEffect, useState } from "react";
 import UseTextArea from "@/app/components/inputs/UseTextArea";
 import { handleLocalPreview } from "@/app/utils/storageHelper";
 import { useWatch } from "react-hook-form";
 import ListingFeePayment from "@/app/components/payment/ListingFeePayment";
 import ProductEvaluation from "./ProductEvaluation";
 import UseButton from "@/app/components/inputs/UseButton";
+
+// subtitle การตลาดของแต่ละ duration — เฉพาะฟอร์มนี้ ไม่อยู่ใน DB (option ใหม่ที่ไม่มี key จะไม่มี subTitle)
+const DURATION_SUBTITLES = { 0: "TEST", 1: "QUICK SALE", 5: "POPULAR", 7: "STANDARD", 10: "MAXIMUM" };
 
 function AddProductForm({
     activeStep,
@@ -37,10 +41,17 @@ function AddProductForm({
     const watchProductId = useWatch({ control, name: "productId" });
     const evaluationGroups = categoryList.find((c) => c.id === watchCategoryId)?.evaluation || [];
     const listingFee = Math.max(1, Math.round((Number(watchStartPrice) || 0) * 0.05));
+    const [conditions, setConditions] = useState([]);
+    const [durations, setDurations] = useState([]);
 
     const feeStatus = feePayment?.payment_status ?? null;
     const isFeePaid = feeStatus === "success";
     const isFeePending = feeStatus === "pending";
+
+    useEffect(() => {
+        getProductConditions().then(({ data }) => setConditions(data || []));
+        getAuctionDurations().then(({ data }) => setDurations(data || []));
+    }, []);
 
     // console.log("watchState", watchState)
     return (
@@ -51,7 +62,13 @@ function AddProductForm({
                         <ExclamationCircleFilled className="text-orange-600!" />
                         สินค้าของคุณไม่ผ่านการอนุมัติเนื่องจาก
                     </h2>
-                    <UseTextArea control={control} name="rejected_remark" className="text-red-500! font-bold" size="large" disabled />
+                    <UseTextArea
+                        control={control}
+                        name="rejected_remark"
+                        className="text-red-500! font-bold"
+                        size="large"
+                        disabled
+                    />
                 </div>
             )}
             {activeStep !== 3 && (
@@ -131,13 +148,11 @@ function AddProductForm({
                                 control={control}
                                 name="durationDays"
                                 label="ระยะเวลาประมูล"
-                                options={[
-                                    { value: 0, label: "10 นาที", subTitle: "TEST" },
-                                    { value: 1, label: "1 วัน", subTitle: "QUICK SALE" },
-                                    { value: 5, label: "5 วัน", subTitle: "POPULAR" },
-                                    { value: 7, label: "7 วัน", subTitle: "STANDARD" },
-                                    { value: 10, label: "10 วัน", subTitle: "MAXIMUM" },
-                                ]}
+                                options={durations.map((d) => ({
+                                    value: d.value,
+                                    label: d.label,
+                                    subTitle: DURATION_SUBTITLES[d.value],
+                                }))}
                             />
                         </section>
                         <section className="bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 p-6 shadow-sm">
@@ -164,11 +179,7 @@ function AddProductForm({
                                     control={control}
                                     name="condition"
                                     label="สภาพสินค้า"
-                                    options={[
-                                        { value: "new", label: "ใหม่" },
-                                        { value: "like_new", label: "เหมือนใหม่" },
-                                        { value: "good", label: "มือ 2" },
-                                    ]}
+                                    options={conditions.map((c) => ({ value: c.value, label: c.label }))}
                                     size="large"
                                 />
                             </div>

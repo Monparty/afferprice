@@ -37,6 +37,7 @@ import { getProfileById } from "@/app/services/profile.service";
 import { supabase } from "@/app/lib/supabase/client";
 import { useTheme } from "@/app/providers/ThemeProvider";
 import AdminNotificationDrawer from "./AdminNotificationDrawer";
+import UseCollapse from "@/app/components/utils/UseCollapse";
 
 const menus = [
     { url: ROUTES.ADMIN, label: "แดชบอร์ด", icon: <BarChartOutlined className="text-lg!" /> },
@@ -172,10 +173,7 @@ function AdminLayout({ children }) {
             {/* Mobile sidebar (slide-in drawer) */}
             {mobileNavOpen && (
                 <div className="fixed inset-0 z-50 lg:hidden">
-                    <div
-                        className="absolute inset-0 bg-black/50"
-                        onClick={() => setMobileNavOpen(false)}
-                    />
+                    <div className="absolute inset-0 bg-black/50" onClick={() => setMobileNavOpen(false)} />
                     <div className="absolute top-0 left-0 max-w-[85vw]">
                         <button
                             onClick={() => setMobileNavOpen(false)}

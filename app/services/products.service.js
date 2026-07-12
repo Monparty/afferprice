@@ -5,6 +5,12 @@ export async function getProducts() {
     return supabase.from("products").select("*");
 }
 
+export const getProductConditions = () =>
+    supabase.from("product_condition").select("value, label").order("sort_order");
+
+export const getAuctionDurations = () =>
+    supabase.from("auction_duration").select("value, label").order("sort_order");
+
 export async function getSellerProducts() {
     const { data: { user } } = await supabase.auth.getUser();
     return supabase
@@ -173,7 +179,7 @@ export async function getProductCountByState(state) {
 }
 
 export async function getProductById(id) {
-    return supabase.from("products").select("*").eq("id", id).single();
+    return supabase.from("products").select("*, categories(name)").eq("id", id).single();
 }
 
 export async function getActiveProductsWithDetails() {

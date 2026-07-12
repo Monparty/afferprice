@@ -5,16 +5,19 @@ import UseCheckbox from "@/app/components/inputs/UseCheckbox";
 import UseRadio from "@/app/components/inputs/UseRadio";
 import UseSelect from "@/app/components/inputs/UseSelect";
 import { getParentCategories } from "@/app/services/categories.service";
+import { getProductConditions } from "@/app/services/products.service";
 import { CheckCircleOutlined, ClockCircleOutlined, ProductOutlined, SwapOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 function DetailSearchBox({ onSearch }) {
     const [categories, setCategories] = useState([]);
+    const [conditions, setConditions] = useState([]);
     const { control, handleSubmit, reset } = useForm({ defaultValues: { sortBy: "1" } });
 
     useEffect(() => {
         getParentCategories().then(({ data }) => setCategories(data || []));
+        getProductConditions().then(({ data }) => setConditions(data || []));
     }, []);
 
     const onSubmit = (values) => {
@@ -84,11 +87,7 @@ function DetailSearchBox({ onSearch }) {
                     <UseRadio
                         control={control}
                         name="condition"
-                        options={[
-                            { value: "new", label: "ของใหม่ (New)" },
-                            { value: "like_new", label: "เหมือนใหม่ (Like New)" },
-                            { value: "good", label: "มือสองสภาพดี (Used)" },
-                        ]}
+                        options={conditions.map((c) => ({ value: c.value, label: c.label }))}
                     />
                 </div>
             </div>

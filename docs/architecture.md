@@ -52,6 +52,8 @@ Schema defined in `db/00_schema.sql`. Key tables:
 | `shipments` | Tracking info |
 | `notifications` | Types: `bid`, `win`, `lose`, `payment`, `shipping`, `kyc` |
 | `categories` | Hierarchical via `parent_id` |
+| `product_condition` | Lookup table (`value` PK + `label` + `sort_order`) สำหรับ `products.condition` — เดิมเป็น hardcoded `CHECK`, migration `20260712000000_product_condition.sql` เปลี่ยนเป็น FK `ON DELETE RESTRICT` แทน (ดู [Lookup Tables](#lookup-tables-product-option-lists)) |
+| `auction_duration` | Lookup table สำหรับ `products.duration_days` (`value` smallint = จำนวนวัน, `0`=10 นาที TEST) — migration `20260712010000_auction_duration.sql` เพิ่ม FK `ON DELETE RESTRICT` (เดิมไม่มี CHECK เลย) |
 
 **Product status lifecycle**: `draft` → `pending_review` → `active` → `sold` (มีผู้ชนะ) / `cancelled` (ไม่มี bid); หลังจ่ายเงิน seller ระบุจัดส่ง → `order`; `rejected` มาจาก `pending_review`. Helper: `app/utils/mapProductState.js`.
 
@@ -64,6 +66,13 @@ Schema defined in `db/00_schema.sql`. Key tables:
 **RLS บน `auction_results`**: อ่านได้เฉพาะ winner หรือ seller (policy `"winner or seller read result"`) — lost bidder อ่านไม่ได้ → query lost ต้องไม่ join `auction_results`
 
 **`products.start_price` หลัง bid**: ทำหน้าที่เป็น "ราคาปัจจุบัน / floor ของ bid ถัดไป" — `updateProductPrice()` ใน `products.service.js` จะ update ค่านี้ทุกครั้งที่ bid สำเร็จ ไม่มีคอลัมน์ `current_price` แยกต่างหาก
+
+### Lookup Tables (product option lists)
+
+- `products.condition` และ `products.duration_days` อ้าง FK ไปยัง lookup table (`product_condition`, `auction_duration` — migration `20260712000000_product_condition.sql` + `20260712010000_auction_duration.sql`) แทนการ hardcode array `{value,label}` ในโค้ด (เดิมกระจายอยู่หลายไฟล์และ label ไม่ตรงกันระหว่างหน้า user/admin)
+- Service กลาง: `getProductConditions()` / `getAuctionDurations()` ใน `app/services/products.service.js` (browser client, public read ผ่าน RLS) — ใช้ใน `DetailSearchBox`, `AddProductForm`, `CardAddProductPreview`, admin product/bid `Form.jsx`, `ProductDetail`
+- เพิ่ม/แก้ label = แก้ข้อมูลในตาราง (service_role/Studio) ไม่ต้องแก้โค้ด — ยกเว้น subtitle การตลาดของ duration (TEST/QUICK SALE/…) ที่เก็บเป็น client-side const แยกใน `AddProductForm.jsx` เพราะไม่มีคอลัมน์รองรับ
+- ดูรายละเอียด pattern ทั่วไปที่ [conventions.md](conventions.md#lookup-tables-for-business-option-lists)
 
 ## Auction End Flow
 

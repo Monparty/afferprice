@@ -71,3 +71,11 @@ Project-specific coding style and reusable patterns. Standard library behavior i
 
 - Use `notifyError()` / `notifySuccess()` from `NotificationProvider.jsx`.
 - `notifyError(error)` auto-translates Supabase `error.message` to Thai via `translateSupabaseError()` in `app/utils/supabaseErrorMap.js`. Add new messages **only** to `errorMap` there — never touch call sites.
+
+## Lookup tables for business option lists
+
+- Option list ที่เป็น business data (เช่น สภาพสินค้า, ระยะเวลาประมูล) **ต้องดึงจาก lookup table ใน DB ผ่าน service function กลาง** (`getProductConditions()` / `getAuctionDurations()` ใน `app/services/products.service.js`) — **ห้าม hardcode array `{value,label}` ใหม่ใน component** (จะกลับไปมีปัญหาเดิม: label ไม่ตรงกันระหว่างหน้า user/admin, เพิ่มตัวเลือกใหม่ต้องแก้โค้ด+deploy)
+- **Pattern ตาราง lookup**: `value` (PK, ชนิดตรงกับ column ที่อ้างอิง) + `label text` + `sort_order int` + `created_at` — RLS `ENABLE` + policy public `SELECT USING(true)` + `GRANT ALL` ให้ `anon`/`authenticated`/`service_role` แต่**ไม่มี** INSERT/UPDATE/DELETE policy → เขียนได้จริงเฉพาะ `service_role`/Studio (เหมือน `categories`, `product_condition`, `auction_duration`)
+- **Component pattern**: `useState([])` + `useEffect` fetch ตอน mount → `.map()` เป็น `options` ของ input component (`UseRadio`/`UseSelect`/`UseSegmented`/`UseSelectCard`) — ไม่เช็ค `error` ที่ call site (`.then(({data}) => setX(data || []))`) ดังนั้นต้อง apply migration/seed ก่อนใช้งานเสมอ ไม่งั้น options จะว่างเปล่าแบบไม่มี error โชว์
+- แก้ label หรือเพิ่มตัวเลือกใหม่ = แก้ข้อมูลในตาราง อย่างเดียว ไม่ต้องแก้โค้ด — ยกเว้นส่วนที่เป็น UI/marketing metadata ที่ไม่มีคอลัมน์รองรับ (เช่น subtitle การตลาดของ duration ใน `AddProductForm.jsx`) ซึ่งยังเป็น client-side const แยกจาก DB โดยตั้งใจ
+- เปลี่ยนจาก hardcoded `CHECK` constraint → FK ไปยัง lookup table เมื่อ column เดิมมี CHECK อยู่แล้ว (`DROP CONSTRAINT ... ADD CONSTRAINT ... FOREIGN KEY ... ON DELETE RESTRICT`); ถ้า column เดิมไม่มี CHECK เลย (เช่น `duration_days`) ต้อง seed ค่าที่มีอยู่จริงใน production เข้า lookup table ก่อนค่อย ADD FK กัน migration fail

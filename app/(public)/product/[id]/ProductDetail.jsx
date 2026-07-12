@@ -8,7 +8,7 @@ import UseTag from "@/app/components/utils/UseTag";
 import BidHistory from "./BidHistory";
 import { useParams } from "next/navigation";
 import { notifyError } from "@/app/providers/NotificationProvider";
-import { getProductById } from "@/app/services/products.service";
+import { getProductById, getProductConditions, getAuctionDurations } from "@/app/services/products.service";
 import { getBidsByProduct } from "@/app/services/bids.service";
 import { supabase } from "@/app/lib/supabase/client";
 import { useEffect, useState } from "react";
@@ -18,7 +18,14 @@ export default function ProductDetail() {
     const { id } = useParams();
     const [product, setProduct] = useState(null);
     const [bids, setBids] = useState([]);
+    const [conditions, setConditions] = useState([]);
+    const [durations, setDurations] = useState([]);
     const currentUserId = useSelector((state) => state.user.data?.id);
+
+    useEffect(() => {
+        getProductConditions().then(({ data }) => setConditions(data || []));
+        getAuctionDurations().then(({ data }) => setDurations(data || []));
+    }, []);
 
     const fetchBids = async (productId) => {
         const { data } = await getBidsByProduct(productId);
@@ -75,22 +82,29 @@ export default function ProductDetail() {
                             <h1 className="text-3xl font-extrabold mb-4 text-primary">{product?.title}</h1>
                             <p className="text-slate-600 dark:text-slate-300 leading-relaxed">{product?.description}</p>
                         </div>
+                        {/* pd detail */}
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-6 border-y border-slate-100 dark:border-zinc-800">
                             <div className="space-y-1">
-                                <p className="text-xs text-slate-400 uppercase font-bold tracking-widest">ปีที่ผลิต</p>
-                                <p className="font-semibold text-lg">x2023</p>
+                                <p className="text-xs text-slate-400 uppercase font-bold tracking-widest">หมวดหมู่</p>
+                                <p className="font-semibold text-lg">{product?.categories?.name || "-"}</p>
                             </div>
                             <div className="space-y-1">
                                 <p className="text-xs text-slate-400 uppercase font-bold tracking-widest">สภาพสินค้า</p>
-                                <p className="font-semibold text-lg text-emerald-600">xของใหม่ (Mint)</p>
+                                <p className="font-semibold text-lg text-emerald-600">
+                                    {conditions.find((c) => c.value === product?.condition)?.label || "-"}
+                                </p>
                             </div>
                             <div className="space-y-1">
-                                <p className="text-xs text-slate-400 uppercase font-bold tracking-widest">วัสดุ</p>
-                                <p className="font-semibold text-lg">xOystersteel</p>
+                                <p className="text-xs text-slate-400 uppercase font-bold tracking-widest">ระยะเวลาประมูล</p>
+                                <p className="font-semibold text-lg">
+                                    {durations.find((d) => d.value === product?.duration_days)?.label || "-"}
+                                </p>
                             </div>
                             <div className="space-y-1">
-                                <p className="text-xs text-slate-400 uppercase font-bold tracking-widest">การจัดส่ง</p>
-                                <p className="font-semibold text-lg">รับประกันทั่วโลก</p>
+                                <p className="text-xs text-slate-400 uppercase font-bold tracking-widest">ราคาเริ่มต้น</p>
+                                <p className="font-semibold text-lg">
+                                    {product?.start_price ? `฿${Number(product.start_price).toLocaleString("th-TH")}` : "-"}
+                                </p>
                             </div>
                         </div>
                         <div className="space-y-4">

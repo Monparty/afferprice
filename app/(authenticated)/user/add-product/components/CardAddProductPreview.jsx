@@ -9,8 +9,9 @@ import {
     SafetyCertificateFilled,
 } from "@ant-design/icons";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useWatch } from "react-hook-form";
+import { getAuctionDurations } from "@/app/services/products.service";
 import verifiedIcon from "../../../../../public/images/verifiedIcon.png";
 import imageNotFound from "../../../../../public/images/imageNotFound.png";
 import UseModal from "@/app/components/utils/UseModal";
@@ -48,6 +49,11 @@ function CardAddProductPreview({
     isFeePaid = false,
 }) {
     const [kycModalOpen, setKycModalOpen] = useState(false);
+    const [durations, setDurations] = useState([]);
+
+    useEffect(() => {
+        getAuctionDurations().then(({ data }) => setDurations(data || []));
+    }, []);
     // ใช้ที่ "/user/add-product"
     const image = useWatch({
         control,
@@ -100,13 +106,7 @@ function CardAddProductPreview({
                         <div className="text-right">
                             <p className="text-[10px] text-slate-500 uppercase font-bold">เวลาที่เหลือ</p>
                             <p className="text-sm font-bold text-slate-900 dark:text-white">
-                                {{
-                                    0: "10 นาที (TEST)",
-                                    1: "1 วัน",
-                                    5: "5 วัน",
-                                    7: "7 วัน",
-                                    10: "10 วัน",
-                                }[watch("durationDays")] || "00:00:00"}
+                                {durations.find((d) => d.value === watch("durationDays"))?.label || "00:00:00"}
                             </p>
                         </div>
                     </div>

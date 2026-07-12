@@ -1,8 +1,9 @@
 import { Collapse } from "antd";
 
-function UseCollapse({ items, defaultActiveKey, size }) {
+function UseCollapse({ items, defaultActiveKey, size, ...rest }) {
     if (!items?.length) return null;
-    return <Collapse items={items} defaultActiveKey={[defaultActiveKey]} size={size} />;
+    const defaultKeys = Array.isArray(defaultActiveKey) ? defaultActiveKey : [defaultActiveKey];
+    return <Collapse items={items} defaultActiveKey={defaultKeys} size={size} {...rest} />;
 }
 
 export default UseCollapse;

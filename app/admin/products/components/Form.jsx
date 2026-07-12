@@ -20,6 +20,7 @@ import InputNumber from "@/app/components/inputs/InputNumber";
 import UseSelect from "@/app/components/inputs/UseSelect";
 import UseTextArea from "@/app/components/inputs/UseTextArea";
 import { getParentCategories } from "@/app/services/categories.service";
+import { getProductConditions, getAuctionDurations } from "@/app/services/products.service";
 import { getProductById, getListingFeePayment } from "@/app/services/admin/products.service";
 import dayjs from "dayjs";
 import UseTooltip from "@/app/components/utils/UseTooltip";
@@ -46,6 +47,8 @@ function Form({ id, mode, onSubmit }) {
     const originalFilesRef = useRef({ images: [], video: [] });
     const [modalRejected, setModalRejected] = useState(false);
     const [categoryList, setCategoryList] = useState([]);
+    const [conditionList, setConditionList] = useState([]);
+    const [durationList, setDurationList] = useState([]);
     const [feePayment, setFeePayment] = useState(null);
     const watchState = useWatch({ control, name: "state" });
     const isFeePaid = feePayment?.payment_status === "success";
@@ -57,6 +60,8 @@ function Form({ id, mode, onSubmit }) {
             setCategoryList(data);
         };
         onGetParentCategories();
+        getProductConditions().then(({ data }) => setConditionList(data || []));
+        getAuctionDurations().then(({ data }) => setDurationList(data || []));
     }, []);
 
     useEffect(() => {
@@ -136,13 +141,7 @@ function Form({ id, mode, onSubmit }) {
                     {...inputProps}
                     name="durationDays"
                     label="ระยะเวลาประมูล"
-                    options={[
-                        { value: 0, label: "10 นาที (TEST)" },
-                        { value: 1, label: "1 วัน" },
-                        { value: 5, label: "5 วัน" },
-                        { value: 7, label: "7 วัน" },
-                        { value: 10, label: "10 วัน" },
-                    ]}
+                    options={durationList}
                 />
                 <UseSelect
                     {...inputProps}
@@ -157,11 +156,7 @@ function Form({ id, mode, onSubmit }) {
                     {...inputProps}
                     name="condition"
                     label="สภาพสินค้า"
-                    options={[
-                        { value: "new", label: "ใหม่" },
-                        { value: "like_new", label: "เหมือนใหม่" },
-                        { value: "good", label: "มือ 2" },
-                    ]}
+                    options={conditionList}
                 />
                 <UseSelect
                     {...inputProps}
