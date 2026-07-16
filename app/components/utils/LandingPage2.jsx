@@ -469,67 +469,6 @@ function LandingPage2() {
     return (
         <div className="ap-root //bg-[#FAFAF7] text-[#161412] min-h-screen">
             <LocalStyles />
-
-            {/* ============ Header ============ */}
-            <header
-                className="hidden sticky top-0 z-50 border-b border-[#E8E5DE] backdrop-blur-[14px] backdrop-saturate-150"
-                style={{ background: "rgba(250,250,247,.85)" }}
-            >
-                <div className="max-w-[1320px] mx-auto px-8 grid grid-cols-[auto_1fr_auto] items-center gap-8 h-[76px]">
-                    <div className="flex items-center gap-2.5 font-semibold text-[19px] tracking-[-.01em]">
-                        <BrandMark />
-                        <span>Afferprice</span>
-                    </div>
-                    <nav className="flex items-center gap-1 justify-self-center">
-                        {navItems.map((n, i) => (
-                            <a
-                                key={n}
-                                href="#"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    setActiveNav(i);
-                                }}
-                                className={[
-                                    "no-underline px-4 py-2.5 rounded-full text-[15px] font-medium transition-colors",
-                                    i === activeNav
-                                        ? "text-[#161412] bg-white border border-[#E8E5DE] shadow-[0_1px_2px_rgba(20,18,15,.04),0_1px_1px_rgba(20,18,15,.03)]"
-                                        : "text-[#4A4641] hover:bg-[#F4F3EE] hover:text-[#161412]",
-                                ].join(" ")}
-                            >
-                                {n}
-                            </a>
-                        ))}
-                    </nav>
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2.5 w-80 h-11 bg-white border border-[#E8E5DE] rounded-full px-4.5 text-[#8B857E] text-[14px] hover:border-[#DAD6CC] transition px-[18px]">
-                            <Search />
-                            <input
-                                placeholder="ค้นหาสินค้าประมูล..."
-                                className="flex-1 bg-transparent border-0 outline-none text-[#161412]"
-                            />
-                            <span className="font-mono text-[11px] text-[#8B857E] px-1.5 py-0.5 border border-[#E8E5DE] rounded-[5px] bg-[#F4F3EE]">
-                                ⌘ K
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-2 h-10 px-3.5 bg-[#161412] text-white rounded-full font-semibold text-[14px]">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B1A]" />฿ 1,500
-                        </div>
-                        <button className="relative w-10 h-10 grid place-items-center bg-white border border-[#E8E5DE] rounded-full text-[#4A4641] cursor-pointer">
-                            <Bell />
-                            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-[#FF6B1A] text-white rounded-[9px] text-[11px] font-semibold grid place-items-center border-2 border-[#FAFAF7]">
-                                3
-                            </span>
-                        </button>
-                        <div
-                            className="w-10 h-10 rounded-full border border-[#E8E5DE] grid place-items-center text-white font-semibold text-[14px]"
-                            style={{ background: "linear-gradient(135deg, #2A4F8F, #6FA4E8)" }}
-                        >
-                            น
-                        </div>
-                    </div>
-                </div>
-            </header>
-
             <main>
                 {/* ============ Hero ============ */}
                 <section>
@@ -884,37 +823,6 @@ function LandingPage2() {
                     </div>
                 </section>
 
-                {/* ============ Recently sold ============ */}
-                <section className="mt-[72px] bg-[#161412] text-white rounded-[28px] px-6 sm:px-10 py-8 sm:py-9 grid grid-cols-1 lg:grid-cols-[1fr_1.8fr] gap-8 lg:gap-10 items-center">
-                    <div>
-                        <h3 className="m-0 mb-2 text-2xl sm:text-[26px] font-semibold tracking-[-.02em]">ขายแล้วล่าสุด</h3>
-                        <p className="m-0 text-white/65 text-[14px]">
-                            การประมูลที่ปิดดีล เห็นเทรนด์ราคา ก่อนเสนอราคาครั้งต่อไป
-                        </p>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4.5">
-                        {sold.length === 0 && <p className="text-white/50 text-[14px]">ยังไม่มีรายการที่ปิดดีล</p>}
-                        {sold.map((s) => (
-                            <Link
-                                href={`/product/${s.id}`}
-                                key={s.id}
-                                className="flex items-center gap-3 no-underline text-inherit"
-                            >
-                                <div className="w-12 h-12 rounded-lg shrink-0 relative overflow-hidden bg-white/10">
-                                    <Thumb image={s.image} fallback="ap-sold-thumb" alt={s.title} />
-                                </div>
-                                <div className="flex flex-col gap-0.5 min-w-0">
-                                    <div className="text-[13px] font-medium truncate">{s.title}</div>
-                                    <div className="text-[13px] text-[#FF6B1A] font-semibold font-num">
-                                        ฿ {fmtBaht(s.finalPrice)}
-                                    </div>
-                                    <div className="text-[11px] text-white/50">{timeAgo(s.endTime, now)}</div>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                </section>
-
                 {/* ============ How it works ============ */}
                 <section className="mt-24">
                     <SectionHead eyebrow="วิธีใช้งาน" title="ประมูลของสะสมใน 3 ขั้นตอน" showMore={false} />
@@ -1156,87 +1064,6 @@ function LandingPage2() {
                     </div>
                 </section>
             </main>
-
-            {/* ============ Footer ============ */}
-            <footer className="hidden mt-[120px] bg-[#0E0C0A] text-white/70 pt-[72px] pb-9">
-                <div className="max-w-[1320px] mx-auto px-8">
-                    <div className="grid grid-cols-[1.5fr_1fr_1fr_1.4fr] gap-12">
-                        <div>
-                            <div className="flex items-center gap-2.5 text-white text-[22px] font-semibold mb-3.5">
-                                <BrandMark />
-                                <span>Afferprice</span>
-                            </div>
-                            <p className="text-[13px] leading-[1.7] max-w-[320px] text-white/55 m-0">
-                                แพลตฟอร์มประมูลของสะสมระดับโลก มั่นใจได้ด้วยระบบตรวจสอบความถูกต้องแบบเรียลไทม์
-                                และผู้เชี่ยวชาญดูแลทุกรายการ
-                            </p>
-                        </div>
-                        <div>
-                            <h5 className="m-0 mb-4 text-[13px] font-semibold text-white tracking-[.04em]">
-                                แพลตฟอร์ม
-                            </h5>
-                            <ul className="list-none p-0 m-0 flex flex-col gap-2.5">
-                                {["การประมูลสด", "สินค้าใหม่เร็วๆ นี้", "ขั้นตอนการตรวจสอบ", "ค่าธรรมเนียม"].map(
-                                    (l) => (
-                                        <li key={l}>
-                                            <a
-                                                href="#"
-                                                className="text-white/60 no-underline text-[14px] hover:text-[#FF6B1A] transition-colors"
-                                            >
-                                                {l}
-                                            </a>
-                                        </li>
-                                    ),
-                                )}
-                            </ul>
-                        </div>
-                        <div>
-                            <h5 className="m-0 mb-4 text-[13px] font-semibold text-white tracking-[.04em]">
-                                ช่วยเหลือ
-                            </h5>
-                            <ul className="list-none p-0 m-0 flex flex-col gap-2.5">
-                                {["ศูนย์ช่วยเหลือ", "การคุ้มครองผู้ซื้อ", "คู่มือการขาย", "ติดต่อเรา"].map((l) => (
-                                    <li key={l}>
-                                        <a
-                                            href="#"
-                                            className="text-white/60 no-underline text-[14px] hover:text-[#FF6B1A] transition-colors"
-                                        >
-                                            {l}
-                                        </a>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                        <div>
-                            <h5 className="m-0 mb-4 text-[13px] font-semibold text-white tracking-[.04em]">ข่าวสาร</h5>
-                            <p className="text-[13px] text-white/50 m-0">รับข่าวสารเกี่ยวกับสินค้าหายากก่อนใคร</p>
-                            <div className="flex gap-2 mt-3 bg-white/5 border border-white/10 rounded-full py-1.5 pl-4 pr-1.5">
-                                <input
-                                    placeholder="อีเมลของคุณ"
-                                    className="bg-transparent border-0 outline-none text-white flex-1 text-[14px] placeholder:text-white/40"
-                                />
-                                <button className="bg-[#FF6B1A] text-white border-0 px-4.5 h-9 rounded-full font-semibold text-[13px] cursor-pointer px-[18px]">
-                                    ติดตาม
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="mt-16 pt-7 border-t border-white/10 flex justify-between items-center text-[13px] text-white/40">
-                        <span>© 2026 Afferprice Global Inc. สงวนลิขสิทธิ์</span>
-                        <div className="flex gap-7">
-                            <a href="#" className="text-white/50 no-underline hover:text-white transition-colors">
-                                นโยบายความเป็นส่วนตัว
-                            </a>
-                            <a href="#" className="text-white/50 no-underline hover:text-white transition-colors">
-                                เงื่อนไขการให้บริการ
-                            </a>
-                            <a href="#" className="text-white/50 no-underline hover:text-white transition-colors">
-                                นโยบายคุกกี้
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </footer>
         </div>
     );
 }

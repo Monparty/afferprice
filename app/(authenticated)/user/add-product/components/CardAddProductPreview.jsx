@@ -47,6 +47,7 @@ function CardAddProductPreview({
     onSubmit,
     isKyc = "unknown",
     isFeePaid = false,
+    isSubmitted = false,
 }) {
     const [kycModalOpen, setKycModalOpen] = useState(false);
     const [durations, setDurations] = useState([]);
@@ -65,6 +66,31 @@ function CardAddProductPreview({
         banner?.tone === "red"
             ? "bg-red-50 dark:bg-red-950/40 border-red-300 dark:border-red-900"
             : "bg-orange-50 dark:bg-orange-950/40 border-orange-300 dark:border-orange-900";
+
+    // ปุ่มหลัก step 3: KYC → จ่ายเงินค่าประกันการขาย → ส่งตรวจสอบ
+    let mainLabel = activeStep === 3 ? "การบันทึกและส่งตรวจสอบสินค้า" : "ดำเนินการต่อ";
+    let mainDisabled = false;
+    let handleMainClick = () => setActiveStep(activeStep + 1);
+    if (activeStep === 3) {
+        if (isKyc === "pending") {
+            mainLabel = "รอ admin ตรวจสอบ KYC";
+            mainDisabled = true;
+            handleMainClick = undefined;
+        } else if (isKyc !== "approved") {
+            // unknown / rejected → เปิด modal KYC
+            handleMainClick = () => setKycModalOpen(true);
+        } else if (isSubmitted) {
+            mainLabel = "รอ admin ตรวจสอบ";
+            mainDisabled = true;
+            handleMainClick = undefined;
+        } else if (!isFeePaid) {
+            mainLabel = "ชำระเงินค่าประกันการขายก่อน";
+            mainDisabled = true;
+            handleMainClick = undefined;
+        } else {
+            handleMainClick = () => onSubmit("pending_review");
+        }
+    }
 
     return (
         <div className="flex flex-col gap-6">
@@ -138,38 +164,21 @@ function CardAddProductPreview({
                             <span className="text-sm font-semibold text-green-700 dark:text-green-400">ชำระเงินค่าประกันการขายแล้ว</span>
                         </div>
                         <p className="text-xs text-slate-600 dark:text-slate-300">
-                            รอ admin ตรวจสอบและอนุมัติสินค้า ไม่สามารถแก้ไขหรือบันทึกเพิ่มได้
+                            {isSubmitted
+                                ? "รอ admin ตรวจสอบและอนุมัติสินค้า ไม่สามารถแก้ไขหรือบันทึกเพิ่มได้"
+                                : 'กดปุ่ม "การบันทึกและส่งตรวจสอบสินค้า" เพื่อส่งให้ admin ตรวจสอบและเปิดประมูล'}
                         </p>
                     </div>
                 )}
                 <div className="p-5 flex flex-col gap-3 bg-slate-50 dark:bg-zinc-800/50">
                     <UseButton
-                        label={
-                            activeStep === 3
-                                ? isFeePaid
-                                    ? "รอ admin ตรวจสอบ"
-                                    : isKyc === "pending"
-                                      ? "รอ admin ตรวจสอบ KYC"
-                                      : "การบันทึกและส่งตรวจสอบสินค้า"
-                                : "ดำเนินการต่อ"
-                        }
+                        label={mainLabel}
                         icon={ArrowRightOutlined}
                         iconPlacement
                         wFull
                         className="h-12!"
-                        onClick={() => {
-                            if (activeStep === 3) {
-                                if (isFeePaid) return;
-                                if (isKyc === "approved") {
-                                    onSubmit("pending_review");
-                                } else if (isKyc === "unknown" || isKyc === "rejected") {
-                                    setKycModalOpen(true);
-                                }
-                                return;
-                            }
-                            setActiveStep(activeStep + 1);
-                        }}
-                        disabled={activeStep === 3 && (isKyc === "pending" || isFeePaid)}
+                        onClick={handleMainClick}
+                        disabled={mainDisabled}
                     />
                     {activeStep !== 0 && (
                         <UseButton
@@ -190,7 +199,7 @@ function CardAddProductPreview({
                         wFull
                         className="h-12!"
                         onClick={() => onSubmit("draft")}
-                        disabled={isFeePaid}
+                        disabled={isFeePaid || isSubmitted}
                     />
                     <p className="text-[11px] text-center text-slate-400 px-4 leading-relaxed">
                         ในการดำเนินการต่อ คุณยอมรับนโยบายผู้ขายและโครงสร้างค่าธรรมเนียมของเรา

@@ -43,6 +43,7 @@ function AddProductLayout({ productId }) {
     }, [effectiveProductId]);
 
     const isFeePaid = feePayment?.payment_status === "success";
+    const isSubmitted = watch("state") === "pending_review";
 
     useEffect(() => {
         dispatch(fetchUser());
@@ -119,7 +120,9 @@ function AddProductLayout({ productId }) {
             await removeDeletedFiles(originalFilesRef.current.video, value?.video_url || []);
             if (productData) {
                 setValue("productId", productData.id);
+                setValue("state", state);
             }
+            if (opts.silent) return;
             if (state === "pending_review") {
                 notifySuccess("ส่งตรวจสอบสินค้าสำเร็จ");
             } else if (opts.viaKyc) {
@@ -133,6 +136,17 @@ function AddProductLayout({ productId }) {
             notifyError(error);
         }
     };
+
+    // เข้า step 3 (KYC ผ่าน) แต่ยังไม่เคยบันทึก → auto-save ร่างเงียบๆ เพื่อให้มี productId แล้วแสดงกล่องชำระเงินได้เลย
+    const autoDraftRef = useRef(false);
+    useEffect(() => {
+        if (activeStep !== 3) return;
+        if (data?.is_kyc !== "approved") return;
+        if (effectiveProductId) return;
+        if (autoDraftRef.current) return;
+        autoDraftRef.current = true;
+        onSubmit("draft", { silent: true });
+    }, [activeStep, data?.is_kyc, effectiveProductId]);
 
     if (loading) {
         return (
@@ -168,6 +182,7 @@ function AddProductLayout({ productId }) {
                         onSubmit={onSubmit}
                         isKyc={data?.is_kyc ?? "unknown"}
                         isFeePaid={isFeePaid}
+                        isSubmitted={isSubmitted}
                     />
                 </div>
             </div>

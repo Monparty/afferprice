@@ -218,7 +218,7 @@ function AddProductForm({
                         </div>
                     ) : !watchProductId ? (
                         <div className="bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-900 rounded-xl p-4 text-sm text-orange-700 dark:text-orange-300">
-                            กรุณาบันทึกและส่งตรวจสอบสินค้าก่อน จึงจะชำระเงินค่าประกันการขายได้
+                            กำลังเตรียมการชำระเงิน กรุณารอสักครู่...
                         </div>
                     ) : isFeePaid ? (
                         <div className="bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-900 rounded-xl p-4 flex items-center gap-3">

@@ -407,12 +407,14 @@ Schema defined in `db/00_schema.sql`. Key tables:
   - props: `setIsOpenModalProfile`, `onKycSubmitted`, `onSubmitSaveProduct`; หลัง update สำเร็จ → `supabase.rpc("submit_kyc")` → `dispatch(fetchUser())` → เรียก `onKycSubmitted?.()` + `onSubmitSaveProduct?.()`
   - ปุ่ม disabled เมื่อ `is_kyc ∈ ('pending','approved')`
 - **Global KYC gate** (`app/(authenticated)/components/KycGate.jsx`) — mount ใน [(authenticated)/layout.jsx](<../app/(authenticated)/layout.jsx>) ครอบทุกหน้าใน authenticated group; on mount `supabase.auth.getUser()` + `getProfileById` → ถ้า `is_kyc === 'unknown'` เด้ง `UseModal` (`<KycVerificationForm>`) อัตโนมัติให้บันทึก KYC (ปิดได้ผ่าน X, ไม่ block แบบ hard)
-- **Add product KYC gate / submit flow** (`app/(authenticated)/user/add-product/components/CardAddProductPreview.jsx`) — `isKyc` + `isFeePaid` รับจาก `AddProductLayout`:
-  - **ปุ่มหลัก step 3** แยกตาม `isKyc`: `approved` → `onSubmit("pending_review")` (ส่งตรวจสอบได้เลย); `unknown`/`rejected` → เปิด KYC modal (`<KycVerificationForm />`) — หลังส่ง KYC `onSubmitSaveProduct` save เป็น `draft` (เพราะ is_kyc ยังไม่ approved); `pending` → ปุ่ม disabled label "รอ admin ตรวจสอบ KYC"
-  - **"บันทึกเป็นฉบับร่าง"** save `draft` ได้เสมอ (ไม่ block)
-  - แสดง KYC banner เมื่อ `isKyc !== 'approved'` (`unknown`/`rejected` มีปุ่มเปิด modal; `pending` banner อย่างเดียว)
+- **Add product KYC gate / submit flow** (`app/(authenticated)/user/add-product/components/CardAddProductPreview.jsx`) — `isKyc` + `isFeePaid` + `isSubmitted` รับจาก `AddProductLayout`:
+  - **⚠️ ต้องจ่ายเงินค่าประกันการขายก่อนจึงส่งตรวจสอบได้** (เปลี่ยน 2026-07-17 — เดิม KYC `approved` กดส่งตรวจสอบได้เลย จ่ายเงินทีหลังก่อน admin approve ก็ได้; ดูรายละเอียดเต็มใน [functions-log.md](functions-log.md#add-product-step-3--บังคับจ่ายเงินค่าประกันการขายก่อนส่งตรวจสอบ--auto-save-draft--2026-07-17))
+  - **auto-save draft เงียบตอนเข้า step 3**: `AddProductLayout` มี `useEffect` (guard `autoDraftRef`) — `activeStep===3 && is_kyc==='approved' && !productId` → ยิง `onSubmit("draft", {silent:true})` อัตโนมัติ (ไม่มี toast) เพื่อสร้าง `productId` ให้กล่องชำระเงินแสดงได้ทันที ไม่ต้องรอผู้ใช้กด "บันทึกเป็นฉบับร่าง" เอง
+  - **ปุ่มหลัก step 3** ไล่ตามลำดับ: `isKyc==='pending'` → disabled "รอ admin ตรวจสอบ KYC"; `unknown`/`rejected` → เปิด KYC modal (`<KycVerificationForm />` — หลังส่ง KYC `onSubmitSaveProduct` save เป็น `draft`); `isSubmitted` (`state==='pending_review'`) → disabled "รอ admin ตรวจสอบ"; **`!isFeePaid`** → disabled "ชำระเงินค่าประกันการขายก่อน"; มิฉะนั้น (จ่ายแล้ว) → enabled "การบันทึกและส่งตรวจสอบสินค้า" → `onSubmit("pending_review")`
+  - **"บันทึกเป็นฉบับร่าง"** — `disabled={isFeePaid || isSubmitted}` (จ่ายแล้วหรือส่งแล้วล็อกไม่ให้บันทึกร่างซ้ำ)
   - **🔒 จ่ายค่าธรรมเนียมได้เฉพาะ `approved`** — กล่องจ่ายใน `Form.jsx` gate ด้วย `isKyc === 'approved' && productId` (ดู [Add Product Listing Fee](#add-product-listing-fee)); server เช็คซ้ำอีกชั้น
-  - **จ่ายค่าธรรมเนียมแล้ว (`isFeePaid`) → ล็อก**: ปุ่มหลัก + "บันทึกฉบับร่าง" disabled, ปุ่มหลัก label "รอ admin ตรวจสอบ" + banner เขียว "ชำระค่าธรรมเนียมแล้ว"; ปุ่ม "ย้อนกลับ" ยังกดได้
+  - **จ่ายค่าธรรมเนียมแล้ว (`isFeePaid`) แต่ยังไม่ส่งตรวจสอบ** → banner เขียวบอกให้กดปุ่ม "การบันทึกและส่งตรวจสอบสินค้า" ต่อ; **ส่งแล้ว (`isSubmitted`)** → banner เขียว "รอ admin ตรวจสอบและอนุมัติ ไม่สามารถแก้ไข" + ปุ่มหลัก/ร่าง disabled ทั้งคู่; ปุ่ม "ย้อนกลับ" ยังกดได้ทุกกรณี
+  - **⚠️ gate นี้เป็น UI-only** — `upsertProduct` (`app/services/admin/products.service.js`) ยังไม่บังคับ server-side ว่าต้องจ่าย listing fee ก่อน transition เป็น `pending_review`
 - **Admin KYC review** (`app/admin/users/components/KycReviewModal.jsx`):
   - เปิดผ่านปุ่มไอคอน `SafetyCertificateFilled` สีส้มใน `BtnActionGroup` (prop ใหม่ `onViewKyc` — optional, render เฉพาะถ้ามี)
   - โหลด user ผ่าน `getUserById(userId)` (admin service, ใช้ `users_full` view) + signed URL ของ `id_card_image` + `selfie_image` ผ่าน `getIdCardSignedUrlAdmin(path, 300)`
