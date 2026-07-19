@@ -1,10 +1,21 @@
 "use client";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import AddProductLayout from "../../components/AddProductLayout";
 
-function Page() {
+function EditContent() {
     const { id } = useParams();
-    return <AddProductLayout productId={id} />;
+    const searchParams = useSearchParams();
+    const step = Number(searchParams.get("step")) || 0;
+    return <AddProductLayout productId={id} initialStep={step} />;
+}
+
+function Page() {
+    return (
+        <Suspense>
+            <EditContent />
+        </Suspense>
+    );
 }
 
 export default Page;

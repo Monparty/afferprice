@@ -17,6 +17,8 @@ import imageNotFound from "../../../../../public/images/imageNotFound.png";
 import UseModal from "@/app/components/utils/UseModal";
 import UseTag from "@/app/components/utils/UseTag";
 import KycVerificationForm from "../../components/KycVerificationForm";
+import { useRouter } from "next/navigation";
+import { STEP_FIELDS } from "./schema";
 
 const KYC_BANNER = {
     unknown: {
@@ -45,6 +47,7 @@ function CardAddProductPreview({
     activeStep,
     setActiveStep,
     onSubmit,
+    trigger,
     isKyc = "unknown",
     isFeePaid = false,
     isSubmitted = false,
@@ -67,10 +70,17 @@ function CardAddProductPreview({
             ? "bg-red-50 dark:bg-red-950/40 border-red-300 dark:border-red-900"
             : "bg-orange-50 dark:bg-orange-950/40 border-orange-300 dark:border-orange-900";
 
+    // step 0-2: ตรวจ yup ให้ครบก่อน แล้วค่อยไป step ถัดไป (กันเข้า step 3 ทั้งที่ข้อมูลไม่ครบ)
+    const goNext = async () => {
+        const valid = await trigger(STEP_FIELDS[activeStep] ?? []);
+        if (!valid) return;
+        setActiveStep(activeStep + 1);
+    };
+
     // ปุ่มหลัก step 3: KYC → จ่ายเงินค่าประกันการขาย → ส่งตรวจสอบ
     let mainLabel = activeStep === 3 ? "การบันทึกและส่งตรวจสอบสินค้า" : "ดำเนินการต่อ";
     let mainDisabled = false;
-    let handleMainClick = () => setActiveStep(activeStep + 1);
+    let handleMainClick = goNext;
     if (activeStep === 3) {
         if (isKyc === "pending") {
             mainLabel = "รอ admin ตรวจสอบ KYC";
@@ -91,6 +101,8 @@ function CardAddProductPreview({
             handleMainClick = () => onSubmit("pending_review");
         }
     }
+
+    const router = useRouter();
 
     return (
         <div className="flex flex-col gap-6">

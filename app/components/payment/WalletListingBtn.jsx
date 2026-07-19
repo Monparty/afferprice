@@ -67,18 +67,18 @@ function WalletListingBtn({ productId, amount, onSuccess }) {
         );
     }
 
+    const param = productId ? `/user/wallet?productId=${productId}` : "/user/wallet";
+
     return (
         <PaymentMethodCard
             icon={WalletFilled}
             title="ชำระด้วย Wallet"
             subtitle={`ยอดคงเหลือ ฿${balance.toLocaleString()}`}
         >
-            {insufficient && (
-                <p className="text-xs text-red-500 mb-2">ยอดคงเหลือไม่เพียงพอ กรุณาเติมเงินก่อน</p>
-            )}
+            {insufficient && <p className="text-xs text-red-500 mb-2">ยอดคงเหลือไม่เพียงพอ กรุณาเติมเงินก่อน</p>}
             <UseButton
                 label={insufficient ? "เติมเงินเข้า Wallet" : `ชำระด้วย Wallet (฿${amount.toLocaleString()})`}
-                onClick={insufficient ? () => router.push("/user/wallet") : handlePay}
+                onClick={insufficient ? () => router.push(param) : handlePay}
                 loading={submitting}
                 disabled={submitting || !productId || !amount}
                 wFull

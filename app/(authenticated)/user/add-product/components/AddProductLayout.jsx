@@ -1,5 +1,7 @@
 "use client";
 import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { addProductSchema } from "./schema";
 import CardAddProductPreview from "@/app/(authenticated)/user/add-product/components/CardAddProductPreview";
 import { useEffect, useRef, useState } from "react";
 import { getParentCategories } from "@/app/services/categories.service";
@@ -12,17 +14,21 @@ import { fetchUser } from "@/app/features/user/userSlice";
 import AddProductForm from "./AddProductForm";
 import AddProductSteps from "./AddProductSteps";
 import UseSkeleton from "@/app/components/utils/UseSkeleton";
+import { useRouter } from "next/navigation";
 
-function AddProductLayout({ productId }) {
-    const [activeStep, setActiveStep] = useState(0);
+function AddProductLayout({ productId, initialStep = 0 }) {
+    const [activeStep, setActiveStep] = useState(initialStep);
     const originalFilesRef = useRef({ images: [], video: [] });
     const [categoryList, setCategoryList] = useState([]);
-    const { watch, control, getValues, setValue, reset } = useForm({
+    const { watch, control, getValues, setValue, reset, trigger } = useForm({
+        resolver: yupResolver(addProductSchema),
+        mode: "onChange",
         defaultValues: {
             isSeller: true,
         },
     });
     const dispatch = useDispatch();
+    const router = useRouter();
     const { data, loading, error } = useSelector((state) => state.user);
 
     const watchProductId = watch("productId");
@@ -122,12 +128,12 @@ function AddProductLayout({ productId }) {
                 setValue("productId", productData.id);
                 setValue("state", state);
             }
-            if (opts.silent) return;
+            if (opts.silent) return productData?.id;
             if (state === "pending_review") {
                 notifySuccess("ส่งตรวจสอบสินค้าสำเร็จ");
             } else if (opts.viaKyc) {
                 notifySuccess(
-                    "บันทึกสินค้าเป็นร่างแล้ว — เมื่อ admin อนุมัติ KYC กรุณากลับมากด \"ส่งตรวจสอบสินค้า\" อีกครั้งเพื่อเปิดประมูล",
+                    'บันทึกสินค้าเป็นร่างแล้ว — เมื่อ admin อนุมัติ KYC กรุณากลับมากด "ส่งตรวจสอบสินค้า" อีกครั้งเพื่อเปิดประมูล',
                 );
             } else {
                 notifySuccess("บันทึกร่างสำเร็จ");
@@ -145,7 +151,9 @@ function AddProductLayout({ productId }) {
         if (effectiveProductId) return;
         if (autoDraftRef.current) return;
         autoDraftRef.current = true;
-        onSubmit("draft", { silent: true });
+        onSubmit("draft", { silent: true }).then((newId) => {
+            if (newId) router.push(`/user/add-product/${newId}/edit?step=3`);
+        });
     }, [activeStep, data?.is_kyc, effectiveProductId]);
 
     if (loading) {
@@ -180,6 +188,7 @@ function AddProductLayout({ productId }) {
                         activeStep={activeStep}
                         setActiveStep={setActiveStep}
                         onSubmit={onSubmit}
+                        trigger={trigger}
                         isKyc={data?.is_kyc ?? "unknown"}
                         isFeePaid={isFeePaid}
                         isSubmitted={isSubmitted}

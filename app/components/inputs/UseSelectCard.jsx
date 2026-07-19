@@ -77,8 +77,8 @@ function UseSelectCard({ control, name, label, options, type = "radio", dot = fa
                                 </label>
                             );
                         })}
-                        {error && <UseHelperText errorMessage={error.message} />}
                     </div>
+                    {error && <UseHelperText errorMessage={error.message} />}
                 </>
             )}
         />
