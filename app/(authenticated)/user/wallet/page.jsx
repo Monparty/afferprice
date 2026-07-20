@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import {
     WalletFilled,
@@ -301,7 +301,7 @@ function WithdrawModal({ open, onClose, balance, onSuccess }) {
     );
 }
 
-function Page() {
+function WalletContent() {
     const dispatch = useDispatch();
     const [userId, setUserId] = useState(null);
     const [balance, setBalance] = useState(0);
@@ -312,7 +312,7 @@ function Page() {
     const [withdrawOpen, setWithdrawOpen] = useState(false);
 
     const searchParams = useSearchParams();
-    const productId = String(searchParams.get("productId")) || null;
+    const productId = searchParams.get("productId") || null;
     const router = useRouter();
 
     const refresh = async () => {
@@ -436,6 +436,14 @@ function Page() {
                 onSuccess={refresh}
             />
         </main>
+    );
+}
+
+function Page() {
+    return (
+        <Suspense fallback={null}>
+            <WalletContent />
+        </Suspense>
     );
 }
 
